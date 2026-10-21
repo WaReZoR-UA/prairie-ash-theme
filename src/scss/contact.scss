@@ -1,0 +1,152 @@
+@use "shared" as *;
+
+// Contact page: title, details, message form, error and sent states (Site row 12)
+
+// Paper title, text beside the entrance photo; text first below $tablet
+.contact-title {
+	background-color: $paper;
+	color: $onPaper;
+	@include space("padding-top", 9);
+	@include space("padding-bottom", 9);
+	&__container {
+		display: flex;
+		align-items: center;
+		@include space("gap", 7);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__text {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__eyebrow {
+		color: $accentOnPaper;
+	}
+	&__heading {
+		@include signM;
+	}
+	&__intro {
+		max-width: toRem(520);
+		@include bodyLead;
+	}
+	&__media {
+		flex: 0 1 toRem(640);
+		aspect-ratio: 4 / 3;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+}
+
+// Running text that fills its desktop column and keeps the 520 measure once stacked
+.contact-measure {
+	@media (max-width: $tablet) {
+		max-width: toRem(520);
+	}
+}
+
+// Phone, email and address as prose with a list of links, beside the intro
+.contact-details {
+	&__container {
+		display: flex;
+		align-items: flex-start;
+		@include space("column-gap", 8);
+		@include space("row-gap", 7);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__intro {
+		flex: 0 1 toRem(520);
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__heading {
+		@include heading2;
+	}
+	&__body {
+		max-width: toRem(520);
+		@include bodyLead;
+	}
+	&__contact {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__prose {
+		@include bodyLead;
+	}
+	&__links {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: toRem(8);
+	}
+}
+
+// Intro with the photo beside the message form; stacked below $tablet
+.contact-message {
+	&__container {
+		display: flex;
+		align-items: flex-start;
+		@include space("column-gap", 8);
+		@include space("row-gap", 7);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__intro {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 6);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__heading {
+		@include heading2;
+	}
+	&__body {
+		@include bodyLead;
+	}
+	&__media {
+		align-self: stretch;
+		aspect-ratio: 3 / 2;
+	}
+	&__form {
+		flex: 0 1 toRem(584);
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+		.form-panel {
+			flex: 0 0 auto;
+		}
+	}
+}

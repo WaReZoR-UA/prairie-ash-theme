@@ -1,0 +1,55 @@
+@use "../../shared" as *;
+
+// <BUTTONS>
+// Сніппет (HTML): btn
+// @use "button";
+
+// <INPUTS>
+// Сніппет (HTML): inp
+@use "input";
+
+// <CHECK>
+// Сніппет (HTML): chk
+@use "checkbox";
+
+// <RADIO>
+// Сніппет (HTML): opt
+@use "radio";
+
+// <SELECT>
+// Сніппет (HTML): sel
+// @use "select";
+
+// <RATING>
+// Сніппет (HTML): rating
+// @use "rating";
+
+// <QUANTITY>
+// Сніппет (HTML): qa
+// @use "quantity";
+
+// <RANGE>
+// Сніппет (HTML):
+// @use "range";
+
+// <CALENDAR>
+// Сніппет (HTML):
+// @use "datepicker";
+
+//<FORM>
+// Сніппет (HTML):
+.form {
+	&__row {
+	}
+	&__column {
+	}
+	&__line {
+	}
+	&__input {
+	}
+	&__button {
+	}
+	&__error {
+	}
+}
+//</FORM>

@@ -1,0 +1,227 @@
+@use "shared" as *;
+
+// Cart page (WooCommerce cart): line items, order summary, empty state (Site row 5)
+
+.cart-items {
+	background-color: $paper;
+	color: $onPaper;
+	@include space("padding-top", 9);
+	@include space("padding-bottom", 9);
+	&__title {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 4);
+		@include space("margin-bottom", 7);
+	}
+	&__eyebrow {
+		color: $accentOnPaper;
+		@include bodyEyebrow;
+	}
+	&__heading {
+		@include signM;
+	}
+}
+
+// Columns: thumbnail, text, quantity, each, total. Each drops below $tablet (it joins the details line).
+.cart-table {
+	--cart-columns: #{toRem(120)} minmax(0, 1fr) #{toRem(160)} #{toRem(140)} #{toRem(140)};
+	display: flex;
+	flex-direction: column;
+	@include space("gap", 6);
+	@media (max-width: $tablet) {
+		--cart-columns: #{toRem(96)} minmax(0, 1fr) #{toRem(112)} #{toRem(96)};
+	}
+	&__head {
+		display: grid;
+		grid-template-columns: var(--cart-columns);
+		@include space("column-gap", 5);
+		@include labelS;
+		@media (max-width: $mobile) {
+			display: none;
+		}
+	}
+	&__col--coffee {
+		grid-column: 1 / 3;
+	}
+	&__col--each {
+		grid-column: 4;
+		text-align: right;
+		@media (max-width: $tablet) {
+			display: none;
+		}
+	}
+	&__col--total {
+		grid-column: -2;
+		text-align: right;
+	}
+	&__list {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 6);
+	}
+}
+
+// One cart item (WooCommerce cart item row)
+.cart-line {
+	display: grid;
+	grid-template-columns: var(--cart-columns);
+	grid-template-areas: "thumb text quantity each total";
+	align-items: start;
+	// 24 on desktop, 12 between thumbnail and text on the mobile frame
+	@include fluid("column-gap", 24, 12);
+	@media (max-width: $tablet) {
+		grid-template-areas: "thumb text quantity total";
+	}
+	@media (max-width: $mobile) {
+		// the quantity field spans the thumbnail, a gap and a 20 track: 112 wide as drawn
+		grid-template-columns: toRem(80) toRem(20) minmax(0, 1fr);
+		grid-template-areas:
+			"thumb text text"
+			"quantity quantity total";
+		@include space("row-gap", 5);
+	}
+	&__thumb {
+		grid-area: thumb;
+		aspect-ratio: 1;
+	}
+	&__text {
+		grid-area: text;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 3);
+	}
+	&__name {
+		@include heading4;
+	}
+	&__each-inline {
+		@media (min-width: em(992)) {
+			display: none;
+		}
+	}
+	&__quantity {
+		grid-area: quantity;
+		min-width: 0;
+	}
+	&__each {
+		grid-area: each;
+		text-align: right;
+		@include heading4;
+		@media (max-width: $tablet) {
+			display: none;
+		}
+	}
+	&__total {
+		grid-area: total;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		text-align: right;
+		gap: toRem(8);
+	}
+	&__total-label {
+		@include labelS;
+		@media (min-width: em(768)) {
+			position: absolute;
+			overflow: hidden;
+			clip-path: inset(50%);
+			white-space: nowrap;
+		}
+	}
+	&__total-value {
+		@include heading4;
+	}
+}
+
+// Order summary on the brick wall: text left, totals right; stacked below $tablet
+.cart-summary {
+	&__container {
+		display: flex;
+		align-items: flex-start;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__text {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__title {
+		@include heading2;
+	}
+	&__note {
+		max-width: toRem(520);
+	}
+	&__totals {
+		flex: 0 1 toRem(520);
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 6);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+			max-width: toRem(520);
+		}
+	}
+	&__actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		@include space("gap", 5);
+	}
+}
+
+// State: the cart is empty
+.cart-empty {
+	background-color: $paper;
+	color: $onPaper;
+	@include space("padding-top", 9);
+	@include space("padding-bottom", 9);
+	&__container {
+		display: flex;
+		align-items: center;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__text {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__eyebrow {
+		color: $accentOnPaper;
+		@include bodyEyebrow;
+	}
+	&__heading {
+		@include signM;
+	}
+	&__body {
+		max-width: toRem(520);
+		@include bodyLead;
+	}
+	&__media {
+		flex: 0 1 toRem(560);
+		aspect-ratio: 4 / 3;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+}

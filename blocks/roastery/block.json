@@ -1,0 +1,88 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "prairie-ash/roastery",
+	"title": "Roastery behind the glass",
+	"description": "The roaster behind the window, the painted wall advert and what the label on the bag tells you.",
+	"category": "prairie-ash",
+	"icon": "store",
+	"keywords": [
+		"roastery",
+		"roaster",
+		"glass"
+	],
+	"textdomain": "prairie-ash",
+	"attributes": {
+		"className": {
+			"type": "string"
+		},
+		"paStyle": {
+			"type": "object",
+			"default": {}
+		}
+	},
+	"supports": {
+		"anchor": true,
+		"align": false,
+		"html": false,
+		"customCSS": false,
+		"customClassName": false,
+		"color": {
+			"background": true,
+			"text": true,
+			"gradients": false,
+			"link": false,
+			"enableContrastChecker": false,
+			"__experimentalSkipSerialization": true,
+			"__experimentalDefaultControls": {
+				"background": true,
+				"text": true
+			}
+		},
+		"spacing": {
+			"padding": [
+				"top",
+				"bottom",
+				"left",
+				"right"
+			],
+			"margin": [
+				"top",
+				"bottom"
+			],
+			"__experimentalSkipSerialization": true,
+			"__experimentalDefaultControls": {
+				"padding": true,
+				"margin": true
+			}
+		},
+		"dimensions": {
+			"minHeight": true,
+			"__experimentalSkipSerialization": true,
+			"__experimentalDefaultControls": {
+				"minHeight": true
+			}
+		},
+		"background": {
+			"backgroundImage": true,
+			"backgroundSize": true,
+			"__experimentalSkipSerialization": true,
+			"__experimentalDefaultControls": {
+				"backgroundImage": true
+			}
+		}
+	},
+	"example": {
+		"attributes": {
+			"mode": "preview",
+			"data": {
+				"field_pa_roastery_heading": "Watch your coffee being roasted"
+			}
+		}
+	},
+	"acf": {
+		"blockVersion": 3,
+		"renderTemplate": "render.php",
+		"autoInlineEditing": false
+	}
+}

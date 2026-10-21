@@ -1,0 +1,139 @@
+@use "shared" as *;
+
+// Wholesale page: painted trade sign, offer and inquiry form, success and error states (Site row 10)
+
+// Trade sign painted on the wall beside the pallet photo; one column below $tablet, photo under the sign
+.wholesale-title {
+	&__container {
+		display: flex;
+		align-items: center;
+		@include space("column-gap", 7);
+		@include space("row-gap", 5);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__sign {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+		@include space("padding", 7);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__text,
+	&__aside {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 5);
+	}
+	&__heading {
+		@include signM;
+	}
+	&__intro {
+		max-width: toRem(520);
+		@include bodyLead;
+	}
+	&__media {
+		flex: 0 1 toRem(536);
+		aspect-ratio: 4 / 5;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+			aspect-ratio: 4 / 3;
+		}
+	}
+}
+
+// What an account includes beside the inquiry form; stacked below $tablet
+.wholesale-inquiry {
+	&__container {
+		display: flex;
+		align-items: flex-start;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__offer {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 6);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__heading {
+		@include heading2;
+	}
+	&__terms {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+	}
+	&__body {
+		max-width: toRem(520);
+	}
+	&__media {
+		aspect-ratio: 3 / 2;
+	}
+	&__form {
+		flex: 0 1 toRem(584);
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 7);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+		.form-panel {
+			flex: 0 0 auto;
+		}
+	}
+}
+
+// Three figures in a row; below $mobile each figure is a baseline row with an 88 number column.
+// Row gaps only act in the stacked direction, so the drawn 12 needs no media query.
+.figures {
+	display: flex;
+	row-gap: toRem(12);
+	@include space("column-gap", 6);
+	@media (max-width: $mobile) {
+		flex-direction: column;
+	}
+	&__item {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		row-gap: toRem(8);
+		column-gap: toRem(12);
+		@media (max-width: $mobile) {
+			flex: 0 0 auto;
+			flex-direction: row;
+			align-items: baseline;
+		}
+	}
+	&__number {
+		@include heading1;
+		@media (max-width: $mobile) {
+			flex: 0 0 toRem(88);
+		}
+	}
+	&__caption {
+		max-width: toRem(520);
+		@media (max-width: $mobile) {
+			flex: 1 1 0;
+			min-width: 0;
+		}
+	}
+}
+

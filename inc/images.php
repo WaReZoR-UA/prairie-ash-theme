@@ -1,0 +1,490 @@
+<?php
+/**
+ * The media pipeline: the sub-sizes the design draws, the format and quality
+ * they are saved in, and the sizes attribute of every image slot.
+ *
+ * The full account, with the measured slot widths behind every number, is in
+ * PERFORMANCE.md.
+ *
+ * @package PrairieAsh
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * The widths every image slot in the theme is drawn from.
+ *
+ * One ladder for every slot, because every slot keeps the picture's own
+ * proportions and crops with object-fit in the stylesheet, so a width-only
+ * size serves them all and lands in every srcset. The rungs were chosen
+ * against every slot width measured from 360 to 1920 pixels wide, at one and
+ * two device pixels per CSS pixel: 160 answers the cart and receipt
+ * thumbnails, 320 to 720 the phone, the cards and the desktop columns, 960 to
+ * 1600 the tablet column and the two-pixel desktop. The top of the ladder is
+ * the full image itself, in the same three formats as the rungs, and core
+ * never writes a rung wider than the upload.
+ *
+ * @since 1.0.0
+ *
+ * @return int[] Widths in pixels, smallest first.
+ */
+function prairie_ash_image_widths() {
+	return array( 160, 320, 480, 720, 960, 1280, 1600 );
+}
+
+/**
+ * The sizes attribute of every image slot, keyed by the slot's own class.
+ *
+ * Each value is the width the picture is drawn at, measured in a browser at
+ * thirteen viewport widths from 360 to 1920 and fitted per breakpoint of the
+ * design: the phone and tablet column below 992 pixels, the desktop layout
+ * up to 1440, and the capped container above it. Where a slot crops a
+ * picture with object-fit, the value is the width of the cropped picture,
+ * not of its box, because that is the width the file has to cover. A slot
+ * whose layout changes in this table changes here and nowhere else.
+ *
+ * @since 1.0.0
+ *
+ * @param string $slot The slot's class, e.g. 'hero__media'.
+ * @return string The sizes attribute, or 100vw for an unknown slot.
+ */
+function prairie_ash_slot_sizes( $slot ) {
+	$column = '(max-width: 61.99875em) calc(93vw - 22px), ';
+
+	$sizes = array(
+		'hero__media'              => '(max-width: 89.99875em) calc(93vw - 22px), 1312px',
+		'roastery-title__media'    => '(max-width: 89.99875em) calc(93vw - 22px), 1312px',
+		'visit-title__media'       => $column . '720px',
+		'roastery__media'          => $column . '640px',
+		'roastery__team-media'     => $column . '600px',
+		'coffees__media'           => $column . '522px',
+		'cupping__media'           => $column . '600px',
+		'cupping__media-wide'      => 'calc(93vw - 22px)',
+		'menu__media'              => $column . '600px',
+		'wholesale__media'         => $column . '640px',
+		'visit__media'             => $column . '600px',
+		'shop-title__media'        => $column . '640px',
+		'menu-title__media'        => '(max-width: 61.99875em) calc(90vw - 68px), 560px',
+		'menu-pastries__media'     => $column . '640px',
+		'roastery-roaster__media'  => $column . '640px',
+		'origin__media'            => $column . '624px',
+		'roastery-people__media'   => $column . '480px',
+		'roastery-cupping__media'  => $column . '600px',
+		'about-story__media'       => $column . '(max-width: 74.99875em) 768px, 640px',
+		'contact-title__media'     => $column . '644px',
+		'contact-message__media'   => $column . '664px',
+		'wholesale-inquiry__media' => $column . '664px',
+		'sent__media'              => $column . '668px',
+		'wholesale-title__media'   => $column . '540px',
+		'signup-done__media'       => $column . '718px',
+		'shipping-title__media'    => $column . '644px',
+		'shipping-part__media'     => $column . '524px',
+		'cart-empty__media'        => $column . '560px',
+		'product-story__media'     => $column . '720px',
+		'product-brewing__media'   => $column . '640px',
+		'person__media'            => '(max-width: 33.75em) calc(93vw - 22px), (max-width: 47.99875em) 484px, (max-width: 61.99875em) calc(39vw - 11px), 484px',
+		'visit-access__photo'      => '(max-width: 47.99875em) calc(93vw - 22px), (max-width: 61.99875em) calc(49vw - 12px), (max-width: 89.99875em) calc(49vw - 14px), 676px',
+		'visit-route__map'         => '(max-width: 44.5em) calc(93vw - 22px), 640px',
+		'visit-route__map-wide'    => '640px',
+		'product-card__media'      => '(max-width: 47.99875em) calc(93vw - 22px), (max-width: 61.99875em) calc(46vw - 12px), (max-width: 89.99875em) calc(31vw - 13px), 424px',
+		'shop-list__next-media'    => '(max-width: 47.99875em) calc(156vw - 36px), (max-width: 61.99875em) calc(77vw - 25px), (max-width: 89.99875em) calc(62vw - 16px), 868px',
+		'product-summary__media'   => '(max-width: 47.99875em) calc(93vw - 22px), (max-width: 61.99875em) 300px, 564px',
+		'product-summary__detail'  => '(max-width: 47.99875em) calc(47vw - 18px), (max-width: 61.99875em) 144px, 276px',
+		'cart-line__thumb'         => '(max-width: 47.99875em) 80px, (max-width: 61.99875em) 96px, 120px',
+		'review-line__thumb'       => '(max-width: 47.99875em) 56px, (max-width: 61.99875em) 72px, 80px',
+		'receipt-line__thumb'      => '(max-width: 47.99875em) 64px, 80px',
+	);
+
+	return $sizes[ $slot ] ?? '100vw';
+}
+
+/**
+ * Register the theme's image sizes, one per width on the ladder.
+ *
+ * @since 1.0.0
+ *
+ * @return void
+ */
+function prairie_ash_register_image_sizes() {
+	foreach ( prairie_ash_image_widths() as $width ) {
+		add_image_size( 'prairie-ash-' . $width, $width, 0, false );
+	}
+}
+add_action( 'after_setup_theme', 'prairie_ash_register_image_sizes' );
+
+/**
+ * Keep only the theme's own sizes in the size registry.
+ *
+ * Core's thumbnail, medium, medium_large and large sizes are options rather
+ * than registered sizes, so they cannot be removed with remove_image_size().
+ * Filtering the registry removes them from every place that reads it: the
+ * sub-sizes made on upload, the regeneration tools, and the size list the
+ * block editor reads when it processes an upload in the browser, which reads
+ * the registry and never intermediate_image_sizes_advanced.
+ *
+ * @since 1.0.0
+ *
+ * @param string[] $sizes Registered size names.
+ * @return string[]
+ */
+function prairie_ash_keep_theme_image_sizes( $sizes ) {
+	return array_values(
+		array_filter(
+			$sizes,
+			static function ( $size ) {
+				return str_starts_with( $size, 'prairie-ash-' );
+			}
+		)
+	);
+}
+add_filter( 'intermediate_image_sizes', 'prairie_ash_keep_theme_image_sizes' );
+
+/**
+ * Unregister the sizes core and plugins add on top of the theme's.
+ *
+ * The registry filter already stops them being generated. Unregistering them
+ * as well matters for WooCommerce, which resizes an image on the fly and saves
+ * the file whenever one of its own sizes is requested and has_image_size()
+ * still answers true. Runs after WooCommerce registers its sizes on init.
+ *
+ * @since 1.0.0
+ *
+ * @return void
+ */
+function prairie_ash_remove_other_image_sizes() {
+	foreach ( array_keys( wp_get_additional_image_sizes() ) as $size ) {
+		if ( ! str_starts_with( $size, 'prairie-ash-' ) ) {
+			remove_image_size( $size );
+		}
+	}
+}
+add_action( 'init', 'prairie_ash_remove_other_image_sizes', 20 );
+
+/**
+ * The formats written beside every JPEG and PNG upload and each of its sizes,
+ * best first: AVIF, then WebP, each only where the image editor can write it.
+ *
+ * The upload's own format stays on disk as the fallback every browser can
+ * show, so a host without AVIF support serves WebP and JPEG with no change to
+ * the theme.
+ *
+ * @since 1.0.0
+ *
+ * @return string[] MIME types.
+ */
+function prairie_ash_image_formats() {
+	static $formats = null;
+
+	if ( null === $formats ) {
+		$formats = array();
+
+		foreach ( array( 'image/avif', 'image/webp' ) as $mime ) {
+			if ( wp_image_editor_supports( array( 'mime_type' => $mime ) ) ) {
+				$formats[] = $mime;
+			}
+		}
+	}
+
+	return $formats;
+}
+
+/**
+ * The file name of an image in another format.
+ *
+ * The source extension stays in the name, so photo-720x480.jpg becomes
+ * photo-720x480-jpg.avif and can never collide with a separate upload called
+ * photo.avif.
+ *
+ * @since 1.0.0
+ *
+ * @param string $file File name or path of the source image.
+ * @param string $mime Target MIME type.
+ * @return string
+ */
+function prairie_ash_format_file_name( $file, $mime ) {
+	$info = pathinfo( $file );
+	$dir  = isset( $info['dirname'] ) && '.' !== $info['dirname'] ? trailingslashit( $info['dirname'] ) : '';
+
+	return $dir . $info['filename'] . '-' . strtolower( $info['extension'] ) . '.' . ( 'image/avif' === $mime ? 'avif' : 'webp' );
+}
+
+/**
+ * Write the AVIF and WebP copies of an image and each of its sizes, and record
+ * them in the attachment metadata.
+ *
+ * Runs on every metadata write, which covers an upload, a regeneration and the
+ * sizes the block editor uploads after processing an image in the browser.
+ * Every copy is resized from the full image rather than from the JPEG size, so
+ * it is compressed once. A copy newer than its source is kept, so the repeated
+ * writes core makes while it builds the sizes encode each copy once.
+ *
+ * Copies are recorded under a sources key beside each file, and
+ * prairie_ash_delete_image_formats() removes them with the attachment.
+ *
+ * @since 1.0.0
+ *
+ * @param array $data          Attachment metadata.
+ * @param int   $attachment_id Attachment ID.
+ * @return array
+ */
+function prairie_ash_add_image_formats( $data, $attachment_id ) {
+	unset( $attachment_id );
+
+	if ( ! is_array( $data ) || empty( $data['file'] ) || empty( $data['width'] ) ) {
+		return $data;
+	}
+
+	$full = trailingslashit( wp_get_upload_dir()['basedir'] ) . $data['file'];
+	$type = wp_check_filetype( $full )['type'];
+
+	if ( ! in_array( $type, array( 'image/jpeg', 'image/png' ), true ) || ! file_exists( $full ) ) {
+		return $data;
+	}
+
+	$dir     = trailingslashit( dirname( $full ) );
+	$targets = array( 'full' => array( $full, 0, 0 ) );
+
+	foreach ( (array) ( $data['sizes'] ?? array() ) as $name => $size ) {
+		$targets[ $name ] = array( $dir . $size['file'], (int) $size['width'], (int) $size['height'] );
+	}
+
+	foreach ( prairie_ash_image_formats() as $mime ) {
+		foreach ( $targets as $name => $target ) {
+			list( $source, $width, $height ) = $target;
+
+			if ( ! file_exists( $source ) ) {
+				continue;
+			}
+
+			$copy = prairie_ash_format_file_name( $source, $mime );
+
+			if ( ! file_exists( $copy ) || filemtime( $copy ) < filemtime( $source ) ) {
+				$editor = wp_get_image_editor( $full );
+
+				if ( is_wp_error( $editor ) ) {
+					continue;
+				}
+
+				if ( $width && is_wp_error( $editor->resize( $width, $height, true ) ) ) {
+					continue;
+				}
+
+				if ( is_wp_error( $editor->save( $copy, $mime ) ) ) {
+					continue;
+				}
+			}
+
+			$entry = array(
+				'file'     => wp_basename( $copy ),
+				'filesize' => (int) wp_filesize( $copy ),
+			);
+
+			if ( 'full' === $name ) {
+				$data['sources'][ $mime ] = $entry;
+			} else {
+				$data['sizes'][ $name ]['sources'][ $mime ] = $entry;
+			}
+		}
+	}
+
+	return $data;
+}
+add_filter( 'wp_update_attachment_metadata', 'prairie_ash_add_image_formats', 10, 2 );
+
+/**
+ * Delete the AVIF and WebP copies with their attachment.
+ *
+ * Core deletes the files its own metadata names and nothing under sources.
+ * Runs before core removes the metadata.
+ *
+ * @since 1.0.0
+ *
+ * @param int $post_id Attachment ID.
+ * @return void
+ */
+function prairie_ash_delete_image_formats( $post_id ) {
+	$meta = wp_get_attachment_metadata( $post_id );
+
+	if ( ! is_array( $meta ) || empty( $meta['file'] ) ) {
+		return;
+	}
+
+	$base  = wp_get_upload_dir()['basedir'];
+	$dir   = trailingslashit( dirname( trailingslashit( $base ) . $meta['file'] ) );
+	$lists = array( $meta['sources'] ?? array() );
+
+	foreach ( (array) ( $meta['sizes'] ?? array() ) as $size ) {
+		$lists[] = $size['sources'] ?? array();
+	}
+
+	foreach ( $lists as $sources ) {
+		foreach ( $sources as $source ) {
+			wp_delete_file_from_directory( $dir . $source['file'], $base );
+		}
+	}
+}
+add_action( 'delete_attachment', 'prairie_ash_delete_image_formats' );
+
+/**
+ * The srcset of an image in another format, candidate for candidate.
+ *
+ * Built from core's own srcset for the image, so every format offers the same
+ * widths. A candidate with no copy in that format is left out.
+ *
+ * @since 1.0.0
+ *
+ * @param int    $attachment_id Attachment ID.
+ * @param string $mime          Target MIME type.
+ * @return string The srcset, or an empty string when there is no copy.
+ */
+function prairie_ash_format_srcset( $attachment_id, $mime ) {
+	$meta = wp_get_attachment_metadata( $attachment_id );
+
+	if ( ! is_array( $meta ) || empty( $meta['file'] ) ) {
+		return '';
+	}
+
+	$copies = array();
+
+	if ( isset( $meta['sources'][ $mime ] ) ) {
+		$copies[ wp_basename( $meta['file'] ) ] = $meta['sources'][ $mime ]['file'];
+	}
+
+	foreach ( (array) ( $meta['sizes'] ?? array() ) as $size ) {
+		if ( isset( $size['sources'][ $mime ] ) ) {
+			$copies[ $size['file'] ] = $size['sources'][ $mime ]['file'];
+		}
+	}
+
+	$srcset = (string) wp_get_attachment_image_srcset( $attachment_id, 'full' );
+
+	if ( '' === $srcset ) {
+		$url  = (string) wp_get_attachment_image_url( $attachment_id, 'full' );
+		$name = wp_basename( $url );
+
+		return isset( $copies[ $name ] ) ? substr( $url, 0, -strlen( $name ) ) . $copies[ $name ] : '';
+	}
+
+	$out = array();
+
+	foreach ( explode( ', ', $srcset ) as $candidate ) {
+		list( $url, $descriptor ) = array_pad( explode( ' ', trim( $candidate ), 2 ), 2, '' );
+		$name                     = wp_basename( $url );
+
+		if ( isset( $copies[ $name ] ) ) {
+			$out[] = trim( substr( $url, 0, -strlen( $name ) ) . $copies[ $name ] . ' ' . $descriptor );
+		}
+	}
+
+	return implode( ', ', $out );
+}
+
+/**
+ * Print the source elements of a picture, best format first.
+ *
+ * With a media query the image's own format follows as a source of its own,
+ * because an art-directed picture needs every format under its media query
+ * before the default sources begin.
+ *
+ * @since 1.0.0
+ *
+ * @param int    $attachment_id Attachment ID.
+ * @param string $sizes         The sizes attribute.
+ * @param string $media         Optional media query.
+ * @return void
+ */
+function prairie_ash_picture_sources( $attachment_id, $sizes, $media = '' ) {
+	$formats = prairie_ash_image_formats();
+
+	if ( '' !== $media ) {
+		$formats[] = (string) get_post_mime_type( $attachment_id );
+	}
+
+	foreach ( $formats as $mime ) {
+		$srcset = in_array( $mime, array( 'image/avif', 'image/webp' ), true )
+			? prairie_ash_format_srcset( $attachment_id, $mime )
+			: (string) wp_get_attachment_image_srcset( $attachment_id, 'full' );
+
+		if ( '' === $srcset && ! in_array( $mime, array( 'image/avif', 'image/webp' ), true ) ) {
+			$srcset = (string) wp_get_attachment_image_url( $attachment_id, 'full' );
+		}
+
+		if ( '' === $srcset ) {
+			continue;
+		}
+
+		printf(
+			'<source%s type="%s" srcset="%s" sizes="%s">',
+			'' !== $media ? ' media="' . esc_attr( $media ) . '"' : '',
+			esc_attr( $mime ),
+			esc_attr( $srcset ),
+			esc_attr( $sizes )
+		);
+	}
+}
+
+
+/**
+ * Encode AVIF at quality 75.
+ *
+ * Core encodes every format but WebP at 82, which for AVIF is far above the
+ * JPEG it replaces. Measured on three of the design's photographs at 800
+ * pixels wide: AVIF at 75 matched core's JPEG at 82 on SSIM (0.978, 0.974 and
+ * 0.979 against 0.977, 0.973 and 0.981) at 43 to 56 percent of its bytes.
+ * WebP keeps core's own default of 86.
+ *
+ * @since 1.0.0
+ *
+ * @param int    $quality   Quality level between 1 and 100.
+ * @param string $mime_type The MIME type being written.
+ * @return int
+ */
+function prairie_ash_image_quality( $quality, $mime_type ) {
+	if ( 'image/avif' === $mime_type ) {
+		return 75;
+	}
+
+	return $quality;
+}
+add_filter( 'wp_editor_set_quality', 'prairie_ash_image_quality', 10, 2 );
+
+/**
+ * Lazy-load every image except the one marked as the Largest Contentful Paint.
+ *
+ * Core guesses which images are in the first screen: it leaves the first
+ * three content images eager, and treats every image printed before the main
+ * loop as in view, which on the shop, an archive, makes the whole product grid
+ * eager. This theme names the LCP image in every template and prints it with
+ * loading off and fetchpriority high, so the guess is not needed: on a phone
+ * every other image sits below the first screen, and fetching it eagerly takes
+ * bandwidth from the LCP image. An image that already carries a loading or a
+ * fetchpriority value is left exactly as it was given. Core still writes the
+ * attribute.
+ *
+ * @since 1.0.0
+ *
+ * @param array  $loading_attrs The loading attributes core decided on.
+ * @param string $tag_name      The tag name.
+ * @param array  $attr          The attributes the tag was given.
+ * @return array
+ */
+function prairie_ash_lazy_unless_lcp( $loading_attrs, $tag_name, $attr ) {
+	if ( 'img' !== $tag_name || isset( $attr['loading'] ) || ! empty( $attr['fetchpriority'] ) ) {
+		return $loading_attrs;
+	}
+
+	unset( $loading_attrs['fetchpriority'] );
+	$loading_attrs['loading'] = 'lazy';
+
+	return $loading_attrs;
+}
+add_filter( 'wp_get_loading_optimization_attributes', 'prairie_ash_lazy_unless_lcp', 10, 3 );
+
+/*
+ * No sizes="auto" on lazy images. Auto makes the browser size a lazy picture
+ * by its box, while every value in prairie_ash_slot_sizes() is the measured
+ * width of the drawn picture. Where a slot crops with object-fit the two
+ * differ: with auto, the shop's next roast photo at 390 pixels fetched the
+ * 480 wide file for a picture drawn 574 wide.
+ */
+add_filter( 'wp_img_tag_add_auto_sizes', '__return_false' );

@@ -1,0 +1,19 @@
+{
+	"name": "prairie-ash",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Build for the Prairie Ash theme: the design's SCSS and JS compiled into assets/.",
+	"type": "module",
+	"scripts": {
+		"build": "node tools/build.mjs",
+		"watch": "node tools/build.mjs --watch",
+		"theme-json": "node tools/theme-json.mjs theme.json"
+	},
+	"devDependencies": {
+		"gsap": "^3.13.0",
+		"postcss": "^8.5.0",
+		"sass": "^1.89.0",
+		"webpack": "^5.99.0"
+	},
+	"license": "GPL-2.0-or-later"
+}

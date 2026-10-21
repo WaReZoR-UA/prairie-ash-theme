@@ -1,0 +1,162 @@
+<?xml version="1.0"?>
+<ruleset name="PrairieAsh">
+	<description>WordPress Coding Standards for the Prairie Ash theme.</description>
+
+	<!--
+		Named phpcs.xml.dist so PHP_CodeSniffer finds it without a standard
+		argument when run from the theme root.
+
+		XML forbids two consecutive hyphens inside a comment, so a command line
+		flag is spelled out in words everywhere in this file rather than written
+		with its leading hyphens. A ruleset that breaks that rule does not fail
+		loudly: PHP_CodeSniffer reports only that the ruleset is not valid, and
+		the coding standards step silently checks nothing.
+
+		Install with: composer install
+		Run with: composer run lint, and composer run fix for the mechanical fixes.
+	-->
+
+	<file>.</file>
+
+	<exclude-pattern>/vendor/*</exclude-pattern>
+	<exclude-pattern>/src/*</exclude-pattern>
+	<exclude-pattern>/tools/*</exclude-pattern>
+	<exclude-pattern>/node_modules/*</exclude-pattern>
+	<exclude-pattern>/assets/*</exclude-pattern>
+	<exclude-pattern>/build/*</exclude-pattern>
+	<exclude-pattern>/dist/*</exclude-pattern>
+
+	<arg name="basepath" value="."/>
+	<arg name="extensions" value="php"/>
+	<arg name="parallel" value="8"/>
+	<arg name="colors"/>
+	<arg value="ps"/>
+
+	<!--
+		The WordPress version the theme is written against. WPCS defaults this to
+		three releases behind current, which silently allows functions the theme's
+		own "Requires at least" header forbids. Keep it equal to that header.
+	-->
+	<config name="minimum_wp_version" value="7.0"/>
+
+	<!-- The complete set: WordPress-Core plus WordPress-Docs plus WordPress-Extra. -->
+	<rule ref="WordPress"/>
+
+	<!--
+		text_domain is NOT optional to set. When the property is absent the I18n
+		sniff SKIPS EVERY CHECK, so the run looks clean while checking nothing.
+	-->
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="prairie-ash"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!--
+		Same trap: with no prefixes set, PrefixAllGlobals does not run at all.
+	-->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="prairie_ash"/>
+				<element value="PRAIRIE_ASH"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!--
+		Functions that return output already escaped by WordPress itself.
+
+		get_block_wrapper_attributes() returns a finished, escaped attribute
+		string, and passing it through an escaper would destroy it.
+		wp_get_attachment_image() returns core-built markup for the same reason.
+
+		prairie_ash_section_attrs() is this theme's own wrapper around that call.
+		On the front end it returns what core returned, with the support styles
+		handed in as escaped extra attributes. In the editor preview, where core
+		contributes nothing, it escapes every name and value itself with
+		esc_attr() before joining them, so its return value is already escaped
+		in both branches.
+
+		prairie_ash_attrs(), prairie_ash_el_attr() and prairie_ash_input_attrs()
+		build an attribute string from an array and pass every name and every
+		value through esc_attr() on the way, the same contract.
+
+		prairie_ash_page_content() returns do_blocks() output of a page whose
+		sections are this theme's own render templates, each of which escapes
+		on the line that prints. It is the_content() for a page that is not the
+		queried object.
+
+		prairie_ash_form_html() returns Formidable's own form output, escaped by
+		the plugin, which is markup by design.
+
+		wc_kses_notice() is WooCommerce's own wp_kses() for a notice, with the
+		tags a notice may carry.
+
+		This list is the ONLY sanctioned way to tell the sniff about a
+		pre-escaped value. Adding a project function here is a decision made in
+		review; a phpcs:ignore comment on the line is not, which is why those are
+		banned outright.
+	-->
+	<rule ref="WordPress.Security.EscapeOutput">
+		<properties>
+			<property name="customAutoEscapedFunctions" type="array">
+				<element value="get_block_wrapper_attributes"/>
+				<element value="wp_get_attachment_image"/>
+				<element value="prairie_ash_section_attrs"/>
+				<element value="prairie_ash_attrs"/>
+				<element value="prairie_ash_el_attr"/>
+				<element value="prairie_ash_input_attrs"/>
+				<element value="prairie_ash_page_content"/>
+				<element value="prairie_ash_form_html"/>
+				<element value="wc_kses_notice"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!--
+		Variables in a block render template, a block fields file and a
+		WooCommerce template override are not globals: the field plugin includes
+		a render template inside its own render function, this theme includes a
+		fields file inside prairie_ash_block_definitions(), and WooCommerce
+		includes a template inside wc_get_template(). Every one runs in a
+		function scope the sniff cannot see from the file alone.
+	-->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound">
+		<exclude-pattern>/blocks/*/render.php</exclude-pattern>
+		<exclude-pattern>/blocks/*/fields.php</exclude-pattern>
+		<exclude-pattern>/woocommerce/*</exclude-pattern>
+	</rule>
+
+	<!--
+		A WooCommerce template override has to fire WooCommerce's own hooks,
+		such as woocommerce_before_cart, or every extension listening on them
+		stops working. prairie_ash_page_content() fires core's the_content for
+		the same reason: the shop prints the Shop page's sections and they have
+		to pass through the filters core runs on any page's content.
+	-->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound">
+		<exclude-pattern>/woocommerce/*</exclude-pattern>
+		<exclude-pattern>/inc/template-tags.php</exclude-pattern>
+	</rule>
+
+	<!--
+		inc/woocommerce.php reads the product form posted to WooCommerce's own
+		add-to-cart handler, a form WooCommerce itself sends without a nonce,
+		in order to resolve the chosen variation before that handler runs.
+		Adding a nonce there would reject every add to cart from a cached page.
+		Nothing is written that WooCommerce would not write itself.
+	-->
+	<rule ref="WordPress.Security.NonceVerification.Missing">
+		<exclude-pattern>/inc/woocommerce.php</exclude-pattern>
+	</rule>
+
+	<!-- Template files are not class files, so the class-file naming rule does not apply. -->
+	<rule ref="WordPress.Files.FileName">
+		<properties>
+			<property name="strict_class_file_names" value="false"/>
+		</properties>
+	</rule>
+</ruleset>

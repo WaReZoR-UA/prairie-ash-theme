@@ -1,0 +1,129 @@
+@use "shared" as *;
+
+// About page: story ghost sign, team (Site row 11)
+
+.about-story {
+	&__container {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+	}
+	&__heading {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+	}
+	&__eyebrow {
+		@include bodyEyebrow;
+	}
+	&__title {
+		@include signXL;
+	}
+	&__row {
+		display: flex;
+		@include space("gap", 7);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+		}
+	}
+	&__media {
+		flex: 0 1 toRem(640);
+		aspect-ratio: 3 / 2;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__text {
+		flex: 1 1 0;
+		min-width: 0;
+		align-self: flex-end;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+			align-self: stretch;
+		}
+	}
+	&__body {
+		max-width: toRem(520);
+		@include bodyLead;
+	}
+}
+
+.about-team {
+	&__container {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 7);
+	}
+	&__heading {
+		@include heading2;
+	}
+	&__people {
+		display: flex;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+		}
+		> * {
+			flex: 1 1 0;
+			min-width: 0;
+			@media (max-width: $tablet) {
+				flex: 0 0 auto;
+			}
+		}
+	}
+	&__actions {
+		display: flex;
+		align-items: center;
+		@include space("gap", 6);
+		@media (max-width: $mobile) {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+	}
+}
+
+// One person: portrait, name, short bio. Portrait beside the text in the $tablet range only.
+.person {
+	display: flex;
+	flex-direction: column;
+	@include space("gap", 5);
+	@media (max-width: $tablet) {
+		flex-direction: row;
+	}
+	@media (max-width: $mobile) {
+		flex-direction: column;
+	}
+	&__media {
+		max-width: toRem(480);
+		aspect-ratio: 4 / 5;
+		@media (max-width: $tablet) {
+			flex: 280 1 0; // the drawn 280 to 393 split of the tablet row
+		}
+		@media (max-width: $mobile) {
+			flex: 0 0 auto;
+		}
+	}
+	&__text {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 393 1 0;
+			min-width: 0;
+		}
+		@media (max-width: $mobile) {
+			flex: 0 0 auto;
+		}
+	}
+	&__name {
+		@include heading3;
+	}
+	&__bio {
+		max-width: toRem(520);
+		@include bodyDefault;
+	}
+}

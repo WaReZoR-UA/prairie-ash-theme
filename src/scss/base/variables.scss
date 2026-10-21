@@ -1,0 +1,66 @@
+@use "functions";
+
+// За замовчуванням шрифт ==============================================================================================================================================================================================================================================================================
+$fontFamily: "InstrumentSerif", Georgia, serif !default;
+$fontHeading: "LeagueGothic", "Arial Narrow", sans-serif !default;
+$fontSize: functions.toRem(21) !default; // де 14(px) - розмір шрифту за замовчуванням з макету
+
+// Основні кольори
+$mainColor: #1e1a17 !default; // Колір шрифту за замовчуванням
+
+// Налаштування адаптивної сітки ===============================================================================================================================================================================================================================================================================================
+
+// Мінімальна ширина сторінки
+$minWidth: 320 !default;
+// Ширина полотна (макету)
+$maxWidth: 1920 !default;
+// Ширина обмежуючого контейнера (0 = немає обмеження)
+$maxWidthContainer: 1312 !default;
+// Загальний відступ у контейнера
+// (30 = по 15px ліворуч і праворуч, 0 = немає відступу)
+$containerPadding: 128 !default; // desktop total, made fluid 64 to 24 a side in common.scss
+
+// Ширина спрацьовування першого брейкпоінту
+$containerWidth: $maxWidthContainer + $containerPadding !default;
+
+// Брейк-поїнти
+$pc: functions.em($containerWidth) !default; // ПК, ноутбуки, деякі планшети у горизонтальному положенні
+$tablet: functions.em(991.98) !default; // Планшети, деякі телефони в горизонтальному положенні
+$mobile: functions.em(767.98) !default; // Телефони L
+$mobileSmall: functions.em(479.98) !default; // Телефони S
+
+// Тип адаптива:
+// 1 = чуйність (у контейнера немає брейкпоінтів),
+// 2 = по брейк-поїнт (контейнер змінює свою ширину по брейк-поїнт)
+$responsiveType: 1 !default;
+
+// Project tokens (Figma collection "tokens", modes Desktop 1440 and Mobile 390)
+
+// Anchor widths of every adaptiveValue call: the desktop and the mobile frame
+$dW: 1440;
+$mW: 390;
+
+// Palette
+$brick500: #8c3a26;
+$brick700: #5e2417;
+$brick800: #4c1307;
+$cream100: #f1e4c8;
+$cream200: #e0d4b8;
+$cream300: #d0c3a8;
+$soot900: #1e1a17;
+$soot700: #3c3734;
+$mustard400: #d9a441;
+$mustard500: #c9942e;
+$mustard600: #b88515;
+
+// Semantic colours
+$wall: $brick500;
+$wallDeep: $brick700;
+$paper: $cream100;
+$paperShade: $cream200;
+$onWall: $cream100;
+$onPaper: $soot900;
+$accentOnPaper: $brick500;
+$priceOnWallDeep: $mustard400;
+$focusFill: $mustard400;
+$focusBar: $soot900;

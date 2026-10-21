@@ -1,0 +1,24 @@
+/*
+Theme Name: Prairie Ash
+Theme URI: https://example.com/prairie-ash
+Author: Prairie Ash Coffee & Roastery
+Author URI: https://example.com
+Description: Theme for Prairie Ash Coffee & Roastery, a cafe and roastery in the Exchange District, Winnipeg. Every content section is a block with named fields and the editor's own controls, the shop runs on WooCommerce with the design's own templates, and the motion layer honours reduced motion.
+Version: 1.0.0
+Requires at least: 7.0
+Tested up to: 7.1
+Requires PHP: 8.1
+License: GPL-2.0-or-later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: prairie-ash
+Domain Path: /languages
+Tags: custom-menu, featured-images, translation-ready, e-commerce, block-styles
+
+"Requires at least: 7.0" follows from the block anchor support, whose server-side
+apply function arrived in 7.0 and which the section helper relies on to print
+exactly one id, and from the de-duplicated class merge that arrived in the same
+release.
+
+This file carries the header only. The design's styles are compiled from the
+SCSS in src/scss into assets/css/ and enqueued from inc/enqueue.php.
+*/

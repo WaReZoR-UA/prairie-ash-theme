@@ -1,0 +1,7 @@
+// Спільні інструменти шаблону: функції, налаштування, міксини
+// Підключається в кожному файлі стилів: @use "shared" as *;
+@forward "base/functions";
+@forward "base/variables";
+@forward "base/mixins";
+@forward "base/placeholders";
+@forward "base/typography";

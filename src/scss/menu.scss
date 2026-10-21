@@ -1,0 +1,146 @@
+@use "shared" as *;
+
+// Menu page: title board, drinks, pastries, allergens (Site row 2)
+
+// Painted bar board on the deep brick wall
+.menu-title {
+	&__board {
+		display: flex;
+		flex-direction: column;
+		background-color: $soot900;
+		@include space("gap", 5);
+		@include space("padding", 7);
+	}
+	&__row {
+		display: flex;
+		align-items: center;
+		@include space("gap", 7);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__text {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__eyebrow {
+		color: $mustard400;
+		@include bodyEyebrow;
+	}
+	&__heading {
+		@include signM;
+	}
+	&__intro {
+		max-width: toRem(520);
+		@include bodyLead;
+	}
+	&__media {
+		flex: 0 1 toRem(560);
+		aspect-ratio: 4 / 3;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+}
+
+.menu-drinks {
+	&__container {
+		display: flex;
+		align-items: flex-start;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__group {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__heading {
+		@include heading2;
+	}
+	&__list .lv__value {
+		color: $mustard400;
+	}
+	&__note {
+		max-width: toRem(520);
+		@include labelS;
+	}
+}
+
+.menu-pastries {
+	&__container {
+		display: flex;
+		align-items: center;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__media {
+		flex: 0 1 toRem(640);
+		aspect-ratio: 4 / 3;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__text {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__heading {
+		@include heading2;
+	}
+	&__body {
+		max-width: toRem(520);
+		@include bodyDefault;
+	}
+}
+
+.menu-allergens {
+	&__container {
+		display: flex;
+		align-items: flex-start;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+		}
+	}
+	&__heading {
+		flex: 1 1 0;
+		min-width: 0;
+		@include heading2;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__body {
+		flex: 0 1 toRem(520);
+		max-width: toRem(520);
+		@include bodyLead;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+}

@@ -1,0 +1,487 @@
+@use "shared" as *;
+
+// Shared parts of the inner pages, reused by later pages (hand-off "Label and value tables")
+
+// Full-bleed band: the background runs edge to edge, the content sits in __container
+.band {
+	@include space("padding-top", 9);
+	@include space("padding-bottom", 9);
+	&--wall {
+		background-color: $wall;
+		color: $onWall;
+	}
+	&--deep {
+		background-color: $wallDeep;
+		color: $onWall;
+	}
+	&--paper {
+		background-color: $paper;
+		color: $onPaper;
+	}
+}
+
+// Running text capped at the content width (layout/content-width)
+.measure {
+	max-width: toRem(520);
+}
+
+// Component "LabelValueRow": one row per label and value, the label column set per table
+// with --lv-label. Rows stay side by side except in an .lv--stack table below $mobile.
+.lv {
+	--lv-label: #{toRem(220)};
+	display: flex;
+	flex-direction: column;
+	@include space("gap", 3);
+	&__row {
+		display: flex;
+		align-items: baseline;
+		row-gap: toRem(4);
+		@include space("column-gap", 5);
+	}
+	&__label {
+		flex: 0 0 var(--lv-label);
+		min-width: 0;
+	}
+	&__value {
+		flex: 1 1 0;
+		min-width: 0;
+	}
+	&--stack &__row {
+		@media (max-width: $mobile) {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+	}
+	&--stack &__label,
+	&--stack &__value {
+		@media (max-width: $mobile) {
+			flex: 0 0 auto; // the basis was a width, in a column it is a height
+		}
+	}
+	// Kind=Price: name fills, price right aligned, never stacked
+	&--price {
+		max-width: toRem(520);
+	}
+	&--price &__label {
+		flex: 1 1 0;
+		@include labelL;
+	}
+	&--price &__value {
+		flex: 0 0 auto;
+		text-align: right;
+		@include labelL;
+	}
+	// Kind=Hours: day in a fixed column, time large
+	&--hours {
+		--lv-label: #{toRem(280)};
+	}
+	&--hours &__label {
+		@include heading4;
+	}
+	&--hours &__value {
+		@include heading2;
+	}
+	// Kind=Fact lead
+	&--fact-lead &__label {
+		@include labelM;
+	}
+	&--fact-lead &__value {
+		@include bodyLead;
+	}
+	// Kind=Feature and Feature lead
+	&--feature,
+	&--feature-lead {
+		@include space("gap", 4);
+	}
+	&--feature &__label,
+	&--feature-lead &__label {
+		@include heading4;
+	}
+	&--feature &__value {
+		@include bodyDefault;
+	}
+	&--feature-lead &__value {
+		@include bodyLead;
+	}
+}
+
+// Inline link inside running text or a table value, underlined like every phone and email
+.inline-link {
+	text-decoration: underline;
+	text-decoration-thickness: from-font;
+	transition:
+		background-color 0.25s ease,
+		color 0.25s ease,
+		box-shadow 0.25s ease;
+	@media (any-hover: hover) {
+		&:hover {
+			background-color: $cream200;
+			color: $soot900;
+		}
+	}
+	&:focus-visible {
+		text-decoration: none;
+		@include focusFill;
+	}
+}
+
+// Brick date plate with sign numerals, built as <time datetime>
+.date-plate {
+	flex: 0 0 auto;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: toRem(8);
+	text-align: center;
+	background-color: $wall;
+	color: $onWall;
+	@include fluid("padding-top", 16, 12);
+	@include fluid("padding-bottom", 16, 12);
+	@include fluid("padding-left", 24, 16);
+	@include fluid("padding-right", 24, 16);
+	&__weekday {
+		@include labelM;
+	}
+	&__day {
+		@include heading1;
+	}
+	&__month {
+		@include labelS;
+	}
+}
+
+// Component "CoffeeSign": hugs its content, every line 12 apart (space/card-stack).
+// In a row of two the lines share subgrid rows, so a longer line pushes its row down in both cards.
+.coffee-sign {
+	display: flex;
+	flex-direction: column;
+	.pinstripe {
+		@include space("margin-bottom", 5);
+	}
+	&__body {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: toRem(12);
+	}
+	&__origin {
+		@include labelS;
+	}
+	&__name {
+		@include heading3;
+	}
+	&__link {
+		text-decoration: underline transparent;
+		text-decoration-thickness: toRem(2);
+		text-underline-offset: toRem(4);
+		transition:
+			text-decoration-color 0.25s ease,
+			background-color 0.25s ease,
+			color 0.25s ease,
+			box-shadow 0.25s ease;
+		@media (any-hover: hover) {
+			&:hover {
+				text-decoration-color: currentColor;
+			}
+		}
+		&:focus-visible {
+			@include focusFill;
+		}
+	}
+	&__notes {
+		@include bodyEyebrow;
+	}
+	&__price {
+		color: $priceOnWallDeep;
+		@include heading4;
+	}
+	&__button {
+		white-space: nowrap;
+	}
+	// Sold out (825:5029): a disabled quantity field beside the disabled button, bottom aligned, wrapping
+	&__buy {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-end;
+		@include space("gap", 4);
+		// space/5 under the sign, the 12 row gap of the card stack carries part of it
+		@include fluid("margin-top", 12, 4);
+	}
+	&__quantity {
+		flex: 0 0 toRem(72);
+		min-width: 0;
+		color: $onWall;
+	}
+}
+
+// Product card (WooCommerce content-product): photo over a CoffeeSign.
+// In a grid of two or three, every card shares subgrid rows, so a longer line pushes its row down in the whole row.
+// The 12 row gap is the card stack; the list adds the space between cards (a subgrid with a gap of its own
+// inflates the parent tracks in Chrome).
+.product-card {
+	display: flex;
+	flex-direction: column;
+	row-gap: toRem(12);
+	&__media {
+		aspect-ratio: 4 / 5;
+		// space/5 between photo and sign, minus the 12 row gap
+		@include fluid("margin-bottom", 12, 4);
+		// hover ink: a mustard rule is painted along the foot of the photo, nothing moves or scales
+		&::after {
+			content: "";
+			position: absolute;
+			inset: auto 0 0 0;
+			z-index: 1;
+			border-top: toRem(4) solid $mustard400;
+			transform: scaleX(0);
+			transform-origin: 0% 50%;
+			transition: transform var(--motion-duration-brush) var(--motion-ease-out);
+			pointer-events: none;
+		}
+	}
+	@media (any-hover: hover) {
+		&:hover &__media::after {
+			transform: scaleX(1);
+		}
+		&:hover .coffee-sign__link {
+			text-decoration-color: currentColor;
+		}
+	}
+	&:focus-within &__media::after {
+		transform: scaleX(1);
+	}
+	// the shop filter hides cards, the subgrid display below must not bring them back
+	&[hidden] {
+		display: none;
+	}
+}
+@supports (grid-template-rows: subgrid) {
+	@media (min-width: em(768)) {
+		.product-card {
+			display: grid;
+			grid-row: span 8;
+			grid-template-columns: minmax(0, 1fr);
+			grid-template-rows: subgrid;
+			align-items: start;
+			.coffee-sign {
+				display: grid;
+				grid-row: span 7;
+				grid-template-columns: minmax(0, 1fr);
+				grid-template-rows: subgrid;
+				align-items: start;
+				justify-items: start;
+				.pinstripe {
+					align-self: start;
+					justify-self: stretch;
+					@include fluid("margin-bottom", 12, 4);
+				}
+			}
+			.coffee-sign__body {
+				display: contents;
+			}
+		}
+	}
+}
+
+// Kind=Fact: Label/M in the label column, Body/Default fills, rows 8 apart at every width
+.lv.lv--fact {
+	gap: toRem(8);
+}
+.lv--fact .lv__label {
+	@include labelM;
+}
+.lv--fact .lv__value {
+	@include bodyDefault;
+}
+
+// Breadcrumb trail above a page title
+.breadcrumb {
+	background-color: $paper;
+	color: $onPaper;
+	@include space("padding-top", 5);
+	@include space("padding-bottom", 2);
+	&__list {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: toRem(8);
+	}
+	&__item {
+		display: flex;
+		align-items: center;
+		gap: toRem(8);
+		&:not(:last-child)::after {
+			content: "/";
+			@include labelS;
+		}
+	}
+	&__current {
+		@include labelS;
+	}
+}
+
+// Kind=Total: Label/M fills, Heading/4 right aligned, never stacked.
+// Row "due" is Kind=Total due: Heading/4 fills, Heading/2 right aligned.
+.lv.lv--total {
+	@include space("gap", 3);
+}
+.lv--total .lv__row {
+	flex-wrap: nowrap;
+}
+.lv--total .lv__label {
+	flex: 1 1 0;
+	@include labelM;
+}
+.lv--total .lv__value {
+	flex: 0 0 auto;
+	text-align: right;
+	white-space: nowrap;
+	@include heading4;
+}
+.lv--total .lv__row--due .lv__label {
+	text-transform: none;
+	@include heading4;
+}
+.lv--total .lv__row--due .lv__value {
+	@include heading2;
+}
+
+// Error summary drawn as a shaded panel (Checkout / State / Errors)
+.error-summary.error-summary--panel {
+	max-width: toRem(584);
+	background-color: $paperShade;
+	box-shadow: inset 0 0 0 toRem(4) $brick500; // a stroke, not a border: it adds no size
+	@include space("padding", 6);
+	@include space("gap", 4);
+	.error-summary__title {
+		max-width: toRem(520);
+		color: $onPaper;
+	}
+	.error-summary__list {
+		@include space("gap", 4);
+	}
+}
+// Row "paid" closes a receipt: Heading/4 fills, Heading/3 right aligned
+.lv--total .lv__row--paid .lv__label {
+	text-transform: none;
+	@include heading4;
+}
+.lv--total .lv__row--paid .lv__value {
+	@include heading3;
+}
+// A fact table with space/5 between rows (order confirmation next steps)
+.lv.lv--fact.lv--loose {
+	@include space("gap", 5);
+}
+
+// Italic eyebrow above an h1: the overhanging first glyph gets the 2 px optical inset (space/optical-italic)
+.eyebrow {
+	padding-left: toRem(2);
+	@include bodyEyebrow;
+}
+
+// Form panel on paper: a 520 field column plus the panel padding (584 desktop, 574 tablet), everything space/5 apart.
+// --fill stretches it across the stacked column below $tablet (Contact), the default keeps the 520 column (Wholesale).
+.form-panel {
+	box-sizing: content-box;
+	flex: 0 1 toRem(520);
+	max-width: toRem(520);
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	background-color: $paper;
+	color: $onPaper;
+	@include space("gap", 5);
+	@include space("padding", 6);
+	@media (max-width: $tablet) {
+		flex: 0 0 auto;
+	}
+	@media (max-width: $mobile) {
+		max-width: none;
+		align-self: stretch;
+	}
+	&--fill {
+		@media (max-width: $tablet) {
+			max-width: none;
+			align-self: stretch;
+		}
+	}
+	&__title {
+		@include heading3;
+	}
+	&__fields {
+		align-self: stretch;
+		max-width: toRem(520);
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+	}
+	&__note {
+		max-width: toRem(520);
+		@include bodySmall;
+	}
+	&__body {
+		max-width: toRem(520);
+		@include bodyLead;
+	}
+}
+
+// A group of FilterButtons with a visible legend (radio group inside a form)
+.choice {
+	display: flex;
+	flex-direction: column;
+	gap: toRem(8);
+	&__legend {
+		float: left; // a floated legend joins the flex flow of its fieldset
+		width: 100%;
+	}
+	.options.choice__options {
+		@include space("gap", 4);
+	}
+}
+
+// Multi-line InputField (Lines=Multi): at least 160 high at every width, text from the top
+.input.input--multi {
+	min-height: toRem(160);
+	display: block;
+}
+.field__hint {
+	order: 3;
+	@include bodySmall;
+}
+
+// Sent states of Wholesale and Contact: the confirmation panel, then a 4:3 photo beside it
+// (desktop) or under it (tablet and phone). The gap is the side margin scale, 64 to 24.
+.sent {
+	&__container {
+		display: flex;
+		align-items: flex-start;
+		@include fluid("gap", 64, 24);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__panel.form-panel {
+		@media (max-width: $tablet) {
+			max-width: none;
+			align-self: stretch;
+		}
+	}
+	&__panel .form-panel__title {
+		@include heading2;
+	}
+	&__media {
+		flex: 0 1 toRem(664);
+		aspect-ratio: 4 / 3;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+}
+
+// Media slots clip their own image, so a later reveal can scale the image inside the slot
+.media-ibg {
+	overflow: clip;
+}

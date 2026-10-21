@@ -1,0 +1,74 @@
+@use "shared" as *;
+
+// Signup confirmation: double opt-in message beside the roasting photo (Site row 13)
+
+// Photo first below $tablet, where the 2:3 desktop slot becomes 4:3
+.signup-done {
+	&__container {
+		display: flex;
+		align-items: flex-start;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex-direction: column-reverse;
+			align-items: stretch;
+		}
+	}
+	&__message {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 7);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__heading,
+	&__help {
+		align-self: stretch;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+	}
+	&__eyebrow {
+		color: $onWall;
+	}
+	&__title {
+		@include signM;
+	}
+	&__lead {
+		max-width: toRem(520);
+		@include bodyLead;
+	}
+	&__help-title {
+		@include heading3;
+	}
+	&__sender {
+		max-width: toRem(520);
+		@include bodySmall;
+	}
+	&__links {
+		display: flex;
+		flex-wrap: wrap;
+		row-gap: toRem(8);
+		@include space("column-gap", 5);
+	}
+	&__media {
+		flex: 0 1 toRem(640);
+		aspect-ratio: 2 / 3;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+			aspect-ratio: 4 / 3;
+		}
+	}
+}
+
+// A fact table whose rows sit space/5 apart (signup help, shipping terms)
+.lv.lv--fact.lv--roomy {
+	@include space("gap", 5);
+}
+// A fact table whose rows sit space/4 apart (legal pages)
+.lv.lv--fact.lv--snug {
+	@include space("gap", 4);
+}

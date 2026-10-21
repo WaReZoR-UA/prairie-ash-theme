@@ -1,0 +1,241 @@
+{
+	"shared-8fd2b185": {
+		"blocks": [
+			"prairie-ash/legal",
+			"prairie-ash/menu-drinks",
+			"prairie-ash/menu-pastries",
+			"prairie-ash/shipping-part",
+			"prairie-ash/signup-done",
+			"prairie-ash/visit-access",
+			"prairie-ash/visit-hours",
+			"prairie-ash/visit-route"
+		],
+		"templates": [
+			"cart",
+			"checkout",
+			"product"
+		]
+	},
+	"roastery-cupping": {
+		"blocks": [
+			"prairie-ash/roastery-cupping"
+		],
+		"templates": []
+	},
+	"shop-list": {
+		"blocks": [
+			"prairie-ash/shop-list"
+		],
+		"templates": []
+	},
+	"hero": {
+		"blocks": [
+			"prairie-ash/hero"
+		],
+		"templates": []
+	},
+	"shared-951d0964": {
+		"blocks": [
+			"prairie-ash/about-story",
+			"prairie-ash/roastery",
+			"prairie-ash/roastery-cupping",
+			"prairie-ash/roastery-roaster",
+			"prairie-ash/roastery-title"
+		],
+		"templates": []
+	},
+	"shared-3b17612d": {
+		"blocks": [
+			"prairie-ash/cupping",
+			"prairie-ash/roastery-cupping"
+		],
+		"templates": []
+	},
+	"shared-bccf63a1": {
+		"blocks": [
+			"prairie-ash/menu",
+			"prairie-ash/menu-title"
+		],
+		"templates": []
+	},
+	"menu-drinks": {
+		"blocks": [
+			"prairie-ash/menu-drinks"
+		],
+		"templates": []
+	},
+	"menu-pastries": {
+		"blocks": [
+			"prairie-ash/menu-pastries"
+		],
+		"templates": []
+	},
+	"menu-allergens": {
+		"blocks": [
+			"prairie-ash/menu-allergens"
+		],
+		"templates": []
+	},
+	"shared-8e876d0c": {
+		"blocks": [
+			"prairie-ash/roastery",
+			"prairie-ash/roastery-title"
+		],
+		"templates": []
+	},
+	"shared-7e62fe3a": {
+		"blocks": [
+			"prairie-ash/roastery-cupping",
+			"prairie-ash/roastery-people",
+			"prairie-ash/roastery-roaster",
+			"prairie-ash/roastery-schedule"
+		],
+		"templates": []
+	},
+	"roastery-roaster": {
+		"blocks": [
+			"prairie-ash/roastery-roaster"
+		],
+		"templates": []
+	},
+	"roastery-schedule": {
+		"blocks": [
+			"prairie-ash/roastery-schedule"
+		],
+		"templates": []
+	},
+	"roastery-sourcing": {
+		"blocks": [
+			"prairie-ash/roastery-sourcing"
+		],
+		"templates": []
+	},
+	"roastery-people": {
+		"blocks": [
+			"prairie-ash/roastery-people"
+		],
+		"templates": []
+	},
+	"shared-e0aceab2": {
+		"blocks": [
+			"prairie-ash/visit",
+			"prairie-ash/visit-title"
+		],
+		"templates": []
+	},
+	"visit-hours": {
+		"blocks": [
+			"prairie-ash/visit-hours"
+		],
+		"templates": []
+	},
+	"visit-route": {
+		"blocks": [
+			"prairie-ash/visit-route"
+		],
+		"templates": []
+	},
+	"visit-access": {
+		"blocks": [
+			"prairie-ash/visit-access"
+		],
+		"templates": []
+	},
+	"about-story": {
+		"blocks": [
+			"prairie-ash/about-story"
+		],
+		"templates": []
+	},
+	"about-team": {
+		"blocks": [
+			"prairie-ash/about-team"
+		],
+		"templates": []
+	},
+	"shop-title": {
+		"blocks": [
+			"prairie-ash/shop-title"
+		],
+		"templates": []
+	},
+	"shop-tools": {
+		"blocks": [
+			"prairie-ash/shop-tools"
+		],
+		"templates": []
+	},
+	"product": {
+		"blocks": [],
+		"templates": [
+			"product"
+		]
+	},
+	"cart": {
+		"blocks": [],
+		"templates": [
+			"cart"
+		]
+	},
+	"checkout": {
+		"blocks": [],
+		"templates": [
+			"checkout"
+		]
+	},
+	"shared-472dfb51": {
+		"blocks": [
+			"prairie-ash/wholesale",
+			"prairie-ash/wholesale-title"
+		],
+		"templates": []
+	},
+	"wholesale-inquiry": {
+		"blocks": [
+			"prairie-ash/wholesale-inquiry"
+		],
+		"templates": []
+	},
+	"contact-title": {
+		"blocks": [
+			"prairie-ash/contact-title"
+		],
+		"templates": []
+	},
+	"contact-details": {
+		"blocks": [
+			"prairie-ash/contact-details"
+		],
+		"templates": []
+	},
+	"contact-message": {
+		"blocks": [
+			"prairie-ash/contact-message"
+		],
+		"templates": []
+	},
+	"signup-done": {
+		"blocks": [
+			"prairie-ash/signup-done"
+		],
+		"templates": []
+	},
+	"shipping-title": {
+		"blocks": [
+			"prairie-ash/shipping-title"
+		],
+		"templates": []
+	},
+	"shipping-part": {
+		"blocks": [
+			"prairie-ash/shipping-part"
+		],
+		"templates": []
+	},
+	"legal-title": {
+		"blocks": [
+			"prairie-ash/legal-title"
+		],
+		"templates": []
+	}
+}

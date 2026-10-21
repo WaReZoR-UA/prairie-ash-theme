@@ -1,0 +1,106 @@
+@use "shared" as *;
+
+// Order confirmation (WooCommerce thank-you page): message and next steps, receipt panel (Site row 7)
+.confirmation {
+	&__container {
+		display: flex;
+		align-items: flex-start;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+			@include space("gap", 7);
+		}
+	}
+	&__message {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 6);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__heading {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+	}
+	&__eyebrow {
+		@include bodyEyebrow;
+	}
+	&__title {
+		@include signM;
+	}
+	&__note {
+		@include bodyLead;
+	}
+	&__steps {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+	}
+	&__steps-title {
+		@include heading3;
+	}
+	&__links {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		row-gap: toRem(8);
+		@include space("column-gap", 5);
+	}
+	// Receipt panel (WooCommerce order details)
+	&__receipt {
+		flex: 0 1 toRem(520);
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		background-color: $paper;
+		color: $onPaper;
+		@include space("padding", 6);
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__receipt-title {
+		@include heading2;
+	}
+	&__lines {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 4);
+	}
+	&__payment {
+		@include bodySmall;
+	}
+}
+
+.receipt-line {
+	display: grid;
+	grid-template-columns: toRem(80) minmax(0, 1fr) toRem(96);
+	align-items: center;
+	@include space("column-gap", 4);
+	@media (max-width: $mobile) {
+		grid-template-columns: toRem(64) minmax(0, 1fr) toRem(72);
+	}
+	&__thumb {
+		aspect-ratio: 1;
+	}
+	&__text {
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: toRem(4);
+	}
+	&__name {
+		@include heading4;
+	}
+	&__total {
+		text-align: right;
+		white-space: nowrap;
+		@include heading4;
+	}
+}

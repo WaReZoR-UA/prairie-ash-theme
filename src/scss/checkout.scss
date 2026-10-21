@@ -1,0 +1,309 @@
+@use "shared" as *;
+
+// Checkout page (WooCommerce checkout): title with the total, details, delivery, payment, review (Site row 6)
+
+// Error summary above the form, shown after a failed submit (state Checkout / State / Errors)
+.checkout-errors {
+	background-color: $paper;
+	color: $onPaper;
+	.error-summary {
+		@include space("margin-top", 9);
+	}
+}
+
+.checkout-title {
+	background-color: $paper;
+	color: $onPaper;
+	@include space("padding-top", 9);
+	@include space("padding-bottom", 9);
+	&__container {
+		display: flex;
+		align-items: flex-end;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+			@include space("gap", 7);
+		}
+	}
+	&__text {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__eyebrow {
+		color: $accentOnPaper;
+		@include bodyEyebrow;
+	}
+	&__heading {
+		@include signM;
+	}
+	&__note {
+		@include bodyLead;
+	}
+	// The total shown early (UX-14), label and amount on one baseline
+	&__total {
+		flex: 0 1 toRem(520);
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 3);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+			max-width: toRem(520);
+		}
+	}
+	&__total-row {
+		display: flex;
+		align-items: baseline;
+		@include space("gap", 5);
+	}
+	&__total-label {
+		flex: 0 0 auto;
+		color: $accentOnPaper;
+		@include labelM;
+	}
+	&__total-value {
+		flex: 1 1 0;
+		text-align: right;
+		white-space: nowrap;
+		@include heading1;
+	}
+}
+
+// One checkout step: text left, field panel right; stacked below $tablet
+.checkout-step {
+	&__container {
+		display: flex;
+		align-items: flex-start;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			@include space("gap", 7);
+		}
+	}
+	&__text {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__title {
+		@include heading2;
+	}
+	&__note {
+		max-width: toRem(520);
+	}
+	// content-box: the 520 field column plus the panel padding, 584 on desktop and 574 on tablet
+	&__panel {
+		box-sizing: content-box;
+		flex: 0 1 toRem(520);
+		max-width: toRem(520);
+		min-width: 0;
+		background-color: $paper;
+		color: $onPaper;
+		@include space("padding", 6);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+			align-self: stretch;
+		}
+		@media (max-width: $mobile) {
+			max-width: none;
+		}
+		&--shade {
+			background-color: $paperShade;
+		}
+	}
+}
+
+// Fields inside a panel: a 520 column, two fields a row where drawn
+.checkout-fields {
+	display: flex;
+	flex-direction: column;
+	@include space("gap", 5);
+	&__group {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+	}
+	&__row {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		align-items: start; // labels start on one line, a hint or an error pushes only its own input down (234:1615)
+		@include space("gap", 5);
+		&--stack {
+			@media (max-width: $mobile) {
+				grid-template-columns: minmax(0, 1fr);
+			}
+		}
+	}
+	&__label {
+		@include labelM;
+	}
+}
+
+// Delivery choice: two FilterButtons, each with its note
+.options.checkout-choice {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	@include space("gap", 5);
+	// the drawn gap to the address fields is space/6
+	margin-bottom: toRem(8);
+	@media (max-width: $mobile) {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+.checkout-choice {
+	&__item {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: toRem(8);
+	}
+	&__note {
+		@include bodySmall;
+	}
+}
+
+// Review: the order and its totals left, consent and submit right
+.checkout-review {
+	background-color: $paper;
+	color: $onPaper;
+	@include space("padding-top", 9);
+	@include space("padding-bottom", 9);
+	&__container {
+		display: flex;
+		align-items: flex-start;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+			@include space("gap", 7);
+		}
+	}
+	&__order {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 6);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__title {
+		@include heading2;
+	}
+	&__submit {
+		flex: 0 1 toRem(520);
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+			max-width: toRem(520);
+		}
+	}
+	&__small {
+		@include bodySmall;
+	}
+	&__actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		row-gap: toRem(12);
+		@include space("column-gap", 5);
+	}
+}
+
+// Order lines in the review (WooCommerce review-order rows)
+.review-table {
+	--review-columns: #{toRem(80)} minmax(0, 1fr) #{toRem(80)} #{toRem(140)};
+	display: flex;
+	flex-direction: column;
+	@include space("gap", 5);
+	@media (max-width: $tablet) {
+		--review-columns: #{toRem(72)} minmax(0, 1fr) #{toRem(72)} #{toRem(112)};
+	}
+	@media (max-width: $mobile) {
+		--review-columns: #{toRem(56)} minmax(0, 1fr) #{toRem(88)};
+	}
+	&__head {
+		display: grid;
+		grid-template-columns: var(--review-columns);
+		@include fluid("column-gap", 24, 12);
+		@include labelS;
+	}
+	&__col--coffee {
+		grid-column: 1 / 3;
+	}
+	&__col--quantity {
+		text-align: right;
+		@media (max-width: $mobile) {
+			display: none;
+		}
+	}
+	&__col--total {
+		text-align: right;
+	}
+	&__list {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+	}
+}
+.review-line {
+	display: grid;
+	grid-template-columns: var(--review-columns);
+	grid-template-areas: "thumb text quantity total";
+	align-items: center;
+	@include fluid("column-gap", 24, 12);
+	@media (max-width: $mobile) {
+		grid-template-areas: "thumb text total";
+		align-items: start;
+	}
+	&__thumb {
+		grid-area: thumb;
+		aspect-ratio: 1;
+	}
+	&__text {
+		grid-area: text;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: toRem(4);
+	}
+	&__name {
+		@include heading4;
+	}
+	&__quantity-inline {
+		@media (min-width: em(768)) {
+			display: none;
+		}
+	}
+	&__quantity {
+		grid-area: quantity;
+		text-align: right;
+		@include heading4;
+		@media (max-width: $mobile) {
+			display: none;
+		}
+	}
+	&__total {
+		grid-area: total;
+		text-align: right;
+		white-space: nowrap;
+		@include heading4;
+	}
+}

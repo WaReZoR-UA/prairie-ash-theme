@@ -1,0 +1,388 @@
+@use "shared" as *;
+
+body {
+	background-color: $paper;
+	color: $onPaper;
+	@include bodyDefault;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		transition-duration: 0.01ms !important;
+		animation-duration: 0.01ms !important;
+	}
+}
+
+// Widows: the mockup's hard breaks are visual only (hand-off "Line breaks")
+h1,
+h2,
+h3,
+h4 {
+	text-wrap: balance;
+}
+p,
+li,
+dd,
+dt,
+figcaption,
+address,
+label {
+	text-wrap: pretty;
+}
+.nowrap {
+	white-space: nowrap;
+}
+// Body/Figures: League Gothic figures inside running text, whose 1 cannot be read as l. Size and line height come from the sentence.
+.figure {
+	font-family: $fontHeading;
+	font-style: normal;
+	letter-spacing: 0;
+	text-transform: none;
+}
+
+// Side margin is fluid, 64 at 1440 to 24 at 390 (hand-off "Side margin")
+:root {
+	@include fluid("--side", 64, 24);
+	// Motion tokens (hand-off "Motion"), read by js/files/motion.js as well
+	--motion-duration-fast: 160ms;
+	--motion-duration-base: 280ms;
+	--motion-duration-brush: 420ms;
+	--motion-duration-slow: 600ms;
+	--motion-duration-showpiece: 1200ms;
+	--motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+	--motion-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+	--motion-ease-ink: cubic-bezier(0.25, 0.1, 0.25, 1);
+	--motion-distance-rise: 16; // px, unitless for GSAP
+	--motion-distance-rise-small: 8;
+}
+[class*="__container"] {
+	padding-left: var(--side);
+	padding-right: var(--side);
+}
+
+// The sign rule drawn as a 2 px cream bar
+.pinstripe {
+	display: block;
+	align-self: stretch;
+	border-top: toRem(2) solid $onWall;
+	&--brick {
+		border-top-color: $brick500;
+	}
+}
+
+.skip {
+	background-color: $wall;
+	&:not(:focus-within) {
+		position: absolute;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+	&__container {
+		@include space("padding-top", 2);
+		@include space("padding-bottom", 2);
+	}
+}
+
+// Buttons, component "Button"
+.button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: toRem(8);
+	min-height: toRem(48);
+	text-align: center;
+	cursor: pointer;
+	transition:
+		background-color 0.25s ease,
+		color 0.25s ease,
+		box-shadow 0.25s ease;
+	@include labelM;
+	@include fluid("padding-top", 12, 8);
+	@include fluid("padding-bottom", 12, 8);
+	@include space("padding-left", 5);
+	@include space("padding-right", 5);
+	&--primary {
+		background-color: $mustard400;
+		color: $soot900;
+		@media (any-hover: hover) {
+			&:hover {
+				background-color: $mustard500;
+			}
+		}
+		&:active {
+			background-color: $mustard600;
+		}
+	}
+	&--cream {
+		background-color: $cream100;
+		color: $soot900;
+		@media (any-hover: hover) {
+			&:hover {
+				background-color: $cream200;
+			}
+		}
+		&:active {
+			background-color: $cream300;
+		}
+	}
+	&--soot {
+		background-color: $soot900;
+		color: $cream100;
+		@media (any-hover: hover) {
+			&:hover {
+				background-color: $soot700;
+			}
+		}
+		&:active {
+			background-color: $brick800;
+		}
+	}
+	&--outline {
+		position: relative;
+		isolation: isolate;
+		color: $onWall;
+		box-shadow: inset 0 0 0 toRem(2) $onWall;
+		// the hover fill rises from the bottom edge, the button itself never moves
+		&::before {
+			content: "";
+			position: absolute;
+			inset: toRem(2); // inside the 2 px stroke, which stays drawn
+			z-index: -1;
+			background-color: $wallDeep;
+			transform: scaleY(0);
+			transform-origin: 50% 100%;
+			transition: transform var(--motion-duration-base) var(--motion-ease-out);
+		}
+		@media (any-hover: hover) {
+			&:hover::before {
+				transform: scaleY(1);
+			}
+		}
+		&:focus-visible::before {
+			opacity: 0;
+		}
+		&:active {
+			background-color: $wallDeep;
+			box-shadow: inset 0 0 0 toRem(4) $onWall;
+		}
+	}
+	&:focus-visible {
+		@include focusFill;
+	}
+	&:disabled {
+		opacity: 0.5;
+		cursor: default;
+	}
+}
+
+// Text links, component "TextLink"
+.text-link {
+	display: inline-flex;
+	align-items: center;
+	min-height: toRem(48);
+	text-align: left;
+	padding: toRem(8) 0;
+	text-decoration: underline;
+	text-decoration-thickness: from-font;
+	cursor: pointer;
+	transition:
+		background-color 0.25s ease,
+		color 0.25s ease,
+		box-shadow 0.25s ease;
+	@include labelM;
+	&--on-paper {
+		color: $accentOnPaper;
+		@media (any-hover: hover) {
+			&:hover {
+				color: $onPaper;
+			}
+		}
+		&:active {
+			background-color: $paperShade;
+			color: $onPaper;
+		}
+	}
+	&--on-wall {
+		color: $onWall;
+		@media (any-hover: hover) {
+			&:hover {
+				background-color: $cream200;
+				color: $soot900;
+			}
+		}
+		&:active {
+			background-color: $cream100;
+			color: $soot900;
+		}
+	}
+	&:focus-visible {
+		text-decoration: none;
+		@include focusFill;
+	}
+}
+
+// Navigation links, component "NavLink"
+.nav-link {
+	display: inline-flex;
+	align-items: center;
+	min-height: toRem(48);
+	padding-left: toRem(8);
+	padding-right: toRem(8);
+	color: $onWall;
+	text-decoration: underline transparent;
+	text-decoration-thickness: from-font;
+	cursor: pointer;
+	transition:
+		background-color 0.25s ease,
+		color 0.25s ease,
+		text-decoration-color 0.25s ease,
+		box-shadow 0.25s ease;
+	@include labelS;
+	@include fluid("padding-top", 12, 8);
+	@include fluid("padding-bottom", 12, 8);
+	// hover underline grows from the centre (storyboard 794:5029); the link box never moves
+	position: relative;
+	&::after {
+		content: "";
+		position: absolute;
+		left: toRem(8);
+		right: toRem(8);
+		top: calc(50% + 0.6em);
+		border-top: toRem(2) solid currentColor;
+		transform: scaleX(0);
+		transition: transform var(--motion-duration-base) var(--motion-ease-out);
+	}
+	@media (any-hover: hover) {
+		&:hover::after {
+			transform: scaleX(1);
+		}
+	}
+	&:active::after,
+	&[aria-expanded="true"]::after {
+		transform: scaleX(1);
+	}
+	&:active {
+		background-color: $cream100;
+		color: $soot900;
+	}
+	&:focus-visible {
+		@include focusFill;
+	}
+	// Current page: a 4 px cream bar under the label (NavLink Current=Yes)
+	&[aria-current="page"],
+	&--current {
+		box-shadow: inset 0 toRem(-4) 0 $onWall;
+	}
+}
+
+// Error summary above a form (state frame Home / State / Signup errors)
+.error-summary {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	@include space("gap", 3);
+	&[hidden] {
+		display: none;
+	}
+	&:focus {
+		outline: none;
+	}
+	&__title {
+		color: $accentOnPaper;
+		@include heading3;
+	}
+	// focus lands at once, the title only fades in (no shake, no flashing)
+	&:not([hidden]) &__title {
+		animation: inkIn var(--motion-duration-fast) ease-out;
+	}
+	&__list {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 3);
+	}
+}
+
+// Component "AnalyticsNotice": a fixed card that never moves the page
+.analytics-notice {
+	position: fixed;
+	z-index: 50;
+	right: toRem(24);
+	bottom: toRem(24);
+	max-width: toRem(480);
+	background-color: $paper;
+	color: $onPaper;
+	border-top: toRem(2) solid $brick500;
+	border-bottom: toRem(2) solid $brick500;
+	transition:
+		opacity var(--motion-duration-base) var(--motion-ease-out),
+		transform var(--motion-duration-base) var(--motion-ease-out),
+		visibility var(--motion-duration-base);
+	// 24 from the corner on desktop, the side margin from the corner below $tablet (state frames 639:5043, 639:5055)
+	@media (max-width: $tablet) {
+		right: var(--side);
+		bottom: var(--side);
+	}
+	@media (max-width: $mobile) {
+		left: var(--side);
+	}
+	&:not(.is-shown) {
+		opacity: 0;
+		visibility: hidden;
+		transform: translateY(toRem(24));
+	}
+	// leaves by 8 and faster than it came
+	&.is-leaving {
+		transform: translateY(toRem(8));
+		transition:
+			opacity var(--motion-duration-fast) ease-in,
+			transform var(--motion-duration-fast) ease-in,
+			visibility var(--motion-duration-fast);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		&:not(.is-shown),
+		&.is-leaving {
+			transform: none;
+		}
+	}
+	&__body {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 4);
+		@include space("padding", 5);
+	}
+	&__title {
+		@include heading4;
+	}
+	&__text {
+		@include bodySmall;
+	}
+	&__actions {
+		display: flex;
+		gap: toRem(8);
+		@media (max-width: $mobile) {
+			flex-wrap: wrap;
+		}
+		.button {
+			flex: 0 0 auto; // the two drawn labels need 431 of 432, sub-pixel text must not wrap them
+		}
+	}
+}
+
+// Read by assistive technology, not drawn
+.visually-hidden {
+	position: absolute;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+@keyframes inkIn {
+	from {
+		opacity: 0;
+	}
+}

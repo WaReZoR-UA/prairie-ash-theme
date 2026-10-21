@@ -1,0 +1,235 @@
+@use "shared" as *;
+
+// Visit page: title door plate, address and hours, getting here, accessibility (Site row 9)
+
+// Enamel door plate beside the storefront photo
+.visit-title {
+	&__container {
+		display: flex;
+		align-items: center;
+		@include space("gap", 7);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__media {
+		flex: 0 1 toRem(720);
+		aspect-ratio: 3 / 2;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__plate {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		background-color: $paper;
+		color: $onPaper;
+		@include space("gap", 5);
+		@include space("padding", 6);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__eyebrow {
+		padding-left: toRem(2); // optical inset of the overhanging italic (space/optical-italic)
+		color: $accentOnPaper;
+		@include bodyEyebrow;
+	}
+	&__heading {
+		@include signM;
+	}
+	&__intro {
+		max-width: toRem(520);
+		@include bodyLead;
+	}
+}
+
+.visit-hours {
+	&__container {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 7);
+	}
+	&__heading {
+		@include heading1;
+	}
+	&__row {
+		display: flex;
+		@include space("column-gap", 8);
+		@include space("row-gap", 7);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+		}
+	}
+	&__address {
+		flex: 0 1 toRem(520);
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__open {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__label {
+		color: $mustard400;
+		@include labelM;
+	}
+	&__street {
+		@include heading2;
+	}
+	&__city {
+		@include bodyLead;
+	}
+	&__contact {
+		align-self: stretch;
+		.lv__label {
+			color: $mustard400;
+		}
+	}
+	&__roast {
+		color: $mustard400;
+	}
+	&__note {
+		max-width: toRem(520);
+		@include bodyDefault;
+	}
+}
+
+.visit-route {
+	&__container {
+		display: flex;
+		align-items: center;
+		@include space("column-gap", 8);
+		@include space("row-gap", 7);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__text {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__heading {
+		@include heading1;
+	}
+	&__body {
+		max-width: toRem(520);
+		@include bodyDefault;
+	}
+	&__table {
+		align-self: stretch;
+		.lv__label {
+			color: $accentOnPaper;
+		}
+	}
+	// Static map facade, a link to the map service (hand-off "Map")
+	&__map {
+		flex: 0 1 toRem(640);
+		max-width: toRem(640);
+		display: block;
+		transition: box-shadow 0.25s ease;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+		img {
+			display: block;
+			max-width: 100%;
+			height: auto;
+		}
+		@media (any-hover: hover) {
+			&:hover {
+				box-shadow: 0 0 0 toRem(4) $brick500;
+			}
+		}
+		&:focus-visible {
+			outline: none;
+			box-shadow:
+				0 0 0 toRem(4) $mustard400,
+				0 0 0 toRem(8) $soot900;
+		}
+	}
+}
+
+.visit-access {
+	&__container {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 7);
+	}
+	&__row {
+		display: flex;
+		@include space("column-gap", 8);
+		@include space("row-gap", 7);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+		}
+		> * {
+			flex: 1 1 0;
+			min-width: 0;
+			@media (max-width: $tablet) {
+				flex: 0 0 auto;
+			}
+		}
+	}
+	&__text {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+	}
+	&__label {
+		@include labelM;
+	}
+	&__heading {
+		@include heading1;
+	}
+	&__body {
+		max-width: toRem(520);
+		@include bodyDefault;
+	}
+	// Two photos of equal height: each grows by its own aspect ratio
+	&__media {
+		max-width: toRem(1307);
+		display: flex;
+		@include fluid("gap", 32, 16);
+		@media (max-width: $mobile) {
+			flex-direction: column;
+		}
+	}
+	&__photo {
+		min-width: 0;
+		&--entrance {
+			flex: 1.3333 1 0;
+			aspect-ratio: 4 / 3;
+		}
+		&--inside {
+			flex: 1.5 1 0;
+			aspect-ratio: 3 / 2;
+		}
+		@media (max-width: $mobile) {
+			flex: 0 0 auto;
+		}
+	}
+}

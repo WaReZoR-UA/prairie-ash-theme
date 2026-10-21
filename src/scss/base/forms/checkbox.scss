@@ -1,0 +1,68 @@
+@use "../../shared" as *;
+
+// Component "Checkbox". The box is the label's ::before, the tick is icon/check.
+// The error message sits above the control (Checkbox State=Error)
+.checkbox {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	&__input {
+		position: absolute;
+		width: 0;
+		height: 0;
+		opacity: 0;
+		&:checked + .checkbox__label::before {
+			background-color: $soot900;
+			background-image: url("@img/icons/check.svg");
+		}
+		&:focus-visible + .checkbox__label {
+			background-color: $focusFill;
+			box-shadow: inset 0 toRem(-4) 0 $focusBar;
+			&::before {
+				box-shadow: inset 0 0 0 toRem(4) $soot900;
+			}
+		}
+		&._form-error + .checkbox__label::before {
+			box-shadow: inset 0 0 0 toRem(4) $brick500;
+		}
+	}
+	&__label {
+		cursor: pointer;
+		display: flex;
+		align-items: flex-start;
+		padding: toRem(8) 0; // no side padding: the box starts on the text column edge (portfolio pass)
+		transition:
+			background-color 0.25s ease,
+			box-shadow 0.25s ease;
+		@include space("gap", 4);
+		&::before {
+			content: "";
+			flex: 0 0 toRem(32);
+			aspect-ratio: 1;
+			background: $paper center / toRem(24) no-repeat;
+			box-shadow: inset 0 0 0 toRem(2) $soot900;
+			transition:
+				background-color 0.25s ease,
+				box-shadow 0.25s ease;
+		}
+		@media (any-hover: hover) {
+			&:hover::before {
+				background-color: $paperShade;
+			}
+		}
+		&:active::before {
+			background-color: $paperShade;
+			box-shadow: inset 0 0 0 toRem(4) $soot900;
+		}
+	}
+	&__input:checked + &__label:hover::before,
+	&__input:checked + &__label:active::before {
+		background-color: $soot700;
+	}
+	.form__error {
+		order: -1;
+		color: $accentOnPaper;
+		padding: toRem(8) 0 0;
+		@include bodyItalic;
+	}
+}

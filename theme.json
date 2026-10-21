@@ -1,0 +1,263 @@
+{
+	"$schema": "https://schemas.wp.org/wp/6.6/theme.json",
+	"version": 3,
+	"settings": {
+		"appearanceTools": false,
+		"useRootPaddingAwareAlignments": false,
+		"layout": {
+			"contentSize": "82rem",
+			"wideSize": "90rem"
+		},
+		"background": {
+			"backgroundImage": true,
+			"backgroundSize": true
+		},
+		"dimensions": {
+			"minHeight": true,
+			"aspectRatio": false
+		},
+		"color": {
+			"custom": false,
+			"customDuotone": false,
+			"customGradient": false,
+			"defaultPalette": false,
+			"defaultGradients": false,
+			"defaultDuotone": false,
+			"text": true,
+			"background": true,
+			"link": false,
+			"heading": false,
+			"button": false,
+			"gradients": [],
+			"duotone": [],
+			"palette": [
+				{
+					"slug": "brick-500",
+					"color": "#8c3a26",
+					"name": "Brick"
+				},
+				{
+					"slug": "brick-700",
+					"color": "#5e2417",
+					"name": "Deep brick"
+				},
+				{
+					"slug": "brick-800",
+					"color": "#4c1307",
+					"name": "Darkest brick"
+				},
+				{
+					"slug": "cream-100",
+					"color": "#f1e4c8",
+					"name": "Cream"
+				},
+				{
+					"slug": "cream-200",
+					"color": "#e0d4b8",
+					"name": "Cream shade"
+				},
+				{
+					"slug": "cream-300",
+					"color": "#d0c3a8",
+					"name": "Cream dark"
+				},
+				{
+					"slug": "soot-900",
+					"color": "#1e1a17",
+					"name": "Soot"
+				},
+				{
+					"slug": "soot-700",
+					"color": "#3c3734",
+					"name": "Soot light"
+				},
+				{
+					"slug": "mustard-400",
+					"color": "#d9a441",
+					"name": "Mustard"
+				},
+				{
+					"slug": "mustard-500",
+					"color": "#c9942e",
+					"name": "Mustard deep"
+				},
+				{
+					"slug": "mustard-600",
+					"color": "#b88515",
+					"name": "Mustard dark"
+				}
+			]
+		},
+		"typography": {
+			"customFontSize": false,
+			"defaultFontSizes": false,
+			"fluid": false,
+			"dropCap": false,
+			"fontStyle": false,
+			"fontWeight": false,
+			"letterSpacing": false,
+			"lineHeight": false,
+			"textAlign": true,
+			"textDecoration": false,
+			"textTransform": false,
+			"writingMode": false,
+			"textColumns": false,
+			"fontFamilies": [
+				{
+					"slug": "serif",
+					"name": "Instrument Serif",
+					"fontFamily": "\"InstrumentSerif\", Georgia, serif"
+				},
+				{
+					"slug": "sign",
+					"name": "League Gothic",
+					"fontFamily": "\"LeagueGothic\", \"Arial Narrow\", sans-serif"
+				}
+			],
+			"fontSizes": [
+				{
+					"slug": "sign-xl",
+					"name": "Sign extra large",
+					"size": "clamp(4rem, 1.8643rem + 8.7619vw, 9.75rem)",
+					"fluid": false
+				},
+				{
+					"slug": "sign-l",
+					"name": "Sign large",
+					"size": "clamp(3.5rem, 1.8982rem + 6.5714vw, 7.8125rem)",
+					"fluid": false
+				},
+				{
+					"slug": "sign-m",
+					"name": "Sign medium",
+					"size": "clamp(3rem, 1.7929rem + 4.9524vw, 6.25rem)",
+					"fluid": false
+				},
+				{
+					"slug": "heading-1",
+					"name": "Heading 1",
+					"size": "clamp(2.75rem, 1.9143rem + 3.4286vw, 5rem)",
+					"fluid": false
+				},
+				{
+					"slug": "heading-2",
+					"name": "Heading 2",
+					"size": "clamp(2.375rem, 1.7714rem + 2.4762vw, 4rem)",
+					"fluid": false
+				},
+				{
+					"slug": "heading-3",
+					"name": "Heading 3",
+					"size": "clamp(2rem, 1.5589rem + 1.8095vw, 3.1875rem)",
+					"fluid": false
+				},
+				{
+					"slug": "heading-4",
+					"name": "Heading 4",
+					"size": "clamp(1.75rem, 1.4482rem + 1.2381vw, 2.5625rem)",
+					"fluid": false
+				},
+				{
+					"slug": "label-l",
+					"name": "Label large",
+					"size": "clamp(1.625rem, 1.4625rem + 0.6667vw, 2.0625rem)",
+					"fluid": false
+				},
+				{
+					"slug": "lead",
+					"name": "Lead text",
+					"size": "clamp(1.3125rem, 1.1964rem + 0.4762vw, 1.625rem)",
+					"fluid": false
+				},
+				{
+					"slug": "body",
+					"name": "Body text",
+					"size": "clamp(1.125rem, 1.0554rem + 0.2857vw, 1.3125rem)",
+					"fluid": false
+				},
+				{
+					"slug": "small",
+					"name": "Small text",
+					"size": "clamp(1rem, 0.9768rem + 0.0952vw, 1.0625rem)",
+					"fluid": false
+				}
+			]
+		},
+		"spacing": {
+			"customSpacingSize": false,
+			"defaultSpacingSizes": false,
+			"margin": true,
+			"padding": true,
+			"blockGap": false,
+			"units": [
+				"rem"
+			],
+			"spacingSizes": [
+				{
+					"slug": "30",
+					"name": "Space 3",
+					"size": "clamp(0.5rem, 0.4071rem + 0.381vw, 0.75rem)"
+				},
+				{
+					"slug": "40",
+					"name": "Space 4",
+					"size": "clamp(0.75rem, 0.6571rem + 0.381vw, 1rem)"
+				},
+				{
+					"slug": "50",
+					"name": "Space 5",
+					"size": "clamp(1rem, 0.8143rem + 0.7619vw, 1.5rem)"
+				},
+				{
+					"slug": "60",
+					"name": "Space 6",
+					"size": "clamp(1.5rem, 1.3143rem + 0.7619vw, 2rem)"
+				},
+				{
+					"slug": "70",
+					"name": "Space 7",
+					"size": "clamp(2rem, 1.6286rem + 1.5238vw, 3rem)"
+				},
+				{
+					"slug": "80",
+					"name": "Space 8",
+					"size": "clamp(2.5rem, 1.9429rem + 2.2857vw, 4rem)"
+				},
+				{
+					"slug": "90",
+					"name": "Space 9",
+					"size": "clamp(3rem, 1.8857rem + 4.5714vw, 6rem)"
+				}
+			]
+		},
+		"shadow": {
+			"defaultPresets": false,
+			"presets": []
+		},
+		"border": {
+			"color": false,
+			"radius": false,
+			"style": false,
+			"width": false
+		},
+		"position": {
+			"sticky": false
+		},
+		"custom": {
+			"lineHeight": {
+				"sign-xl": 1.16,
+				"sign-l": 1.16,
+				"sign-m": 1.16,
+				"heading-1": 1.163,
+				"heading-2": 1.156,
+				"heading-3": 1.157,
+				"heading-4": 1.171,
+				"label-l": 1.152,
+				"lead": 1.308,
+				"body": 1.429,
+				"small": 1.412
+			}
+		}
+	},
+	"styles": {}
+}

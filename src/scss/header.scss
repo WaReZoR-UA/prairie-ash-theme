@@ -1,0 +1,100 @@
+@use "shared" as *;
+
+.header {
+	background-color: $wall;
+	color: $onWall;
+	&__container {
+		display: flex;
+		flex-direction: column;
+		gap: toRem(8);
+		@include space("padding-top", 4);
+		@include space("padding-bottom", 4);
+	}
+	&__top {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		@include space("gap", 4);
+	}
+	&__wordmark {
+		display: flex;
+		flex-direction: column;
+		text-decoration: underline transparent;
+		text-decoration-thickness: toRem(2);
+		text-underline-offset: toRem(4);
+		transition:
+			text-decoration-color 0.25s ease,
+			background-color 0.25s ease,
+			color 0.25s ease;
+		@media (any-hover: hover) {
+			&:hover {
+				text-decoration-color: currentColor;
+			}
+		}
+		&:focus-visible {
+			@include focusFill;
+		}
+	}
+	&__wordmark-name {
+		@include heading4;
+	}
+	&__wordmark-line {
+		@include bodyItalic;
+	}
+	&__actions {
+		display: flex;
+		align-items: center;
+		@include space("gap", 4);
+	}
+	&__directions {
+		@media (max-width: $mobile) {
+			display: none;
+		}
+	}
+	&__list {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: toRem(4);
+	}
+	&__item {
+		&--wide {
+			@media (max-width: $mobile) {
+				display: none;
+			}
+		}
+		&--pages {
+			display: none;
+			@media (max-width: $mobile) {
+				display: block;
+			}
+		}
+	}
+}
+
+// Page list opened from "All pages" on a phone: in the flow under the header, not a modal.
+.page-list {
+	display: none;
+	// open and close are timed in js/files/script.js (storyboard 794:5029)
+	@media (max-width: $mobile) {
+		display: block;
+		background-color: $wallDeep;
+		&[hidden] {
+			display: none;
+		}
+	}
+	&__container {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: toRem(8);
+		@include space("padding-top", 5);
+		@include space("padding-bottom", 5);
+	}
+	&__list {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: toRem(8);
+	}
+}

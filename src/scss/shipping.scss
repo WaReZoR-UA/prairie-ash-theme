@@ -1,0 +1,115 @@
+@use "shared" as *;
+
+// Shipping, pickup and returns (Site row 14)
+
+// Paper title, text beside the pallet photo; photo first below $tablet
+.shipping-title {
+	background-color: $paper;
+	color: $onPaper;
+	@include space("padding-top", 9);
+	@include space("padding-bottom", 9);
+	&__container {
+		display: flex;
+		align-items: center;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex-direction: column-reverse;
+			align-items: stretch;
+		}
+	}
+	&__text {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__eyebrow {
+		color: $accentOnPaper;
+	}
+	&__heading {
+		@include signM;
+	}
+	&__intro {
+		max-width: toRem(520);
+		@include bodyLead;
+	}
+	&__jumps {
+		display: flex;
+		flex-wrap: wrap;
+		row-gap: toRem(8);
+		@include space("column-gap", 6);
+		// CSS tracks the last letter too, Figma does not; without this the two drawn links on one phone row wrap
+		.text-link {
+			margin-right: -0.06em;
+		}
+	}
+	&__media {
+		flex: 0 1 toRem(640);
+		aspect-ratio: 4 / 3;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+}
+
+// One band per topic: intro beside a fact table, or the storefront photo beside the pickup text
+.shipping-part {
+	&__container {
+		display: flex;
+		align-items: flex-start;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__intro {
+		flex: 0 1 toRem(520);
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	// the intro when it sits inside the main column (pickup)
+	&__lead {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+	}
+	&__heading {
+		@include heading2;
+	}
+	&__body {
+		max-width: toRem(520);
+		@include bodyLead;
+	}
+	&__main {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 6);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+		.lv {
+			align-self: stretch;
+		}
+	}
+	&__media {
+		flex: 0 1 toRem(520);
+		aspect-ratio: 4 / 5;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+}

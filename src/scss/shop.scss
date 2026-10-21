@@ -1,0 +1,170 @@
+@use "shared" as *;
+
+// Shop page: title bag label, search and filter, coffee list (Site row 3)
+
+// Stamped bag label beside the shelf photo, photo first below $tablet
+.shop-title {
+	background-color: $paperShade;
+	color: $onPaper;
+	@include space("padding-top", 9);
+	@include space("padding-bottom", 7);
+	&__container {
+		display: flex;
+		align-items: center;
+		@include space("gap", 7);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__media {
+		flex: 0 1 toRem(640);
+		aspect-ratio: 4 / 3;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__label {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		background-color: $paper;
+		@include space("gap", 5);
+		@include space("padding", 7);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__eyebrow {
+		color: $accentOnPaper;
+		@include bodyEyebrow;
+	}
+	&__heading {
+		@include signL;
+	}
+	&__intro {
+		max-width: toRem(520);
+		@include bodyLead;
+	}
+}
+
+// Search field and the brew filter
+.shop-tools {
+	background-color: $paper;
+	color: $onPaper;
+	@include space("padding-top", 5);
+	@include space("padding-bottom", 8);
+	&__container {
+		display: flex;
+		align-items: flex-end;
+		@include space("column-gap", 8);
+		@include space("row-gap", 5);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__search {
+		flex: 0 1 toRem(480);
+		min-width: 0;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__filter {
+		min-width: 0;
+	}
+	&__legend {
+		@include space("margin-bottom", 3);
+	}
+}
+
+// Coffee list: three cards a row on desktop, two on tablet, one on a phone
+.shop-list {
+	&__head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		@include space("column-gap", 5);
+		@include space("margin-bottom", 7);
+		@media (max-width: $mobile) {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+	}
+	&__title {
+		@include heading1;
+	}
+	&__count {
+		@include labelM;
+	}
+	&__grid {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		// the row gap is the 12 of the card stack (the cards share subgrid rows), each item adds
+		// the rest of space/7 below itself and the list takes the last one back
+		row-gap: toRem(12);
+		@include space("column-gap", 5);
+		@include fluid("margin-bottom", -36, -20);
+		@media (max-width: $tablet) {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+		@media (max-width: $mobile) {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		> li {
+			@include fluid("margin-bottom", 36, 20);
+		}
+	}
+	// Next roast tile beside the last card, two columns wide on desktop
+	&__next {
+		align-self: start;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+		@media (min-width: em(768)) {
+			grid-row: span 8;
+		}
+		@media (min-width: em(992)) {
+			grid-column: span 2;
+		}
+	}
+	&__next-media {
+		aspect-ratio: 866 / 527;
+		@media (max-width: $tablet) {
+			aspect-ratio: 4 / 5;
+		}
+	}
+	&__next-text {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 3);
+	}
+	&__next-label {
+		@include labelS;
+	}
+	&__next-heading {
+		@include heading3;
+	}
+	&__next-body {
+		max-width: toRem(560);
+	}
+}
+
+// State: no coffee matches the search
+.shop-empty {
+	&__container {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 5);
+	}
+	&__title {
+		@include heading2;
+	}
+	&__body {
+		max-width: toRem(520);
+		@include bodyLead;
+	}
+}

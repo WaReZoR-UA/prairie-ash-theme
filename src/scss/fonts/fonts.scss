@@ -1,0 +1,22 @@
+// Hand edited: font-display optional plus the head preloads keep every page change free of a font swap. Do not run npm run fonts, it rewrites this file with swap.
+@font-face {
+	font-family: InstrumentSerif;
+	font-display: optional;
+	src: url("../fonts/InstrumentSerif-Italic.woff2") format("woff2"), url("../fonts/InstrumentSerif-Italic.woff") format("woff");
+	font-weight: 400;
+	font-style: italic;
+}
+@font-face {
+	font-family: InstrumentSerif;
+	font-display: optional;
+	src: url("../fonts/InstrumentSerif-Regular.woff2") format("woff2"), url("../fonts/InstrumentSerif-Regular.woff") format("woff");
+	font-weight: 400;
+	font-style: normal;
+}
+@font-face {
+	font-family: LeagueGothic;
+	font-display: optional;
+	src: url("../fonts/LeagueGothic-Regular.woff2") format("woff2"), url("../fonts/LeagueGothic-Regular.woff") format("woff");
+	font-weight: 400;
+	font-style: normal;
+}

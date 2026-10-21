@@ -1,0 +1,103 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "prairie-ash/shipping-part",
+	"title": "Shipping topic",
+	"description": "One topic of the shipping page: a heading, text and rows of facts, beside the text or beside a photo.",
+	"category": "prairie-ash",
+	"icon": "car",
+	"keywords": [
+		"shipping",
+		"pickup",
+		"returns"
+	],
+	"textdomain": "prairie-ash",
+	"attributes": {
+		"className": {
+			"type": "string"
+		},
+		"paStyle": {
+			"type": "object",
+			"default": {}
+		}
+	},
+	"supports": {
+		"anchor": true,
+		"align": false,
+		"html": false,
+		"customCSS": false,
+		"customClassName": false,
+		"color": {
+			"background": true,
+			"text": true,
+			"gradients": false,
+			"link": false,
+			"enableContrastChecker": false,
+			"__experimentalSkipSerialization": true,
+			"__experimentalDefaultControls": {
+				"background": true,
+				"text": true
+			}
+		},
+		"spacing": {
+			"padding": [
+				"top",
+				"bottom",
+				"left",
+				"right"
+			],
+			"margin": [
+				"top",
+				"bottom"
+			],
+			"__experimentalSkipSerialization": true,
+			"__experimentalDefaultControls": {
+				"padding": true,
+				"margin": true
+			}
+		},
+		"dimensions": {
+			"minHeight": true,
+			"__experimentalSkipSerialization": true,
+			"__experimentalDefaultControls": {
+				"minHeight": true
+			}
+		},
+		"background": {
+			"backgroundImage": true,
+			"backgroundSize": true,
+			"__experimentalSkipSerialization": true,
+			"__experimentalDefaultControls": {
+				"backgroundImage": true
+			}
+		}
+	},
+	"styles": [
+		{
+			"name": "deep",
+			"label": "Deep green band",
+			"isDefault": true
+		},
+		{
+			"name": "wall",
+			"label": "Painted wall band"
+		},
+		{
+			"name": "paper",
+			"label": "Paper band"
+		}
+	],
+	"example": {
+		"attributes": {
+			"mode": "preview",
+			"data": {
+				"field_pa_shipping_part_heading": "Shipping"
+			}
+		}
+	},
+	"acf": {
+		"blockVersion": 3,
+		"renderTemplate": "render.php",
+		"autoInlineEditing": false
+	}
+}

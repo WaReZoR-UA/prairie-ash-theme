@@ -1,0 +1,865 @@
+@use "shared" as *;
+
+// Tablet range (768 to 991.98) per section: hand-off "Tablet layout of Home, per section"
+
+// Hero ====================================================================
+.hero {
+	background-color: $wall;
+	color: $onWall;
+	@include space("padding-top", 7);
+	@include space("padding-bottom", 9);
+	&__container {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 7);
+	}
+	&__sign {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+	}
+	&__row {
+		display: flex;
+		@include space("gap", 7);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+		}
+	}
+	&__title {
+		flex: 0 0 auto;
+		&:focus {
+			outline: none;
+		}
+	}
+	&__title-line {
+		display: block;
+		&--l {
+			@include signL;
+		}
+		&--xl {
+			@include signXL;
+		}
+		&--m {
+			@include signM;
+		}
+	}
+	&__side {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__side-top,
+	&__side-bottom {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+	}
+	&__eyebrow {
+		@include bodyEyebrow;
+	}
+	&__labels {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 3);
+	}
+	&__label {
+		@include labelM;
+	}
+	&__lead {
+		max-width: toRem(520);
+		@include bodyLead;
+	}
+	&__actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		row-gap: toRem(8);
+		@include space("column-gap", 5);
+	}
+	&__window {
+		display: flex;
+		flex-direction: column;
+		@include fluid("gap", 16, 24);
+	}
+	&__media {
+		aspect-ratio: 2 / 1;
+	}
+	&__caption {
+		max-width: toRem(520);
+		@include bodyItalic;
+	}
+}
+
+// Opening hours and address ===============================================
+.hours {
+	background-color: $paper;
+	color: $onPaper;
+	@include space("padding-top", 9);
+	@include space("padding-bottom", 9);
+	&__container {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 6);
+	}
+	&__title {
+		@include heading1;
+	}
+	&__row {
+		display: grid;
+		grid-template-columns: minmax(0, 560fr) minmax(0, 688fr);
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+	&__find,
+	&__open {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 3);
+	}
+	&__label {
+		color: $accentOnPaper;
+		@include labelM;
+	}
+	&__street {
+		@include signM;
+	}
+	&__city {
+		@include bodyLead;
+	}
+	&__table {
+		display: flex;
+		flex-direction: column;
+		align-self: stretch;
+		@include fluid("gap", 12, 8);
+	}
+	&__table-row {
+		display: flex;
+		align-items: baseline;
+		@include space("column-gap", 5);
+		row-gap: toRem(4); // label over value when stacked, inert while it is a row
+		@media (max-width: $mobile) {
+			flex-direction: column;
+		}
+		&--roast {
+			color: $accentOnPaper;
+		}
+	}
+	&__day {
+		// the basis is a width only while the row is a row, so it is released on a phone
+		flex: 0 0 toRem(280);
+		@include heading4;
+		@media (max-width: $mobile) {
+			flex: 0 0 auto;
+		}
+	}
+	&__time {
+		flex: 1 1 0;
+		min-width: 0;
+		@include heading2;
+	}
+	
+}
+
+// Roastery ================================================================
+.roastery {
+	background-color: $wall;
+	color: $onWall;
+	@include space("padding-top", 9);
+	@include space("padding-bottom", 9);
+	&__container {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 7);
+	}
+	&__window {
+		display: flex;
+		align-items: center;
+		@include space("gap", 6);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+	}
+	&__text {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+			align-self: stretch;
+		}
+	}
+	&__text-top,
+	&__text-bottom {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 5);
+	}
+	&__label {
+		@include labelM;
+	}
+	&__title {
+		@include heading2;
+	}
+	&__body {
+		max-width: toRem(520);
+		@include bodyDefault;
+	}
+	&__media {
+		flex: 1 1 0;
+		align-self: stretch;
+		max-width: toRem(640);
+		aspect-ratio: 3 / 2;
+		// 692, the full content width, from the tablet frame down (portfolio pass, 182:45)
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+			width: 100%;
+			max-width: none;
+		}
+	}
+	&__ad {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+	}
+	&__ad-lines {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 3);
+	}
+	&__ad-line {
+		display: flex;
+		align-items: baseline;
+		flex-wrap: wrap;
+		@include space("column-gap", 5);
+		@include space("row-gap", 5);
+		@media (max-width: $mobile) {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+		&--end {
+			justify-content: flex-end;
+			@media (max-width: $mobile) {
+				flex-direction: row;
+				align-items: baseline;
+			}
+		}
+	}
+	&__ad-big {
+		@include heading1;
+	}
+	&__ad-medium {
+		@include heading2;
+	}
+	&__ad-note {
+		@include bodyEyebrow;
+	}
+	&__ad-label {
+		@include labelM;
+	}
+	&__proof {
+		display: flex;
+		align-items: flex-start;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+		}
+	}
+	&__team {
+		flex: 0 1 toRem(600);
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 4);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+			align-self: stretch;
+		}
+	}
+	&__team-media {
+		max-width: toRem(600);
+		aspect-ratio: 3 / 2;
+		@media (max-width: $tablet) {
+			max-width: none; // 182:61
+		}
+	}
+	&__team-caption {
+		max-width: toRem(600);
+		@include bodyItalic;
+		@media (max-width: $tablet) {
+			max-width: toRem(520);
+		}
+		@media (max-width: $mobile) {
+			max-width: none;
+		}
+	}
+	&__compare {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 7);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+			align-self: stretch;
+		}
+	}
+	&__compare-title {
+		@include heading3;
+	}
+	&__compare-item {
+		display: flex;
+		flex-direction: column;
+		gap: toRem(8);
+	}
+	&__fact {
+		@include heading4;
+	}
+}
+
+// Current coffees =========================================================
+.coffees {
+	background-color: $wallDeep;
+	color: $onWall;
+	@include space("padding-top", 9);
+	@include space("padding-bottom", 9);
+	&__container {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 7);
+	}
+	&__head {
+		display: flex;
+		align-items: flex-end;
+		@include space("gap", 7);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+	}
+	&__title {
+		flex: 0 0 auto;
+		@include heading1;
+	}
+	&__intro {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 3);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+			align-self: stretch;
+		}
+	}
+	&__board {
+		display: flex;
+		align-items: flex-start;
+		@include space("gap", 6);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__start {
+		flex: 0 1 toRem(520);
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 6);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__media {
+		aspect-ratio: 3 / 2;
+	}
+	&__prices {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 6);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__row {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		@include space("column-gap", 4);
+		row-gap: toRem(12); // the subgrid cards take their line gap from here
+		@media (max-width: $mobile) {
+			grid-template-columns: minmax(0, 1fr);
+			@include space("row-gap", 4);
+		}
+	}
+	&__note {
+		max-width: toRem(760);
+		@include bodyLead;
+		@media (max-width: $tablet) {
+			max-width: toRem(520);
+		}
+		@media (max-width: $mobile) {
+			max-width: none;
+		}
+	}
+}
+
+// Component "CoffeeSign" lives in components.scss. On Home the signs of a row share subgrid rows.
+@supports (grid-template-rows: subgrid) {
+	@media (min-width: em(768)) {
+		.coffees__row .coffee-sign {
+			display: grid;
+			grid-row: span 7;
+			grid-template-rows: subgrid;
+			align-items: start;
+			justify-items: start;
+			.pinstripe {
+				justify-self: stretch;
+				// the drawn sign gap (space/5) minus the shared row gap
+				@include fluid("margin-bottom", 12, 4);
+			}
+			.coffee-sign__body {
+				display: contents;
+			}
+		}
+	}
+}
+
+// Roast notes signup ======================================================
+.signup {
+	background-color: $paper;
+	color: $onPaper;
+	@include space("padding-top", 9);
+	@include space("padding-bottom", 9);
+	&__container {
+		display: flex;
+		align-items: flex-start;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__intro {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 7);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__intro-top {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+	}
+	&__title {
+		@include heading1;
+	}
+	&__body {
+		max-width: toRem(520);
+		@include bodyLead;
+	}
+	&__sample {
+		max-width: toRem(520);
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 3);
+	}
+	&__sample-label {
+		color: $accentOnPaper;
+		@include bodyEyebrow;
+	}
+	&__sample-text {
+		@include bodyItalic;
+	}
+	&__form {
+		flex: 0 1 toRem(520);
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+		.field {
+			max-width: toRem(480);
+		}
+	}
+	&__text {
+		max-width: toRem(520);
+	}
+	&__actions {
+		display: flex;
+		align-items: center;
+		@include space("gap", 4);
+		@media (max-width: $mobile) {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+	}
+}
+
+// Public cupping ==========================================================
+.cupping {
+	background-color: $wall;
+	@include space("padding-top", 9);
+	@include space("padding-bottom", 9);
+	&__container {
+		display: grid;
+		grid-template-columns: minmax(0, 600fr) minmax(0, 648fr);
+		align-items: center;
+		@include space("gap", 8);
+		// one column from the tablet frame down (polish pass, 182:366 and 182:367)
+		@media (max-width: $tablet) {
+			grid-template-columns: minmax(0, 1fr);
+			align-items: start;
+		}
+	}
+	&__media {
+		aspect-ratio: 4 / 5;
+		@media (max-width: $tablet) {
+			aspect-ratio: 3 / 2;
+		}
+		@media (max-width: $mobile) {
+			aspect-ratio: 4 / 5;
+		}
+	}
+	&__bill {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		background-color: $paper;
+		color: $onPaper;
+		@include space("padding", 5);
+		@include space("gap", 4);
+	}
+	&__label {
+		color: $accentOnPaper;
+		@include labelM;
+	}
+	&__title {
+		text-wrap: wrap; // drawn as "... every / first Saturday", balance would move "every" down
+		@include heading1;
+	}
+	// date and venue are capped in the $tablet range only, as drawn (182:371, 182:372)
+	&__date {
+		color: $accentOnPaper;
+		@include heading4;
+		@media (max-width: $tablet) {
+			max-width: toRem(520);
+		}
+	}
+	&__venue {
+		@include bodyEyebrow;
+		@media (max-width: $tablet) {
+			max-width: toRem(520);
+		}
+	}
+	&__status {
+		@include labelM;
+	}
+	&__body {
+		max-width: toRem(520);
+	}
+}
+
+// Menu highlights =========================================================
+.menu {
+	background-color: $wallDeep;
+	color: $onWall;
+	@include space("padding-top", 9);
+	@include space("padding-bottom", 9);
+	&__container {
+		display: flex;
+		align-items: center;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__board {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__title {
+		@include heading1;
+	}
+	&__items {
+		max-width: toRem(520);
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 3);
+	}
+	&__item {
+		display: flex;
+		align-items: baseline;
+		@include space("gap", 4);
+		@include labelL;
+	}
+	&__name {
+		flex: 1 1 0;
+		min-width: 0;
+	}
+	&__price {
+		color: $priceOnWallDeep;
+		text-align: right;
+	}
+	&__notes {
+		max-width: toRem(520);
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 3);
+	}
+	&__price-note {
+		@include labelS;
+	}
+	&__bakery {
+		@include bodyItalic;
+	}
+	&__media {
+		flex: 0 1 toRem(600);
+		aspect-ratio: 4 / 3;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+}
+
+// Wholesale ===============================================================
+.wholesale {
+	background-color: $wall;
+	color: $onWall;
+	@include space("padding-top", 9);
+	@include space("padding-bottom", 9);
+	&__container {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 7);
+	}
+	&__title {
+		@include heading1;
+	}
+	&__row {
+		display: flex;
+		align-items: flex-start;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__text {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 7);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__text-top {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+	}
+	&__label {
+		@include labelM;
+	}
+	&__body {
+		max-width: toRem(520);
+		@include bodyLead;
+	}
+	&__terms {
+		max-width: toRem(520);
+	}
+	&__media {
+		flex: 0 1 toRem(640);
+		aspect-ratio: 4 / 3;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+}
+
+// Getting here ============================================================
+.visit {
+	background-color: $paper;
+	color: $onPaper;
+	@include space("padding-top", 9);
+	@include space("padding-bottom", 9);
+	&__container {
+		display: flex;
+		align-items: flex-start;
+		@include space("gap", 6);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__text {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__title {
+		@include heading1;
+	}
+	&__body {
+		max-width: toRem(520);
+	}
+	&__map {
+		align-self: stretch;
+	}
+	&__media {
+		flex: 0 1 toRem(600);
+		aspect-ratio: 4 / 5;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+}
+
+// Map facade, a stand-in for the map service image (hand-off PERF-03)
+.map {
+	position: relative;
+	overflow: clip;
+	min-height: toRem(340);
+	background-color: $paperShade;
+	&__street {
+		position: absolute;
+		&--main {
+			top: toRem(236);
+			left: 0;
+			right: 0;
+			border-top: toRem(28) solid $paper;
+		}
+		&--avenue {
+			top: toRem(104);
+			left: 0;
+			right: 0;
+			border-top: toRem(20) solid $paper;
+		}
+		&--cross-1,
+		&--cross-2,
+		&--cross-3 {
+			top: 0;
+			bottom: 0;
+			border-left: toRem(18) solid $paper;
+		}
+		// fitted to the facade width: 150, 380 and 590 of the drawn 680
+		&--cross-1 {
+			left: percent(150, 680);
+		}
+		&--cross-2 {
+			left: percent(380, 680);
+		}
+		&--cross-3 {
+			left: percent(590, 680);
+		}
+	}
+	&__building {
+		position: absolute;
+		top: toRem(60);
+		left: toRem(250);
+		padding: toRem(20) toRem(45);
+		background-color: $wall;
+		@media (max-width: $mobile) {
+			left: toRem(150);
+		}
+	}
+	&__marker {
+		position: absolute;
+		display: flex;
+		align-items: center;
+		gap: toRem(8);
+		&--shop {
+			top: toRem(20);
+			left: toRem(283);
+			@media (max-width: $mobile) {
+				top: toRem(16);
+				left: toRem(8);
+			}
+		}
+		&--bus {
+			top: toRem(238);
+			left: toRem(220);
+			// below Main Street on the phone
+			@media (max-width: $mobile) {
+				top: toRem(272);
+				left: 0;
+			}
+		}
+	}
+	&__pin {
+		flex: 0 0 auto;
+		padding: toRem(12);
+		border-radius: 50%;
+		background-color: $brick500;
+		box-shadow: inset 0 0 0 toRem(2) $soot900;
+	}
+	&__bus {
+		flex: 0 0 auto;
+		display: flex;
+		justify-content: center;
+		min-width: toRem(24);
+		background-color: $wallDeep;
+		color: $onWall;
+		@include labelS;
+	}
+	&__label {
+		padding: toRem(4) toRem(8);
+		background-color: $paper;
+		white-space: nowrap;
+		@include labelS;
+	}
+	&__name {
+		position: absolute;
+		@include labelS;
+		&--avenue {
+			top: toRem(102);
+			left: toRem(430);
+			// on its street at the left edge on the phone (185:472)
+			@media (max-width: $mobile) {
+				left: toRem(8);
+			}
+		}
+		&--main {
+			top: toRem(238);
+			left: toRem(30);
+			@media (max-width: $mobile) {
+				left: toRem(8);
+			}
+		}
+	}
+}

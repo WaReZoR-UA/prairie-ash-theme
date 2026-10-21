@@ -1,0 +1,51 @@
+// WordPress additions compiled after the design's stylesheet. Only what WordPress, WooCommerce or
+// Formidable add around the design's own markup is styled here; the design's look stays in the
+// partials it was cut in.
+@use "../shared" as *;
+
+// Formidable prints a container around the form tag. It takes no box, so the form stays the flex
+// child the design's section lays out.
+.frm_forms:has(> form.pa-form) {
+	display: contents;
+}
+
+// Formidable prints three wrappers around every form's fields. They take no box, so the fields sit
+// in the design's form panel exactly as the markup draws them.
+.pa-form {
+	.frm_form_fields:not(.form-panel),
+	.frm_form_fields > fieldset,
+	.frm_fields_container {
+		display: contents;
+	}
+	.frm_form_fields > fieldset {
+		border: 0;
+		margin: 0;
+		padding: 0;
+		min-width: 0;
+	}
+	// The panel lines its children up at the start; the fields span its width, as in the markup.
+	.frm_fields_container > .field,
+	.frm_fields_container > .choice,
+	.frm_fields_container > .checkbox {
+		align-self: stretch;
+	}
+	.form-panel .frm_fields_container > .field,
+	.form-panel .frm_fields_container > .choice {
+		max-width: toRem(520);
+	}
+	// Formidable's honeypot is for robots: its own container would still take a gap in the panel.
+	[id^="frm_field_"]:has(> .frm_verify) {
+		display: none;
+	}
+}
+
+// The payment provider prints its description as a paragraph inside the design's text slot.
+.checkout-fields__text > p {
+	margin: 0;
+}
+
+// The address group carries display: flex in the design, which would beat the hidden attribute the
+// checkout sets when the visitor picks up at the cafe.
+.checkout-fields__group[hidden] {
+	display: none;
+}

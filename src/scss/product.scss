@@ -1,0 +1,221 @@
+@use "shared" as *;
+
+// Product page (WooCommerce single product): summary, origin story, brewing (Site row 4)
+
+// Summary. Desktop: gallery left, details right. Tablet (207:1199): the media column (photo, then
+// the two thumbnails) beside the name, price and stacked facts, the purchase block full width below.
+// Phone (207:1280): the same two blocks stacked, media column first. DOM order is the same everywhere.
+.product-summary {
+	background-color: $paper;
+	color: $onPaper;
+	@include space("padding-top", 6);
+	@include space("padding-bottom", 9);
+	&__container {
+		display: flex;
+		align-items: flex-start;
+		@include space("gap", 8);
+		@media (min-width: em(768)) and (max-width: $tablet) {
+			display: grid;
+			grid-template-columns: toRem(300) minmax(0, 1fr);
+			grid-template-rows: auto 1fr auto auto;
+			grid-template-areas:
+				"gallery top"
+				"gallery facts"
+				"form form"
+				"delivery delivery";
+			@include space("column-gap", 8);
+			@include space("row-gap", 6);
+		}
+		@media (max-width: $mobile) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__gallery {
+		grid-area: gallery;
+		flex: 0 1 toRem(560);
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+		@media (max-width: $mobile) {
+			flex: 0 0 auto; // the basis was a width, in a column it is a height
+		}
+	}
+	&__media {
+		aspect-ratio: 4 / 5;
+	}
+	&__details-media {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		@include space("gap", 5);
+	}
+	&__detail {
+		aspect-ratio: 1;
+	}
+	&__details {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 6);
+		@media (min-width: em(768)) and (max-width: $tablet) {
+			display: contents;
+		}
+		@media (max-width: $mobile) {
+			flex: 0 0 auto;
+		}
+	}
+	&__top {
+		grid-area: top;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 3);
+	}
+	&__origin {
+		color: $accentOnPaper;
+		@include labelM;
+	}
+	&__title {
+		@include signM;
+	}
+	&__notes {
+		@include bodyEyebrow;
+	}
+	&__price {
+		@include heading3;
+	}
+	&__rest {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 6);
+		@media (min-width: em(768)) and (max-width: $tablet) {
+			display: contents;
+		}
+		.lv--fact {
+			grid-area: facts;
+			align-self: start;
+			max-width: toRem(520);
+			@media (max-width: $tablet) {
+				max-width: none;
+			}
+		}
+	}
+	// the facts are stacked (label over value, 4 apart) wherever the summary is not two wide columns
+	.lv__row {
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+	}
+	.lv__label,
+	.lv__value {
+		@media (max-width: $tablet) {
+			flex: 0 0 auto; // the basis was a width, in a column it is a height
+		}
+	}
+	&__form {
+		grid-area: form;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 6);
+		@media (min-width: em(768)) and (max-width: $tablet) {
+			// space/8 under the head, the row gap carries space/6 of it
+			@include fluid("margin-top", 32, 16);
+		}
+	}
+	&__option {
+		min-width: 0;
+	}
+	&__legend {
+		@include space("margin-bottom", 3);
+	}
+	&__buy {
+		display: flex;
+		align-items: flex-end;
+		flex-wrap: wrap;
+		@include space("gap", 5);
+		.button {
+			flex: 0 0 auto;
+		}
+	}
+	&__quantity {
+		flex: 0 0 toRem(160);
+	}
+	&__delivery {
+		grid-area: delivery;
+		max-width: toRem(520);
+	}
+}
+
+// Origin story: text left, photo right; text first below $tablet
+.product-story {
+	&__container {
+		display: flex;
+		align-items: center;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__text {
+		flex: 0 1 toRem(528);
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__title {
+		@include heading2;
+	}
+	&__body {
+		max-width: toRem(520);
+	}
+	&__media {
+		flex: 0 1 toRem(720);
+		aspect-ratio: 3 / 2;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+}
+
+// Brewing: photo left, recipe right; photo first below $tablet
+.product-brewing {
+	&__container {
+		display: flex;
+		align-items: center;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__media {
+		flex: 0 1 toRem(640);
+		aspect-ratio: 4 / 3;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__text {
+		flex: 0 1 toRem(608);
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+		.lv--fact {
+			max-width: toRem(520);
+		}
+	}
+	&__title {
+		@include heading2;
+	}
+}

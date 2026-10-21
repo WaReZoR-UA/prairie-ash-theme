@@ -1,0 +1,58 @@
+@use "shared" as *;
+
+// Загальний файл елементів форм
+// Для підключення/відключення стилів конкретного елемента форми дивись base/forms/forms.scss
+@use "base/forms/forms";
+
+// Стилі попапів
+// @use "base/popup";
+
+// Стилі спойлерів
+// @use "base/spollers";
+
+// Стилі табів
+// @use "base/tabs";
+
+// Стилі мап
+// @use "base/maps";
+
+// Стилі блоку "показати ще"
+// @use "base/showmore";
+
+// Стилі для липкого блоку
+// @use "base/sticky";
+
+// Стилі для повноекранного блоку
+// @use "base/fullscreen";
+
+// Стилі для поекраної прокрутки
+// Styles for fullpage scroll
+// @use "base/fullpage";
+
+// Стилі для ripple ефекту
+// Styles for ripple effect
+// @use "base/ripple";
+
+// Стилі для кастомного курсору
+// Styles for custom cursor
+// @use "base/cursor";
+
+// Стилі для чуйних картинок (IBG)
+// Сніппет (HTML): ibg (div з картинкою та класами)
+// Сніппет (HTML): ibga (a з картинкою та класами)
+[class*="-ibg"] {
+	position: relative;
+	img {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		top: 0;
+		left: 0;
+		object-fit: cover;
+	}
+}
+[class*="-ibg--contain"] {
+	img {
+		object-fit: contain;
+	}
+}

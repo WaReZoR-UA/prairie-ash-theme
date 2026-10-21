@@ -1,0 +1,88 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "prairie-ash/legal",
+	"title": "Legal page body",
+	"description": "The body of a policy page: a table of contents and its sections.",
+	"category": "prairie-ash",
+	"icon": "media-text",
+	"keywords": [
+		"legal",
+		"privacy",
+		"policy"
+	],
+	"textdomain": "prairie-ash",
+	"attributes": {
+		"className": {
+			"type": "string"
+		},
+		"paStyle": {
+			"type": "object",
+			"default": {}
+		}
+	},
+	"supports": {
+		"anchor": true,
+		"align": false,
+		"html": false,
+		"customCSS": false,
+		"customClassName": false,
+		"color": {
+			"background": true,
+			"text": true,
+			"gradients": false,
+			"link": false,
+			"enableContrastChecker": false,
+			"__experimentalSkipSerialization": true,
+			"__experimentalDefaultControls": {
+				"background": true,
+				"text": true
+			}
+		},
+		"spacing": {
+			"padding": [
+				"top",
+				"bottom",
+				"left",
+				"right"
+			],
+			"margin": [
+				"top",
+				"bottom"
+			],
+			"__experimentalSkipSerialization": true,
+			"__experimentalDefaultControls": {
+				"padding": true,
+				"margin": true
+			}
+		},
+		"dimensions": {
+			"minHeight": true,
+			"__experimentalSkipSerialization": true,
+			"__experimentalDefaultControls": {
+				"minHeight": true
+			}
+		},
+		"background": {
+			"backgroundImage": true,
+			"backgroundSize": true,
+			"__experimentalSkipSerialization": true,
+			"__experimentalDefaultControls": {
+				"backgroundImage": true
+			}
+		}
+	},
+	"example": {
+		"attributes": {
+			"mode": "preview",
+			"data": {
+				"field_pa_legal_label": "Policy"
+			}
+		}
+	},
+	"acf": {
+		"blockVersion": 3,
+		"renderTemplate": "render.php",
+		"autoInlineEditing": false
+	}
+}

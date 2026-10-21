@@ -1,0 +1,20 @@
+<?php
+/**
+ * The place order button, whose label carries the total, and the way back.
+ *
+ * A fragment, refreshed with the order review. The button keeps WooCommerce's
+ * id and name, which its checkout script and handler look for, and carries its
+ * label in data-value, which the script restores when the payment method
+ * changes.
+ *
+ * @package PrairieAsh
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+$prairie_ash_label = prairie_ash_wording_with( 'place_order', array( 'total' => prairie_ash_price_text( WC()->cart->get_total( 'edit' ) ) ) );
+?>
+<div class="checkout-review__actions">
+	<button class="button button--primary" type="submit" id="place_order" name="woocommerce_checkout_place_order" value="<?php echo esc_attr( $prairie_ash_label ); ?>" data-value="<?php echo esc_attr( $prairie_ash_label ); ?>"><?php echo esc_html( $prairie_ash_label ); ?></button>
+	<a class="text-link text-link--on-paper" href="<?php echo esc_url( wc_get_cart_url() ); ?>"><?php echo esc_html( prairie_ash_wording( 'back_to_cart' ) ); ?></a>
+</div>

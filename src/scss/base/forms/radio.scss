@@ -1,0 +1,85 @@
+@use "../../shared" as *;
+
+// Component "FilterButton": a radio group drawn as a row of buttons.
+// Selected = soot fill with icon/check, the stroke is an inset shadow so it never changes the drawn size.
+.options {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	@include space("gap", 3);
+	&__item {
+		position: relative;
+	}
+	&__input {
+		position: absolute;
+		width: 0;
+		height: 0;
+		opacity: 0;
+		&:checked + .options__label {
+			background-color: $soot900;
+			color: $cream100;
+			&::before {
+				display: block;
+			}
+		}
+		&:focus-visible + .options__label {
+			background-color: $focusFill;
+			color: $soot900;
+			box-shadow: inset 0 0 0 toRem(4) $soot900;
+			&::before {
+				filter: brightness(0.12);
+			}
+		}
+		&:disabled + .options__label {
+			opacity: 0.5;
+			cursor: default;
+		}
+	}
+	&__label {
+		display: inline-flex;
+		align-items: center;
+		gap: toRem(8);
+		min-height: toRem(48);
+		cursor: pointer;
+		white-space: nowrap;
+		background-color: $paper;
+		color: $soot900;
+		box-shadow: inset 0 0 0 toRem(2) $soot900;
+		transition:
+			background-color 0.25s ease,
+			color 0.25s ease,
+			box-shadow 0.25s ease;
+		@include labelM;
+		@include fluid("padding-top", 12, 10.5);
+		@include fluid("padding-bottom", 12, 10.5);
+		@include space("padding-left", 4);
+		@include space("padding-right", 4);
+		&::before {
+			content: "";
+			display: none;
+			flex: 0 0 toRem(24);
+			aspect-ratio: 1;
+			background: url("@img/icons/check.svg") center / contain no-repeat;
+		}
+		@media (any-hover: hover) {
+			&:hover {
+				background-color: $paperShade;
+			}
+		}
+		&:active {
+			background-color: $cream300;
+			box-shadow: inset 0 0 0 toRem(4) $soot900;
+		}
+	}
+	@media (any-hover: hover) {
+		&__input:checked + &__label:hover {
+			background-color: $soot700;
+		}
+	}
+	&__input:checked + &__label:active {
+		background-color: $brick800;
+	}
+	&__text {
+		min-width: 0;
+	}
+}

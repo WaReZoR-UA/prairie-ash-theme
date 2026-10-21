@@ -1,0 +1,99 @@
+@use "shared" as *;
+
+.footer {
+	background-color: $wallDeep;
+	color: $onWall;
+	@include space("padding-top", 9);
+	@include space("padding-bottom", 7);
+	&__container {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 7);
+	}
+	&__wordmark {
+		display: block;
+		width: 100%;
+		height: auto;
+		color: $brick500;
+	}
+	&__columns {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		@include space("gap", 6);
+		// two columns on the tablet frame as drawn (Home / Tablet 768 footer), not the three in the hand-off table
+		@media (max-width: $tablet) {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+		@media (max-width: $mobile) {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+	&__column {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: toRem(8);
+	}
+	&__heading {
+		@include heading4;
+	}
+	&__contact {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: toRem(8);
+		font-style: normal;
+	}
+	&__contact-link {
+		text-decoration: underline;
+		text-decoration-thickness: from-font;
+		transition:
+			background-color 0.25s ease,
+			color 0.25s ease;
+		@media (any-hover: hover) {
+			&:hover {
+				background-color: $cream200;
+				color: $soot900;
+			}
+		}
+		&:focus-visible {
+			text-decoration: none;
+			@include focusFill;
+		}
+	}
+	&__hours {
+		display: flex;
+		flex-direction: column;
+		align-self: stretch;
+		gap: toRem(8);
+	}
+	&__hours-row {
+		display: flex;
+		align-items: baseline;
+		@include space("gap", 4);
+		dt {
+			flex: 0 0 auto;
+			@include fluid("flex-basis", 160, 132);
+		}
+		dd {
+			flex: 1 1 0;
+			min-width: 0;
+		}
+	}
+	&__links {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: toRem(8);
+	}
+	&__legal {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		@include space("column-gap", 5);
+		@include space("row-gap", 3);
+	}
+	&__copyright {
+		@include bodySmall;
+	}
+}

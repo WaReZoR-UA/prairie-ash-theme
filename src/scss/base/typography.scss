@@ -1,0 +1,104 @@
+@use "sass:map";
+@use "sass:list";
+@use "functions" as *;
+@use "variables" as *;
+@use "mixins" as *;
+
+// Fluid value between the desktop and the mobile frame. Equal ends are written flat,
+// because a clamp() with equal ends is broken by the minifier.
+@mixin fluid($property, $desktop, $mobile) {
+	@if $desktop == $mobile {
+		#{$property}: toRem($desktop);
+	} @else {
+		@include adaptiveValue($property, $desktop, $mobile, 0, $dW, $mW);
+	}
+}
+
+// Spacing scale, token space/1 to space/9 (desktop, mobile)
+$space: (
+	1: (4, 4),
+	2: (8, 8),
+	3: (12, 8),
+	4: (16, 12),
+	5: (24, 16),
+	6: (32, 24),
+	7: (48, 32),
+	8: (64, 40),
+	9: (96, 48),
+);
+
+@mixin space($property, $step) {
+	$pair: map.get($space, $step);
+	@include fluid($property, list.nth($pair, 1), list.nth($pair, 2));
+}
+
+// Text styles from the Figma file, desktop and mobile size and line height
+@mixin type($family, $size, $sizeM, $line, $lineM, $tracking: 0, $upper: false, $italic: false) {
+	font-family: $family;
+	font-weight: 400;
+	@if $italic {
+		font-style: italic;
+	} @else {
+		font-style: normal;
+	}
+	letter-spacing: $tracking;
+	@if $upper {
+		text-transform: uppercase;
+	}
+	@include fluid("font-size", $size, $sizeM);
+	@include fluid("line-height", $line, $lineM);
+}
+
+@mixin signXL {
+	@include type($fontHeading, 156, 64, 181, 74, -0.01em);
+}
+@mixin signL {
+	@include type($fontHeading, 125, 56, 145, 65, -0.01em);
+}
+@mixin signM {
+	@include type($fontHeading, 100, 48, 116, 56, -0.005em);
+}
+@mixin heading1 {
+	@include type($fontHeading, 80, 44, 93, 51, -0.005em);
+}
+@mixin heading2 {
+	@include type($fontHeading, 64, 38, 74, 44);
+}
+@mixin heading3 {
+	@include type($fontHeading, 51, 32, 59, 37);
+}
+@mixin heading4 {
+	@include type($fontHeading, 41, 28, 48, 32);
+}
+@mixin labelL {
+	@include type($fontHeading, 33, 26, 38, 30, 0.04em, true);
+}
+@mixin labelM {
+	@include type($fontHeading, 26, 21, 30, 27, 0.06em, true);
+}
+@mixin labelS {
+	@include type($fontHeading, 21, 18, 24, 24, 0.08em, true);
+}
+@mixin bodyLead {
+	@include type($fontFamily, 26, 21, 34, 30);
+}
+@mixin bodyDefault {
+	@include type($fontFamily, 21, 18, 30, 27);
+}
+@mixin bodyItalic {
+	@include type($fontFamily, 21, 18, 30, 27, 0, false, true);
+}
+@mixin bodyEyebrow {
+	@include type($fontFamily, 26, 21, 34, 30, 0, false, true);
+}
+@mixin bodySmall {
+	@include type($fontFamily, 17, 16, 24, 24, 0.005em);
+}
+
+// Shared focus look: mustard fill, dark text, a 4 px bar along the bottom edge
+@mixin focusFill {
+	outline: none;
+	background-color: $focusFill;
+	color: $soot900;
+	box-shadow: inset 0 toRem(-4) 0 $focusBar;
+}

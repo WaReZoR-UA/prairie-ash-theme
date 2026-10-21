@@ -1,0 +1,76 @@
+@use "shared" as *;
+
+// Privacy policy and accessibility statement: title on the wall, contents beside the parts on paper (Site rows 15 and 16)
+
+.legal-title {
+	&__container {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 5);
+	}
+	&__heading {
+		@include signM;
+	}
+	&__intro {
+		max-width: toRem(520);
+		@include bodyLead;
+	}
+}
+
+.legal {
+	background-color: $paper;
+	color: $onPaper;
+	@include space("padding-top", 9);
+	@include space("padding-bottom", 9);
+	&__container {
+		display: flex;
+		align-items: flex-start;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+	&__contents {
+		flex: 0 1 toRem(360);
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: toRem(8);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__contents-title {
+		@include labelM;
+	}
+	&__contents-list {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: toRem(8);
+	}
+	&__body {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 8);
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__part {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 4);
+	}
+	&__heading {
+		@include heading3;
+	}
+	&__text {
+		max-width: toRem(520);
+	}
+}

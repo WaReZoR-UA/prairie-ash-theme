@@ -1,0 +1,395 @@
+@use "shared" as *;
+
+// Roastery page: title wall advertisement, roaster, schedule, sourcing, people, cupping (Site row 8)
+
+// Painted wall advertisement: pinstripe, sign, intro, pinstripe, window photo
+.roastery-title {
+	&__container {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+	}
+	&__text {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 7);
+	}
+	&__sign {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+	}
+	&__eyebrow {
+		@include bodyEyebrow;
+	}
+	&__heading {
+		@include signL;
+	}
+	&__intro {
+		align-self: flex-end;
+		max-width: toRem(520);
+		@include bodyLead;
+		@media (max-width: $tablet) {
+			align-self: flex-start;
+		}
+	}
+	&__media {
+		aspect-ratio: 2 / 1;
+	}
+}
+
+// Shared shape of the two-column bands below: a row on desktop, one column from $tablet down
+%roasteryRow {
+	display: flex;
+	align-items: center;
+	@include space("column-gap", 8);
+	@include space("row-gap", 7);
+	@media (max-width: $tablet) {
+		flex-direction: column;
+		align-items: stretch;
+	}
+}
+%roasteryStack {
+	flex: 1 1 0;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	@include space("gap", 5);
+	@media (max-width: $tablet) {
+		flex: 0 0 auto;
+	}
+}
+
+.roastery-roaster {
+	&__container {
+		@extend %roasteryRow;
+	}
+	&__media {
+		flex: 0 1 toRem(640);
+		aspect-ratio: 4 / 3;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__text {
+		@extend %roasteryStack;
+	}
+	&__label {
+		@include labelM;
+	}
+	&__heading {
+		@include heading2;
+	}
+	&__body {
+		max-width: toRem(520);
+		@include bodyDefault;
+	}
+}
+
+.roast-curve {
+	max-width: toRem(560);
+	@include space("margin-top", 3);
+	&__chart {
+		display: block;
+		width: 100%;
+		overflow: visible;
+		font-family: $fontHeading;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+	}
+	&__grid path {
+		fill: none;
+		stroke: rgba($cream100, 0.12);
+		stroke-width: 1;
+	}
+	&__axis {
+		fill: none;
+		stroke: rgba($cream100, 0.45);
+		stroke-width: 1.5;
+	}
+	&__ticks text {
+		font-size: toRem(20);
+		fill: rgba($cream100, 0.7);
+	}
+	&__ghost {
+		fill: none;
+		stroke: rgba($cream100, 0.4);
+		stroke-width: 2;
+		stroke-dasharray: 1 7;
+		stroke-linecap: round;
+	}
+	&__live {
+		fill: none;
+		stroke: $mustard400;
+		stroke-width: 4;
+		stroke-linecap: round;
+	}
+	&__dot {
+		fill: $mustard400;
+		stroke: $brick700;
+		stroke-width: 3;
+	}
+	&__mark {
+		path {
+			fill: none;
+			stroke: rgba($cream100, 0.3);
+			stroke-width: 1;
+			stroke-dasharray: 3 5;
+		}
+		circle {
+			fill: $mustard400;
+			stroke: $brick700;
+			stroke-width: 2;
+			transition: fill 0.25s ease;
+		}
+		text {
+			font-size: toRem(22);
+			letter-spacing: 0.03em;
+			fill: $mustard400;
+			transition: fill 0.25s ease;
+		}
+		&.is-ahead {
+			circle {
+				fill: $brick700;
+				stroke: rgba($cream100, 0.6);
+			}
+			text {
+				fill: $cream100;
+			}
+		}
+	}
+	&__drum {
+		circle,
+		path {
+			fill: none;
+			stroke: $cream100;
+			stroke-width: 2;
+		}
+	}
+	&__time,
+	&__temp {
+		font-size: toRem(46);
+		letter-spacing: 0.02em;
+		fill: $cream100;
+	}
+	&__temp {
+		fill: $mustard400;
+	}
+	&__stage {
+		font-size: toRem(20);
+		letter-spacing: 0.1em;
+		fill: rgba($cream100, 0.8);
+	}
+	&__bean {
+		stroke: rgba($cream100, 0.6);
+		stroke-width: 1.5;
+	}
+	&__crease {
+		fill: none;
+		stroke: rgba($cream100, 0.7);
+		stroke-width: 1.5;
+		stroke-linecap: round;
+	}
+	&__caption {
+		max-width: toRem(520);
+		@include space("margin-top", 2);
+		@include bodyItalic;
+		color: rgba($cream100, 0.85);
+	}
+}
+
+.roastery-schedule {
+	&__container {
+		@extend %roasteryRow;
+		align-items: flex-start;
+	}
+	&__text {
+		@extend %roasteryStack;
+	}
+	&__label {
+		color: $accentOnPaper;
+		@include labelM;
+	}
+	&__heading {
+		@include heading2;
+	}
+	&__body {
+		max-width: toRem(520);
+		@include bodyDefault;
+	}
+	&__table {
+		flex: 0 1 toRem(640);
+		min-width: 0;
+		table-layout: fixed;
+		border-collapse: collapse;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+			width: 100%;
+		}
+	}
+	th,
+	td {
+		vertical-align: baseline;
+		text-align: left;
+		&:not(:first-child) {
+			@include space("padding-left", 5);
+		}
+	}
+	// day and start columns as drawn on desktop and mobile, the gap included in the second
+	th:nth-child(1) {
+		@include fluid("width", 140, 80);
+	}
+	th:nth-child(2) {
+		@include fluid("width", 134, 72);
+	}
+	&__th {
+		color: $accentOnPaper;
+		@include labelM;
+	}
+	tbody tr:first-child > * {
+		@include space("padding-top", 4);
+	}
+	tbody tr + tr > * {
+		@include space("padding-top", 5);
+	}
+	&__day,
+	&__time {
+		@include heading4;
+	}
+	&__coffees {
+		@include bodyDefault;
+	}
+}
+
+.roastery-sourcing {
+	&__container {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 7);
+	}
+	&__intro {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 5);
+	}
+	&__label {
+		@include labelM;
+	}
+	&__heading {
+		@include heading2;
+	}
+	&__body {
+		max-width: toRem(520);
+		@include bodyDefault;
+	}
+	&__partners {
+		display: flex;
+		@include space("column-gap", 8);
+		@include space("row-gap", 7);
+		@media (max-width: $tablet) {
+			flex-direction: column;
+		}
+		> * {
+			flex: 1 1 0;
+			min-width: 0;
+			@media (max-width: $tablet) {
+				flex: 0 0 auto;
+			}
+		}
+	}
+}
+
+// One origin: photo, label, place, short prose
+.origin {
+	display: flex;
+	flex-direction: column;
+	@include space("gap", 5);
+	&__media {
+		aspect-ratio: 3 / 2;
+	}
+	&__label {
+		@include labelM;
+	}
+	&__heading {
+		@include heading4;
+	}
+	&__body {
+		@include bodyDefault;
+	}
+}
+
+.roastery-people {
+	&__container {
+		@extend %roasteryRow;
+	}
+	&__text {
+		@extend %roasteryStack;
+	}
+	&__label {
+		@include labelM;
+	}
+	&__heading {
+		@include heading2;
+	}
+	&__body {
+		max-width: toRem(520);
+		@include bodyDefault;
+	}
+	&__media {
+		flex: 0 1 toRem(480);
+		aspect-ratio: 4 / 5;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+}
+
+.roastery-cupping {
+	&__container {
+		@extend %roasteryRow;
+	}
+	&__media {
+		flex: 0 1 toRem(600);
+		aspect-ratio: 4 / 5;
+		@media (max-width: $tablet) {
+			flex: 0 0 auto;
+		}
+	}
+	&__bill {
+		@extend %roasteryStack;
+		background-color: $paper;
+		color: $onPaper;
+		@include space("padding", 5);
+	}
+	&__label {
+		color: $accentOnPaper;
+		@include labelM;
+	}
+	&__heading {
+		@include heading2;
+	}
+	&__body {
+		max-width: toRem(520);
+		@include bodyDefault;
+	}
+	&__next {
+		align-self: stretch;
+		display: flex;
+		align-items: center;
+		row-gap: toRem(12);
+		@include space("column-gap", 5);
+		@media (max-width: $mobile) {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+	}
+	&__next-text {
+		flex: 1 1 0;
+		min-width: 0;
+		@include bodyDefault;
+		@media (max-width: $mobile) {
+			flex: 0 0 auto;
+		}
+	}
+}
