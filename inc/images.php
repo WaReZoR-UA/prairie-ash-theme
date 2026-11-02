@@ -52,7 +52,14 @@ function prairie_ash_slot_sizes( $slot ) {
 	$column = '(max-width: 61.99875em) calc(93vw - 22px), ';
 
 	$sizes = array(
-		'hero__media'              => '(max-width: 89.99875em) calc(93vw - 22px), 1312px',
+		// The opening photo of Home is the one exception to measuring: each
+		// art-directed export is offered at its own width. The opening scene
+		// reads the picture's natural width to find the geometry of that
+		// export, and with a width-described srcset the natural width is the
+		// sizes value.
+		'hero__media'              => '390px',
+		'hero__media-tablet'       => '768px',
+		'hero__media-desktop'      => '1440px',
 		'roastery-title__media'    => '(max-width: 89.99875em) calc(93vw - 22px), 1312px',
 		'visit-title__media'       => $column . '720px',
 		'roastery__media'          => $column . '640px',
