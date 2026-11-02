@@ -3,96 +3,164 @@
 // Tablet range (768 to 991.98) per section: hand-off "Tablet layout of Home, per section"
 
 // Hero ====================================================================
+// The photographed wall runs up under the header, so the sign is painted on the same brick.
+// --header-height is synced to the real header by script.js; the fluid value is the fallback.
+// No combinator inside :has(): the minifier drops the space in "> main .hero".
+$desktopUp: "(min-width: #{em(992)})";
+.wrapper:has(.hero__wall) > .header {
+	position: relative;
+	z-index: 2;
+	background-color: transparent;
+}
 .hero {
+	@include fluid("--header-height", 166, 139);
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	grid-template-rows: auto 1fr;
+	margin-top: calc(var(--header-height) * -1);
 	background-color: $wall;
 	color: $onWall;
-	@include space("padding-top", 7);
-	@include space("padding-bottom", 9);
-	&__container {
+	&__media {
+		grid-area: 1 / 1 / 2 / 2;
+		align-self: stretch;
+		position: relative;
+		overflow: clip;
+		aspect-ratio: 390 / 700;
+		@media (min-width: 48em) {
+			aspect-ratio: 768 / 944;
+		}
+		@media #{$desktopUp} {
+			grid-area: 1 / 1 / 3 / 2;
+			aspect-ratio: 1440 / 1126;
+			max-height: toRem(1126);
+		}
+	}
+	&__image {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+	&__wall {
+		grid-area: 1 / 1 / 2 / 2;
+		position: relative;
+		z-index: 1;
+		padding-top: var(--header-height);
+	}
+	&__wall &__container {
 		display: flex;
 		flex-direction: column;
-		@include space("gap", 7);
+		@include space("gap", 4);
+		@include space("padding-top", 5);
 	}
 	&__sign {
 		display: flex;
 		flex-direction: column;
-		@include space("gap", 5);
-	}
-	&__row {
-		display: flex;
-		@include space("gap", 7);
-		@media (max-width: $tablet) {
-			flex-direction: column;
-		}
+		@include space("gap", 4);
 	}
 	&__title {
-		flex: 0 0 auto;
+		display: flex;
+		flex-direction: column;
+		// the word space between the two lines when they share one line on desktop
+		@include space("column-gap", 4);
+		@media #{$desktopUp} {
+			flex-direction: row;
+			flex-wrap: wrap;
+		}
 		&:focus {
 			outline: none;
 		}
 	}
 	&__title-line {
-		display: block;
-		&--l {
-			@include signL;
-		}
-		&--xl {
-			@include signXL;
-		}
-		&--m {
-			@include signM;
+		@include signL;
+		&--second {
+			@media (max-width: $tablet) {
+				@include signXL;
+			}
 		}
 	}
-	&__side {
-		flex: 1 1 0;
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-		justify-content: space-between;
-		@include space("gap", 5);
-		@media (max-width: $tablet) {
-			flex: 0 0 auto;
+	&__facts {
+		display: grid;
+		grid-template-columns: max-content minmax(0, 1fr);
+		@include space("column-gap", 3);
+		@include fluid("row-gap", 8, 4);
+		@media #{$desktopUp} {
+			@include fluid("margin-top", 32, 16);
+		}
+		@media (min-width: 48em) and (max-width: $tablet) {
+			display: flex;
+			flex-wrap: wrap;
+			@include space("column-gap", 7);
 		}
 	}
-	&__side-top,
-	&__side-bottom {
-		display: flex;
-		flex-direction: column;
-		@include space("gap", 5);
+	&__fact {
+		display: grid;
+		grid-column: 1 / -1;
+		grid-template-columns: subgrid;
+		align-items: baseline;
+		@media (min-width: 48em) and (max-width: $tablet) {
+			grid-template-columns: max-content max-content;
+			@include space("column-gap", 3);
+		}
 	}
-	&__eyebrow {
-		@include bodyEyebrow;
-	}
-	&__labels {
-		display: flex;
-		flex-direction: column;
-		@include space("gap", 3);
-	}
-	&__label {
+	&__term {
 		@include labelM;
+	}
+	&__value {
+		@include heading4;
+	}
+	&__intro {
+		grid-area: 2 / 1 / 3 / 2;
+		position: relative;
+		z-index: 1;
+		display: flex;
+		@media (max-width: $tablet) {
+			background-color: $wallDeep;
+		}
+	}
+	&__intro &__container {
+		flex: 1 1 auto;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 5);
+		@media #{$desktopUp} {
+			@include space("padding-top", 5);
+			@include space("padding-bottom", 7);
+		}
+		@media (max-width: $tablet) {
+			@include space("padding-top", 6);
+			@include space("padding-bottom", 9);
+		}
 	}
 	&__lead {
 		max-width: toRem(520);
 		@include bodyLead;
+		@media #{$desktopUp} {
+			max-width: toRem(400);
+		}
 	}
 	&__actions {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
-		row-gap: toRem(8);
-		@include space("column-gap", 5);
-	}
-	&__window {
-		display: flex;
-		flex-direction: column;
-		@include fluid("gap", 16, 24);
-	}
-	&__media {
-		aspect-ratio: 2 / 1;
+		@include space("gap", 5);
+		@media #{$desktopUp} {
+			flex-direction: column;
+			align-items: flex-start;
+			@include space("gap", 4);
+		}
+		@media (max-width: $tablet) {
+			order: -1;
+		}
 	}
 	&__caption {
 		max-width: toRem(520);
 		@include bodyItalic;
+		@media #{$desktopUp} {
+			max-width: toRem(400);
+			margin-top: auto;
+		}
 	}
 }
 

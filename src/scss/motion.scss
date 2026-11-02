@@ -4,8 +4,7 @@
 // except the bus route, which is part of the finished map.
 
 // Page to page: a cross-document view transition. The new page repaints from the top while the
-// old one sinks back. Fonts are preloaded and optional, and the motion layer starts only once the
-// transition has finished (head boot script and motion-loader.js), so nothing restyles the page mid-wipe.
+// old one sinks back.
 @view-transition {
 	navigation: auto;
 }
@@ -47,6 +46,22 @@
 	border-radius: toRem(3);
 	box-shadow: 0 0 0.35em 0.04em rgba($mustard400, 0.55);
 	pointer-events: none;
+	// a brush loaded with the sign's own paint, wet sheen in the same colour
+	&--paint {
+		box-shadow: 0 0 0.3em 0.02em color-mix(in srgb, currentColor 35%, transparent);
+	}
+}
+
+// Light crossing the glass over a photograph, once
+.motion-sheen {
+	position: absolute;
+	top: -20%;
+	bottom: -20%;
+	left: 0;
+	right: 70%;
+	z-index: 1;
+	background: linear-gradient(100deg, rgba($cream100, 0) 0%, rgba($cream100, 0.18) 45%, rgba($cream100, 0.32) 50%, rgba($cream100, 0) 62%);
+	pointer-events: none;
 }
 
 // Steam off the hot beans in a pinned scene
@@ -72,6 +87,18 @@
 		opacity: 0;
 		vector-effect: non-scaling-stroke;
 	}
+	// Home: vapour where the photo's own steam rises off the tray, in its blue-grey, soft-edged
+	&--photo {
+		top: 6%;
+		right: 46%;
+		bottom: 38%;
+		left: 32%;
+		filter: blur(toRem(9));
+		path {
+			stroke: rgba(160, 172, 186, 0.5);
+			stroke-width: 24;
+		}
+	}
 }
 
 // A band sinking back under the next one
@@ -82,6 +109,10 @@
 	background-color: $soot900;
 	opacity: 0;
 	pointer-events: none;
+	// the shadow of a brick band falling on the one below: deep brick, not black
+	&--brick {
+		background-color: $brick800;
+	}
 }
 
 // The walk from the bus stop to the door, traced on the map
@@ -110,48 +141,6 @@
 	}
 }
 
-// The pour in the hero photograph. The clip is the gap between the underside of the scoop's lip and
-// the top of the hopper's front rim, in the photo's own percentages, so the beans come out from
-// behind the lip and fall in behind the rim. Shaded like the photographed beans: light from the
-// window on the left, crease on the flat side.
-.hero-pour {
-	position: absolute;
-	inset: 0;
-	z-index: 2;
-	perspective: toRem(600);
-	clip-path: polygon(54.8% 34.8%, 59% 35.85%, 64.9% 34.43%, 69.6% 32.55%, 72% 32.55%, 72% 46.3%, 54.8% 46.3%);
-	pointer-events: none;
-	&__bean {
-		position: absolute;
-		left: 0;
-		top: 0;
-		// a photographed bean, but never smaller than a fleck the eye can follow on a phone
-		width: max(0.9%, #{toRem(4)});
-		aspect-ratio: 4 / 5;
-		visibility: hidden;
-	}
-	&__body {
-		position: absolute;
-		inset: 0;
-		transform-style: preserve-3d;
-	}
-	&__face {
-		position: absolute;
-		inset: 0;
-		border-radius: 50%;
-		// lit from the window on the left, with a dark rim so the bean reads against the pale wall
-		background:
-			linear-gradient(97deg, rgba(#3e2e18, 0) 44%, rgba(#3e2e18, 0.55) 49%, rgba(#3e2e18, 0.55) 52%, rgba(#3e2e18, 0) 57%),
-			radial-gradient(ellipse 75% 65% at 34% 28%, #eee2c1 0%, #cbbb92 34%, #9a8761 66%, #5b4b31 100%);
-		box-shadow: 0 0 0 toRem(0.5) rgba(#3e2e18, 0.5);
-		backface-visibility: hidden;
-		&--back {
-			transform: rotateY(180deg);
-			background: radial-gradient(ellipse 75% 65% at 36% 30%, #efe3c4 0%, #cdbd96 38%, #9f8d69 70%, #5e4e34 100%);
-		}
-	}
-}
-
 // Reading progress, a gold pinstripe along the top edge
 .scroll-stripe {
 	position: fixed;
@@ -162,4 +151,223 @@
 	border-top: toRem(3) solid $mustard400;
 	transform-origin: 0 50%;
 	pointer-events: none;
+}
+
+// Home hero scene (js/files/hero.js) ===============================================================
+// The flag on <html> is set inline in index.html only when motion is allowed, so the first paint
+// already shows the faded sign the brush letters over; without JS the sign is finished.
+@keyframes heroUnveil {
+	to {
+		opacity: 1;
+		mask-image: none;
+	}
+}
+@media (prefers-reduced-motion: no-preference) {
+	[data-hero="pre"],
+	[data-hero="letter"] {
+		.hero__title:not(.hero__echo):not([data-lettering]),
+		.hero__sign > .pinstripe:not(.hero__rule) {
+			mask-image: url("@img/home/sign-ghost.svg");
+			mask-size: toRem(320);
+		}
+	}
+	// the scene never took over: show the finished hero after a short wait
+	[data-hero="pre"] {
+		.hero__title,
+		.hero__sign > .pinstripe,
+		.hero__caption {
+			opacity: 0.3;
+			animation: heroUnveil 0.6s ease 5s forwards;
+		}
+	}
+}
+.hero__media--live {
+	isolation: isolate;
+}
+.hero__layer {
+	position: absolute;
+	pointer-events: none;
+	&--fx {
+		z-index: 1;
+	}
+	// the room light, warm, laid into the photo rather than over it
+	&--lamp {
+		z-index: 2;
+		opacity: 0;
+		mix-blend-mode: soft-light;
+		background: radial-gradient(closest-side, rgba(255, 178, 98, 0.95), rgba(255, 142, 66, 0.42) 48%, rgba(255, 142, 66, 0) 100%);
+	}
+	&--air {
+		z-index: 3;
+		mix-blend-mode: screen;
+	}
+	&--wall {
+		z-index: 4;
+	}
+	// daylight caught on the panes once while the camera moves
+	&--glass {
+		z-index: 5;
+		overflow: hidden;
+		opacity: 0;
+		mix-blend-mode: screen;
+		mask-size: 100% 100%;
+		span {
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			left: -60%;
+			right: -60%;
+			background: linear-gradient(104deg, rgba($cream100, 0) 40%, rgba($cream100, 0.34) 48%, rgba($cream100, 0.12) 53%, rgba($cream100, 0) 60%);
+		}
+	}
+	&--brick {
+		z-index: 6;
+		opacity: 0;
+		mix-blend-mode: soft-light;
+		background: radial-gradient(ellipse 42% 34% at 28% 26%, rgba(255, 232, 192, 0.8), rgba(255, 232, 192, 0) 100%);
+	}
+	// the wall falls into shadow around the window as the camera pushes in
+	&--shade {
+		z-index: 7;
+		opacity: 0;
+		background: radial-gradient(ellipse 52% 46% at var(--at, 70% 66%), rgba($soot900, 0) 38%, rgba($soot900, 0.92) 100%);
+	}
+}
+// Sign lettering (js/files/lettering.js): the brush tip over the real heading while the brush letters it
+.lettering__tip {
+	position: absolute;
+	overflow: visible;
+	pointer-events: none;
+}
+.hero__rule {
+	position: absolute;
+	margin: 0;
+	pointer-events: none;
+}
+.hero__rule-bead {
+	position: absolute;
+	padding: toRem(3); // an empty dot: the padding is its whole size
+	margin: toRem(-2) 0 0 toRem(-3);
+	border-radius: 50%;
+	background-color: $cream100;
+	box-shadow: 0 0 toRem(6) toRem(1) rgba($cream100, 0.7);
+	opacity: 0;
+	pointer-events: none;
+}
+// the caption written by a soft-edged pen, line by line
+.hero__caption-ink {
+	position: absolute;
+	margin: 0;
+	pointer-events: none;
+	> div {
+		mask-image: linear-gradient(90deg, #000 var(--pen, 100%), rgba(0, 0, 0, 0) calc(var(--pen, 100%) + 2.4em));
+	}
+}
+// the sign weathering back into the brick on the scroll: worn, then a ghost
+.hero__echo {
+	position: absolute;
+	margin: 0;
+	opacity: 0;
+	pointer-events: none;
+	mask-size: toRem(320);
+	&--worn {
+		mask-image: url("@img/home/sign-worn.svg");
+	}
+	&--ghost {
+		mask-image: url("@img/home/sign-ghost.svg");
+	}
+}
+// pause for the ambient scene (WCAG 2.2.2), present only while it runs
+.hero__still {
+	align-self: flex-start;
+	color: inherit;
+	opacity: 0.72;
+	text-decoration: underline;
+	text-decoration-color: rgba($cream100, 0);
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.3em;
+	transition: opacity 0.25s ease, text-decoration-color 0.25s ease;
+	@include labelM;
+	@media (any-hover: hover) {
+		&:hover {
+			opacity: 1;
+			text-decoration-color: currentColor;
+		}
+	}
+	&:focus-visible {
+		opacity: 1;
+		outline: toRem(2) solid currentColor;
+		outline-offset: toRem(4);
+	}
+}
+
+// Roastery scenes (js/files/roastery.js) ===========================================================
+// The flag on <html> is set inline in roastery.html only when motion is allowed, so the first paint
+// already shows the faded advert the brush and the pen go over; without JS the advert is finished.
+@media (prefers-reduced-motion: no-preference) {
+	[data-roast="pre"],
+	[data-roast="letter"] {
+		.roastery-title__heading:not(.hero__echo):not([data-lettering]),
+		.roastery-title__container > .pinstripe:not(.hero__rule) {
+			mask-image: url("@img/home/sign-ghost.svg");
+			mask-size: toRem(320);
+		}
+	}
+	[data-roast="pre"] {
+		.roastery-title__heading,
+		.roastery-title__eyebrow,
+		.roastery-title__intro,
+		.roastery-title__container > .pinstripe {
+			opacity: 0.3;
+			animation: heroUnveil 0.6s ease 5s forwards;
+		}
+	}
+}
+// the room behind the title's glass warming as the camera goes in
+.roast-lamp {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	opacity: 0;
+	mix-blend-mode: soft-light;
+	pointer-events: none;
+}
+// the roaster photograph lit by the roast: heat at the drum's mouth, the trier's beans, their vapour
+.roast-room {
+	position: absolute;
+	z-index: 1;
+	opacity: 0;
+	pointer-events: none;
+	&--heat {
+		inset: 22% 0 22% 58%;
+		mix-blend-mode: screen;
+	}
+	&--tint {
+		inset: 49% 19% 36% 60%;
+		mix-blend-mode: color;
+	}
+	&--steam {
+		inset: 12% 24% 42% 52%;
+		filter: blur(toRem(6));
+		svg {
+			display: block;
+			width: 100%;
+			height: 100%;
+			overflow: visible;
+		}
+		path {
+			fill: none;
+			stroke: var(--vapour);
+			stroke-width: 14;
+			stroke-linecap: round;
+			vector-effect: non-scaling-stroke;
+		}
+	}
+}
+.roast-curve__glow {
+	fill: none;
+	stroke: $mustard400;
+	stroke-width: 10;
+	stroke-linecap: round;
+	opacity: 0;
 }

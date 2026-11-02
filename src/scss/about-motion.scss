@@ -1,0 +1,24 @@
+@use "shared" as *;
+
+// About scenes (js/files/about.js). The flag on <html> is set in the head of about.html only when motion is
+// allowed, so the first paint already shows the faint sign on the dark wall; without JS the page is finished
+// after a short wait.
+@media (prefers-reduced-motion: no-preference) {
+	[data-about="pre"],
+	[data-about="letter"] {
+		.about-story__title:not(.hero__echo):not([data-lettering]),
+		.about-story__container > .pinstripe:not(.hero__rule) {
+			mask-image: url("@img/home/sign-ghost.svg");
+			mask-size: toRem(320);
+		}
+	}
+	[data-about="pre"] {
+		.about-story__title,
+		.about-story__eyebrow,
+		.about-story__body,
+		.about-story__container > .pinstripe {
+			opacity: 0.3;
+			animation: heroUnveil 0.6s ease 5s forwards;
+		}
+	}
+}

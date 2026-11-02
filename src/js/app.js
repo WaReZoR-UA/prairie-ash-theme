@@ -158,12 +158,9 @@ flsForms.formSubmit();
 /*
 GSAP animations
 Module: js/files/gsap.js (plugins, data-gsap reveals, flsModules.gsap)
-The site's own motion layer is js/files/motion.js. It is a separate chunk loaded after the page has
-loaded, painted its largest content and finished its page transition (js/files/motion-loader.js), so
-GSAP never competes with the first paint or restyles the page mid-transition
+The site's own motion layer is js/files/motion.js, loaded with the page through js/files/script.js
 */
-import { scheduleMotion } from "./files/motion-loader.js";
-scheduleMotion();
+import "./files/gsap.js";
 
 // ========================================================================================================================================================================================================================================================
 // Модулі роботи з прокручуванням сторінки========================================================================================================================================================================================================================================================

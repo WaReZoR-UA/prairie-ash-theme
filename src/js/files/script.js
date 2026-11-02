@@ -3,12 +3,13 @@ import { isMobile } from "./functions.js";
 // Підключення списку активних модулів
 import { flsModules } from "./modules.js";
 
-// Motion layer (hand-off "Motion"), a chunk loaded after the page, see motion-loader.js
-import { loadMotion, motionNow } from "./motion-loader.js";
+// Motion layer (hand-off "Motion")
+import { gsap } from "./motion.js";
 
 // "All pages" on a phone: the page list opens in the flow under the header and pushes the page down.
 // A disclosure, not a menu, so the template burger (which locks the scroll) is not used.
 // Storyboard "page list open" (794:5029): height to auto in 360 ms, items rise 40 ms apart, close in 240 ms.
+// Wording the theme prints from Site settings (inc/enqueue.php, prairie_ash_script_data()), markup wording as the fallback
 const words = window.prairieAsh || {};
 const pagesToggle = document.querySelector("[data-pages-toggle]");
 const pagesPanel = document.querySelector("[data-pages-panel]");
@@ -17,19 +18,16 @@ if (pagesToggle && pagesPanel) {
 	const items = pagesPanel.querySelectorAll("li, [data-motion='stripe'], .button");
 	const firstLink = pagesPanel.querySelector("a");
 	let run = null;
-	let gsap = null;
 	const settle = () => {
-		if (!gsap) return;
 		gsap.set(pagesPanel, { clearProps: "height,overflow" });
 		gsap.set(items, { clearProps: "opacity,transform" });
 	};
 	const setPages = (open, instant = false) => {
-		if (!gsap && motionNow()) gsap = motionNow().gsap;
 		pagesToggle.setAttribute("aria-expanded", String(open));
 		pagesToggle.textContent = open ? words.pagesOpenLabel || "Close page list" : words.pagesClosedLabel || "All pages";
 		if (run) run.kill();
 		run = null;
-		const still = instant || reduced.matches || !gsap;
+		const still = instant || reduced.matches;
 		if (open) {
 			pagesPanel.hidden = false;
 			if (still) {
@@ -81,19 +79,44 @@ if (todayLines.length && hoursRows.length) {
 	});
 	const todayName = new Intl.DateTimeFormat("en-US", { timeZone: "America/Winnipeg", weekday: "long" }).format(new Date());
 	const today = names.indexOf(todayName);
+	const openToday = words.todayOpen || "Open today";
+	const closedToday = words.todayClosed || "Closed today, open";
 	let text = "";
 	if (week[today]) {
-		text = `${words.todayOpen || "Open today"} ${week[today]}`;
+		text = `${openToday} ${week[today]}`;
 	} else {
 		for (let step = 1; step < 7; step++) {
 			const next = (today + step) % 7;
 			if (week[next]) {
-				text = `${words.todayClosed || "Closed today, open"} ${step === 1 ? words.todayTomorrow || "tomorrow" : names[next]} ${week[next]}`;
+				text = `${closedToday} ${step === 1 ? words.todayTomorrow || "tomorrow" : names[next]} ${week[next]}`;
 				break;
 			}
 		}
 	}
-	if (text) todayLines.forEach((line) => (line.textContent = text));
+	if (text) {
+		todayLines.forEach((line) => {
+			const term = line.querySelector("[data-today-term]");
+			const value = line.querySelector("[data-today-value]");
+			if (!term || !value) {
+				line.textContent = text;
+				return;
+			}
+			// a split line keeps its label and puts the hours in the value
+			const lead = [openToday, closedToday.replace(/\s*\S+$/, "")].find((l) => text.startsWith(l + " "));
+			const [label, rest] = lead ? [lead, text.slice(lead.length + 1)] : ["", text];
+			term.textContent = label.replace(/,$/, "");
+			value.textContent = rest;
+		});
+	}
+}
+
+// Home: the hero photo runs up under the header, so the hero needs the header's real height
+const heroWall = document.querySelector(".hero");
+const pageHeader = document.querySelector("[data-header]");
+if (heroWall && pageHeader && "ResizeObserver" in window) {
+	new ResizeObserver(([entry]) => {
+		heroWall.style.setProperty("--header-height", `${entry.borderBoxSize ? entry.borderBoxSize[0].blockSize : pageHeader.offsetHeight}px`);
+	}).observe(pageHeader);
 }
 
 // Error summary above a form, built after the template validator has marked the fields.
@@ -183,15 +206,4 @@ if (notice) {
 	const choice = read();
 	document.documentElement.classList.toggle("analytics-off", choice === "off");
 	if (!choice) show(true);
-}
-
-// Shop filter: cards are hidden at once without motion, and with it they turn away and the rest slide
-// into their places (motion.js, filterShop)
-const shopFilter = document.querySelector("[data-shop-filter]");
-if (shopFilter) {
-	shopFilter.addEventListener("change", (e) => {
-		if (e.target.type !== "radio") return;
-		const value = e.target.value;
-		loadMotion().then((m) => m.filterShop(value));
-	});
 }

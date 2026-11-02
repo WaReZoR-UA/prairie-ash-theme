@@ -1,0 +1,53 @@
+@use "shared" as *;
+
+// Wholesale scenes (js/files/wholesale.js). The flag on <html> is set in the head of the Wholesale pages only when
+// motion is allowed, so the first paint already shows the faint trade sign; without JS the page is finished after a
+// short wait.
+@media (prefers-reduced-motion: no-preference) {
+	[data-wholesale="pre"],
+	[data-wholesale="letter"] {
+		.wholesale-title__heading:not(.hero__echo):not([data-lettering]),
+		.wholesale-title__sign > .pinstripe:not(.hero__rule) {
+			mask-image: url("@img/home/sign-ghost.svg");
+			mask-size: toRem(320);
+		}
+	}
+	[data-wholesale="pre"] {
+		.wholesale-title__heading,
+		.wholesale-title__text > .eyebrow,
+		.wholesale-title__intro,
+		.wholesale-title__sign > .pinstripe {
+			opacity: 0.3;
+			animation: heroUnveil 0.6s ease 5s forwards;
+		}
+		// the sent ticket: the place the stamp lands is still empty, its line faint
+		.sent__panel .form-panel__title {
+			opacity: 0;
+			animation: heroUnveil 0.6s ease 5s forwards;
+		}
+		.sent__panel .form-panel__body {
+			opacity: 0.3;
+			animation: heroUnveil 0.6s ease 5s forwards;
+		}
+	}
+}
+// the guide a figure of the account board stands up off, gone once it stands
+.wholesale-rule {
+	position: absolute;
+	margin: 0;
+	border-top: 1px solid $mustard400;
+	opacity: 0;
+	pointer-events: none;
+}
+// the red line ruled under a field of the inquiry ticket, lifted once the field is drawn
+.wholesale-ruling {
+	position: absolute;
+	margin: toRem(-2) 0 0;
+	border-top: toRem(2) solid $brick500;
+	opacity: 0;
+	pointer-events: none;
+}
+// a "(required)" mark is struck like a stamp, so it is a box of its own on the line of its label
+.wholesale-inquiry__form .field__mark {
+	display: inline-block;
+}

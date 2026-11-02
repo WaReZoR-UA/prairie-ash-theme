@@ -1,0 +1,28 @@
+@use "shared" as *;
+
+// Signup confirmation scene (js/files/signup.js). The flag on <html> is set in the head of the page only when motion is
+// allowed, so the first paint already shows the faint sign on the wall and the empty place where the roast notes line is
+// stamped; without JS the page is finished after a short wait.
+@media (prefers-reduced-motion: no-preference) {
+	[data-signup="pre"],
+	[data-signup="letter"] {
+		.signup-done__title:not(.hero__echo):not([data-lettering]) {
+			mask-image: url("@img/home/sign-ghost.svg");
+			mask-size: toRem(320);
+		}
+	}
+	[data-signup="pre"] {
+		.signup-done__title,
+		.signup-done__lead,
+		.signup-done__help-title,
+		.signup-done__help .lv__label,
+		.signup-done__help .lv__value {
+			opacity: 0.3;
+			animation: heroUnveil 0.6s ease 5s forwards;
+		}
+		.signup-done__eyebrow {
+			opacity: 0;
+			animation: heroUnveil 0.6s ease 5s forwards;
+		}
+	}
+}

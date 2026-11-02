@@ -1,0 +1,60 @@
+@use "shared" as *;
+
+// Visit scenes (js/files/visit.js). The flag on <html> is set in the head of visit.html only when motion is
+// allowed, so the first paint already shows the door plate ajar with its faint sign and the storefront partly
+// open; without JS the page is finished after a short wait.
+@media (prefers-reduced-motion: no-preference) {
+	[data-visit="pre"],
+	[data-visit="letter"] {
+		.visit-title__heading:not(.hero__echo):not([data-lettering]),
+		.visit-title__plate > .pinstripe:not(.hero__rule) {
+			mask-image: url("@img/home/sign-ghost.svg");
+			mask-size: toRem(320);
+		}
+	}
+	[data-visit="pre"] {
+		.visit-title__heading,
+		.visit-title__eyebrow,
+		.visit-title__intro,
+		.visit-title__plate > .pinstripe {
+			opacity: 0.3;
+			animation: heroUnveil 0.6s ease 5s forwards;
+		}
+		// beside the photo the plate stands ajar on the hinge at its left edge, under it on the one at its top
+		.visit-title__plate {
+			transform: perspective(toRem(1600)) rotateY(24deg);
+			transform-origin: 0% 50%;
+			animation: visitShut 0.6s ease 5s forwards;
+			@media (max-width: $tablet) {
+				transform: perspective(toRem(1600)) rotateX(-20deg);
+				transform-origin: 50% 0%;
+			}
+		}
+		// the storefront is open on the side that faces the plate
+		.visit-title__media {
+			clip-path: inset(0% 0% 0% 62%);
+			animation: visitOpen 0.6s ease 5s forwards;
+			@media (max-width: $tablet) {
+				clip-path: inset(62% 0% 0% 0%);
+			}
+		}
+	}
+}
+@keyframes visitShut {
+	to {
+		transform: none;
+	}
+}
+@keyframes visitOpen {
+	to {
+		clip-path: inset(0% 0% 0% 0%);
+	}
+}
+// the rule a flap of the hours board comes to rest on, gone once the row lies on it
+.visit-rule {
+	position: absolute;
+	margin: 0;
+	border-top: 1px solid $mustard400;
+	opacity: 0;
+	pointer-events: none;
+}

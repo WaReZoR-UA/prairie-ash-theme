@@ -1,0 +1,30 @@
+@use "shared" as *;
+
+// Accessibility statement scenes (js/files/accessibility.js). The flag on <html> is set in the head of the page only when
+// motion is allowed, so the first paint already shows the faint title on the wall; without JS the page is finished after
+// a short wait. The contents never take a start state.
+@media (prefers-reduced-motion: no-preference) {
+	[data-accessibility="pre"],
+	[data-accessibility="letter"] {
+		.legal-title__heading:not(.hero__echo):not([data-lettering]) {
+			mask-image: url("@img/home/sign-ghost.svg");
+			mask-size: toRem(320);
+		}
+	}
+	[data-accessibility="pre"] {
+		.legal-title__heading,
+		.legal-title .eyebrow,
+		.legal-title__intro {
+			opacity: 0.3;
+			animation: heroUnveil 0.6s ease 5s forwards;
+		}
+	}
+}
+// the guide a row of a list stands up off, gone once it stands
+.accessibility-rule {
+	position: absolute;
+	margin: 0;
+	border-top: 1px solid $mustard400;
+	opacity: 0;
+	pointer-events: none;
+}

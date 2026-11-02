@@ -1,0 +1,59 @@
+@use "shared" as *;
+
+// Contact scenes (js/files/contact.js). The flag on <html> is set in the head of the Contact pages only when motion is
+// allowed, so the first paint already shows the faint title on the paper; without JS the page is finished after a
+// short wait.
+@media (prefers-reduced-motion: no-preference) {
+	[data-contact="pre"],
+	[data-contact="letter"] {
+		.contact-title__heading:not(.hero__echo):not([data-lettering]) {
+			mask-image: url("@img/home/sign-ghost.svg");
+			mask-size: toRem(320);
+		}
+	}
+	[data-contact="pre"] {
+		.contact-title__heading,
+		.contact-title__eyebrow,
+		.contact-title__intro {
+			opacity: 0.3;
+			animation: heroUnveil 0.6s ease 5s forwards;
+		}
+		// the sent note: the place the postmark lands is still empty, its line faint
+		.sent__panel .form-panel__title {
+			opacity: 0;
+			animation: heroUnveil 0.6s ease 5s forwards;
+		}
+		.sent__panel .form-panel__body {
+			opacity: 0.3;
+			animation: heroUnveil 0.6s ease 5s forwards;
+		}
+	}
+}
+// the guide a row of the details board stands up off, gone once it stands
+.contact-rule {
+	position: absolute;
+	margin: 0;
+	border-top: 1px solid $mustard400;
+	opacity: 0;
+	pointer-events: none;
+}
+// the red rule struck under the correction note, lifted once the line stands corrected
+.contact-strike {
+	position: absolute;
+	margin: 0;
+	border-top: toRem(2) solid $brick500;
+	opacity: 0;
+	pointer-events: none;
+}
+// the cancel line pulled under the postmark of the sent note, lifted once the line under it is written
+.contact-cancel {
+	position: absolute;
+	margin: toRem(4) 0 0;
+	border-top: toRem(2) solid currentColor;
+	opacity: 0;
+	pointer-events: none;
+}
+// a "(required)" mark is struck like a stamp, so it is a box of its own on the line of its label
+.contact-message__form .field__mark {
+	display: inline-block;
+}

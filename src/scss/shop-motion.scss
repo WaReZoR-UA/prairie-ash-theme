@@ -1,0 +1,40 @@
+@use "shared" as *;
+
+// Shop scenes (js/files/shop.js). The flag on <html> is set in the head of shop.html only when motion is
+// allowed, so the first paint already shows the faded label the brush and the pen go over; without JS the
+// label is finished.
+@media (prefers-reduced-motion: no-preference) {
+	[data-shop="pre"],
+	[data-shop="letter"] {
+		.shop-title__heading:not(.hero__echo):not([data-lettering]),
+		.shop-title__label > .pinstripe:not(.hero__rule) {
+			mask-image: url("@img/home/sign-ghost.svg");
+			mask-size: toRem(320);
+		}
+	}
+	// the scene never took over: show the finished label after a short wait
+	[data-shop="pre"] {
+		.shop-title__heading,
+		.shop-title__eyebrow,
+		.shop-title__intro,
+		.shop-title__label > .pinstripe {
+			opacity: 0.3;
+			animation: heroUnveil 0.6s ease 5s forwards;
+		}
+	}
+}
+// daylight on the bags as the camera moves down the shelf in the title photo
+.shop-light {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	opacity: 0;
+	mix-blend-mode: soft-light;
+	pointer-events: none;
+}
+// the count line lettered over itself when the filter changes it
+.shop-count-copy {
+	position: absolute;
+	margin: 0;
+	pointer-events: none;
+}

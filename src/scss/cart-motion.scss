@@ -1,0 +1,50 @@
+@use "shared" as *;
+
+// Cart scenes (js/files/cart.js). The flag on <html> is set in the head of the two Cart pages only when motion is
+// allowed, so the first paint already shows the faint title, the bags not yet set down, the empty places of the prices
+// and, on the empty cart, the faint note; without JS the page is finished after a short wait. The quantity field, the remove button and
+// the links never take a start state.
+@media (prefers-reduced-motion: no-preference) {
+	[data-cart="pre"],
+	[data-cart="letter"] {
+		.cart-items__heading:not(.hero__echo):not([data-lettering]),
+		.cart-empty__heading:not(.hero__echo):not([data-lettering]) {
+			mask-image: url("@img/home/sign-ghost.svg");
+			mask-size: toRem(320);
+		}
+	}
+	[data-cart="pre"] {
+		.cart-items__heading,
+		.cart-items__eyebrow,
+		.cart-empty__heading,
+		.cart-empty__eyebrow,
+		.cart-empty__body,
+		.cart-line__name,
+		.cart-line__details {
+			opacity: 0.3;
+			animation: heroUnveil 0.6s ease 5s forwards;
+		}
+		.cart-line__thumb,
+		.cart-line__each,
+		.cart-line__total-value {
+			opacity: 0;
+			animation: heroUnveil 0.6s ease 5s forwards;
+		}
+	}
+}
+// the edge of the counter a bag is set down on, gone once the prices are stamped
+.cart-counter {
+	position: absolute;
+	margin: 0;
+	border-top: 1px solid $mustard400;
+	opacity: 0;
+	pointer-events: none;
+}
+// the perforation under a row of the receipt as it is printed, gone once the row is printed
+.cart-tear {
+	position: absolute;
+	margin: 0;
+	border-top: 1px dashed currentColor;
+	opacity: 0;
+	pointer-events: none;
+}

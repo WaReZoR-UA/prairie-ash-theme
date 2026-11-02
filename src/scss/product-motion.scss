@@ -1,0 +1,145 @@
+@use "shared" as *;
+
+// Product scenes (js/files/product.js). The flag on <html> is set in the head of each product page only when
+// motion is allowed, so the first paint already shows the faint sign the brush and the pen go over; without
+// JS the page is finished after a short wait.
+@media (prefers-reduced-motion: no-preference) {
+	[data-product="pre"],
+	[data-product="letter"] {
+		.product-summary__title:not(.hero__echo):not([data-lettering]) {
+			mask-image: url("@img/home/sign-ghost.svg");
+			mask-size: toRem(320);
+		}
+	}
+	// the scene never took over: show the finished page after a short wait
+	[data-product="pre"] {
+		.breadcrumb__list,
+		.product-summary__title,
+		.product-summary__origin,
+		.product-summary__notes,
+		.product-summary__price,
+		.product-summary .lv__row {
+			opacity: 0.3;
+			animation: heroUnveil 0.6s ease 5s forwards;
+		}
+		// the bag photo leans back against the wall until it is stood up on the shelf edge
+		.product-summary__media {
+			transform: perspective(toRem(1100)) rotateX(14deg);
+			transform-origin: 50% 100%;
+			animation: productStand 0.6s ease 5s forwards;
+		}
+		// the detail photos hang crooked on their pins until they swing true
+		.product-summary__detail {
+			transform: rotate(4deg);
+			transform-origin: 50% 6%;
+			animation: productStand 0.6s ease 5s forwards;
+			& + .product-summary__detail {
+				transform: rotate(-3.5deg);
+			}
+		}
+	}
+}
+@keyframes productStand {
+	to {
+		transform: none;
+	}
+}
+// the light running up the bag photo from the shelf edge as it stands
+.product-edge {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 40%;
+	z-index: 1;
+	opacity: 0;
+	mix-blend-mode: soft-light;
+	background: linear-gradient(0deg, rgba($cream100, 0) 0%, rgba($cream100, 0.7) 50%, rgba($cream100, 0) 100%);
+	pointer-events: none;
+}
+// the painter's guide a row of a lettered board flips over on, gone once the row lies on it
+.product-rule {
+	position: absolute;
+	margin: 0;
+	border-top: 1px solid currentColor;
+	opacity: 0;
+	pointer-events: none;
+}
+// the liner's frame round a purchase control while its ink comes up
+.product-frame {
+	position: absolute;
+	z-index: 1;
+	box-shadow: inset 0 0 0 toRem(2) currentColor;
+	pointer-events: none;
+}
+
+// A choice in the purchase form is filled from the left and wiped off to the right; the box never moves.
+// Same colours as the FilterButton states, carried by a fill under the label instead of its background.
+.product-summary__form {
+	.options__label {
+		position: relative;
+		isolation: isolate;
+		&::after {
+			content: "";
+			position: absolute;
+			inset: 0;
+			z-index: -1;
+			background-color: $soot900;
+			transform: scaleX(0);
+			transform-origin: 100% 50%;
+			transition:
+				transform var(--motion-duration-base) var(--motion-ease-out),
+				background-color 0.25s ease;
+		}
+	}
+	.options__input:checked + .options__label {
+		background-color: $paper;
+		&::after {
+			transform: scaleX(1);
+			transform-origin: 0% 50%;
+		}
+		@media (any-hover: hover) {
+			&:hover {
+				background-color: $paper;
+				&::after {
+					background-color: $soot700;
+				}
+			}
+		}
+		&:active {
+			background-color: $paper;
+			&::after {
+				background-color: $brick800;
+			}
+		}
+	}
+	// focus keeps its own fill, as everywhere else on the site
+	.options__input:focus-visible + .options__label {
+		background-color: $focusFill;
+		&::after {
+			opacity: 0;
+		}
+	}
+}
+// Add to cart, struck as a rubber stamp in the brick ink of the page's accents
+.product-stamp {
+	position: absolute;
+	z-index: 2;
+	margin: 0;
+	padding: toRem(4) toRem(10);
+	color: $accentOnPaper;
+	box-shadow: inset 0 0 0 toRem(2) currentColor;
+	background-color: rgba($paper, 0.86);
+	white-space: nowrap;
+	pointer-events: none;
+	@include labelM;
+}
+// morning mist lifting off the valley in the farm photo, coloured from the photo by the script
+.product-mist {
+	position: absolute;
+	inset: -10% -15%;
+	z-index: 1;
+	opacity: 0;
+	mix-blend-mode: screen;
+	pointer-events: none;
+}

@@ -1,0 +1,32 @@
+@use "shared" as *;
+
+// Menu scenes (js/files/menu.js). The flag on <html> is set in the head of menu.html only when motion is
+// allowed, so the first paint already shows the faint board on the soot wall; without JS the page is finished
+// after a short wait.
+@media (prefers-reduced-motion: no-preference) {
+	[data-menu="pre"],
+	[data-menu="letter"] {
+		.menu-title__heading:not(.hero__echo):not([data-lettering]),
+		.menu-title__board > .pinstripe:not(.hero__rule) {
+			mask-image: url("@img/home/sign-ghost.svg");
+			mask-size: toRem(320);
+		}
+	}
+	[data-menu="pre"] {
+		.menu-title__heading,
+		.menu-title__eyebrow,
+		.menu-title__intro,
+		.menu-title__board > .pinstripe {
+			opacity: 0.3;
+			animation: heroUnveil 0.6s ease 5s forwards;
+		}
+	}
+}
+// the rule a row of a menu board stands on or hangs from, gone once the row lies on it
+.menu-rule {
+	position: absolute;
+	margin: 0;
+	border-top: 1px solid $mustard400;
+	opacity: 0;
+	pointer-events: none;
+}
