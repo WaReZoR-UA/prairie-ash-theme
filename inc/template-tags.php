@@ -175,6 +175,7 @@ function prairie_ash_image_alt( $image, $heading = '', $decorative = false ) {
  * class attribute at all, as the markup draws it.
  *
  * @since 1.0.0
+ * @since 1.1.0 The $picture_attr parameter.
  *
  * @param int|string|array $image      Attachment ID or field value.
  * @param string           $sizes      The sizes attribute, from prairie_ash_slot_sizes().
@@ -183,16 +184,21 @@ function prairie_ash_image_alt( $image, $heading = '', $decorative = false ) {
  * @param array            $attr       Further attributes merged into the img.
  * @param array            $art        Art-directed images shown first, each an array of
  *                                     'media', 'image' and 'sizes'.
+ * @param array            $picture_attr Attributes printed on the picture element, name => value.
  * @return void
  */
-function prairie_ash_image( $image, $sizes = '100vw', $heading = '', $decorative = false, $attr = array(), $art = array() ) {
+function prairie_ash_image( $image, $sizes = '100vw', $heading = '', $decorative = false, $attr = array(), $art = array(), $picture_attr = array() ) {
 	$attachment_id = prairie_ash_attachment_id( $image );
 
 	if ( $attachment_id <= 0 ) {
 		return;
 	}
 
-	echo '<picture>';
+	echo '<picture';
+	foreach ( (array) $picture_attr as $name => $value ) {
+		echo ' ' . esc_attr( $name ) . '="' . esc_attr( $value ) . '"';
+	}
+	echo '>';
 
 	foreach ( $art as $entry ) {
 		$art_id = prairie_ash_attachment_id( $entry['image'] );
@@ -307,6 +313,24 @@ function prairie_ash_inline_html( $text ) {
  */
 function prairie_ash_nbsp_postcode( $text ) {
 	return (string) preg_replace( '/\b([A-Z]\d[A-Z]) (\d[A-Z]\d)\b/', "$1\u{00a0}$2", (string) $text );
+}
+
+/**
+ * Print text with each range of clock times kept on one line, as the design
+ * does for the cupping time in the footer ("First Saturday, 10:00 to 11:30").
+ *
+ * The text is escaped first and only the span around a range such as
+ * "10:00 to 11:30" is markup, whatever word joins the two times.
+ *
+ * @since 1.1.0
+ *
+ * @param string $text Text that may hold a range of clock times.
+ * @return void
+ */
+function prairie_ash_nowrap_times( $text ) {
+	$html = (string) preg_replace( '/\b\d{1,2}:\d{2}\s+\S+\s+\d{1,2}:\d{2}\b/u', '<span class="nowrap">$0</span>', esc_html( $text ) );
+
+	echo wp_kses( $html, array( 'span' => array( 'class' => true ) ) );
 }
 
 /**
