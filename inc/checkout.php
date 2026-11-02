@@ -90,6 +90,76 @@ function prairie_ash_chosen_pickup() {
 }
 
 /**
+ * A province as WooCommerce's code, whether it was typed as the code or the name.
+ *
+ * The province is a text field, and the design's own example is the full name.
+ * Shipping zones list provinces by code ("CA:MB"), so "Manitoba" would match no
+ * zone and leave only the pickup that every address gets. WooCommerce converts
+ * a full name to its code only when a select or a "state" validation posts it,
+ * and never on the order review refresh. A value that is neither a code nor a
+ * name of the country's provinces is returned unchanged.
+ *
+ * @since 1.1.0
+ *
+ * @param string $value   Province as typed, for example "Manitoba", "manitoba" or "MB".
+ * @param string $country Country code, for example CA.
+ * @return string The code, for example MB, or the value unchanged.
+ */
+function prairie_ash_province_code( $value, $country ) {
+	$states = $country ? WC()->countries->get_states( $country ) : array();
+	if ( ! is_array( $states ) || ! $states || ! is_string( $value ) ) {
+		return $value;
+	}
+
+	$typed = wc_strtoupper( trim( (string) preg_replace( '/\s+/u', ' ', $value ) ) );
+	if ( isset( $states[ $typed ] ) ) {
+		return $typed;
+	}
+
+	$codes = array_flip( array_map( 'wc_strtoupper', $states ) );
+
+	return isset( $codes[ $typed ] ) ? (string) $codes[ $typed ] : $value;
+}
+
+/**
+ * Store the customer's provinces as codes before WooCommerce rates the address.
+ *
+ * Both the order review refresh and the place order request save the customer
+ * before the shipping is calculated, so the zone is matched on the code.
+ *
+ * @since 1.1.0
+ *
+ * @param WC_Customer $customer The customer being saved.
+ * @return void
+ */
+function prairie_ash_customer_province_codes( $customer ) {
+	foreach ( array( 'billing', 'shipping' ) as $type ) {
+		$state = $customer->{"get_{$type}_state"}( 'edit' );
+		$code  = prairie_ash_province_code( $state, $customer->{"get_{$type}_country"}( 'edit' ) );
+		if ( $code !== $state ) {
+			$customer->{"set_{$type}_state"}( $code );
+		}
+	}
+}
+add_action( 'woocommerce_before_customer_object_save', 'prairie_ash_customer_province_codes' );
+
+/**
+ * Post the province as its code, so the order keeps the code as well.
+ *
+ * @since 1.1.0
+ *
+ * @param string $value Posted province.
+ * @return string
+ */
+function prairie_ash_posted_province_code( $value ) {
+	// WooCommerce verified the checkout nonce before reading the posted data.
+	$country = filter_input( INPUT_POST, 'billing_country', FILTER_UNSAFE_RAW );
+
+	return prairie_ash_province_code( $value, is_string( $country ) && '' !== $country ? wc_clean( $country ) : 'CA' );
+}
+add_filter( 'woocommerce_process_checkout_field_billing_state', 'prairie_ash_posted_province_code' );
+
+/**
  * Require the address for delivery, and write every error in the design's words.
  *
  * WooCommerce's own messages name the field and its rule. The design writes one
