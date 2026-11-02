@@ -65,6 +65,33 @@ function rootOwners(root, roots) {
 	return owners;
 }
 
+// Classes the design's scripts add to the page at run time (src/js). A script can add one on any page
+// whatever BEM root it carries (the motion layer letters every page's title with the hero's echo and
+// caption-ink classes), so such a class proves nothing about which block renders: a selector whose
+// only unit classes are script-added stays global. A name written with a leading dot is a query, not an
+// addition, and does not count. A name built in a template string (`hero__echo--${kind}`) counts for
+// every class that starts with its fixed part.
+function scriptClasses(root) {
+	const names = new Set();
+	const prefixes = new Set();
+	const walk = (dir) => {
+		for (const f of fs.readdirSync(dir, { withFileTypes: true })) {
+			const p = path.join(dir, f.name);
+			if (f.isDirectory()) walk(p);
+			else if (/\.js$/.test(f.name)) {
+				const text = fs.readFileSync(p, 'utf8');
+				for (const m of text.matchAll(/(^|[^.\w-])(-?[_a-zA-Z][\w-]*(?:__|--)[\w-]+)/g)) names.add(m[2]);
+				for (const m of text.matchAll(/(^|[^.\w-])(-?[_a-zA-Z][\w-]*(?:__|--|-))\$\{/g)) prefixes.add(m[2]);
+				for (const m of text.matchAll(/(?:className\s*=\s*|classList\.(?:add|toggle|replace)\()[`'"]([^`'"]+)/g)) {
+					m[1].split(/[\s$}{]+/).forEach((c) => /^-?[_a-zA-Z][\w-]*$/.test(c) && names.add(c));
+				}
+			}
+		}
+	};
+	walk(path.join(root, 'src/js'));
+	return { has: (c) => names.has(c) || [...prefixes].some((x) => c.startsWith(x)) };
+}
+
 const proofClasses = (selector) => {
 	const plain = selector.replace(/:(not|is|where|matches|-webkit-any)\((?:[^()]|\([^()]*\))*\)/g, '');
 	return [...plain.matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)].map((m) => m[1]);
@@ -89,11 +116,12 @@ export function splitCss(css, root, postcss, hash) {
 	const roots = new Set();
 	tree.walkRules((rule) => rule.selectors.forEach((s) => proofClasses(s).forEach((c) => roots.add(bemRoot(c)))));
 	const owners = rootOwners(root, roots);
+	const added = scriptClasses(root);
 
 	const ownerOfRule = (rule) => {
 		const union = new Set();
 		for (const sel of rule.selectors) {
-			const sets = proofClasses(sel).map((c) => owners.get(bemRoot(c))).filter(Boolean);
+			const sets = proofClasses(sel).map((c) => (added.has(c) ? null : owners.get(bemRoot(c)))).filter(Boolean);
 			if (!sets.length) return null;
 			sets.sort((a, b) => a.size - b.size)[0].forEach((u) => union.add(u));
 		}
