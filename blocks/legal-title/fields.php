@@ -1,7 +1,7 @@
 <?php
 /**
  * Fields of a legal page title: the date it was last updated, the heading and
- * the intro.
+ * the intro, and which legal page of the design the title opens.
  *
  * @package PrairieAsh
  */
@@ -16,6 +16,21 @@ return array(
 		'intro'   => 'Text',
 	),
 	'fields'   => array(
+		array(
+			'select',
+			'scene',
+			'Page',
+			array(
+				'choices'       => array(
+					'privacy'       => 'Privacy policy',
+					'accessibility' => 'Accessibility statement',
+				),
+				'default_value' => 'privacy',
+				'allow_null'    => 0,
+				'ui'            => 0,
+				'instructions'  => 'The legal page this title opens. It picks the way the title is lettered on load.',
+			),
+		),
 		array( 'text', 'date_label', 'Words before the date', array( 'default' => 'Last updated' ) ),
 		array(
 			'date_picker',

@@ -166,11 +166,67 @@ function prairie_ash_admin_consent( $order ) {
 add_action( 'woocommerce_admin_order_data_after_billing_address', 'prairie_ash_admin_consent' );
 
 /**
+ * The parts of the checkout that change with the delivery choice and the total.
+ *
+ * Each part is printed by its template, keyed by the selector WooCommerce's
+ * checkout script replaces it by: the total beside the title, the delivery
+ * options, the payment panel and the order review. The place order button,
+ * whose label carries the total, is refreshed with them and carries their
+ * fingerprint, see prairie_ash_checkout_parts_hash().
+ *
+ * @since 1.1.0
+ *
+ * @return array<string, string> Selector to HTML.
+ */
+function prairie_ash_checkout_parts() {
+	$parts = array();
+
+	ob_start();
+	wc_get_template( 'checkout/pa-title-total.php' );
+	$parts['.checkout-title__total'] = ob_get_clean();
+
+	ob_start();
+	wc_get_template( 'checkout/pa-delivery-options.php' );
+	$parts['.checkout-choice'] = ob_get_clean();
+
+	ob_start();
+	woocommerce_checkout_payment();
+	$parts['#payment'] = ob_get_clean();
+
+	ob_start();
+	woocommerce_order_review();
+	$parts['.checkout-review__order'] = ob_get_clean();
+
+	return $parts;
+}
+
+/**
+ * The fingerprint of the checkout parts as they stand.
+ *
+ * The page prints it beside the place order button. WooCommerce's script
+ * asks for the parts again as soon as the page loads, and replaces every part
+ * it receives on that first answer, even an unchanged one: the motion layer
+ * has already taken those elements over, so a replaced part would lose its
+ * motion and a few frames under the busy shade. With the fingerprint, only
+ * parts that changed are sent back.
+ *
+ * @since 1.1.0
+ *
+ * @param array<string, string>|null $parts Selector to HTML, or null to print them now.
+ * @return string
+ */
+function prairie_ash_checkout_parts_hash( $parts = null ) {
+	return md5( implode( "\n", null === $parts ? prairie_ash_checkout_parts() : $parts ) );
+}
+
+/**
  * Refresh the parts of the design that depend on the delivery choice and the total.
  *
- * WooCommerce refreshes its own review table and payment box. These add the
- * delivery options, the total beside the title and the place order button,
- * whose label carries the total.
+ * WooCommerce's own review table and payment box are replaced by the design's,
+ * found by their own selectors, with the delivery options, the total beside
+ * the title and the place order button. When none of them changed since the
+ * page or the last refresh printed them, none is sent, so nothing on the page
+ * is replaced.
  *
  * @since 1.0.0
  *
@@ -178,19 +234,25 @@ add_action( 'woocommerce_admin_order_data_after_billing_address', 'prairie_ash_a
  * @return array
  */
 function prairie_ash_checkout_fragments( $fragments ) {
-	ob_start();
-	wc_get_template( 'checkout/pa-delivery-options.php' );
-	$fragments['.checkout-choice'] = ob_get_clean();
+	unset( $fragments['.woocommerce-checkout-review-order-table'], $fragments['.woocommerce-checkout-payment'] );
+
+	$parts = prairie_ash_checkout_parts();
+	$hash  = prairie_ash_checkout_parts_hash( $parts );
+
+	$posted = array();
+	$nonce  = isset( $_POST['security'] ) ? sanitize_text_field( wp_unslash( $_POST['security'] ) ) : '';
+	if ( wp_verify_nonce( $nonce, 'update-order-review' ) && isset( $_POST['post_data'] ) ) {
+		parse_str( sanitize_text_field( wp_unslash( $_POST['post_data'] ) ), $posted );
+	}
+	if ( isset( $posted['pa_checkout_parts'] ) && $hash === $posted['pa_checkout_parts'] ) {
+		return $fragments;
+	}
 
 	ob_start();
-	wc_get_template( 'checkout/pa-title-total.php' );
-	$fragments['.checkout-title__total'] = ob_get_clean();
+	wc_get_template( 'checkout/pa-place-order.php', array( 'prairie_ash_parts_hash' => $hash ) );
+	$parts['.checkout-review__actions'] = ob_get_clean();
 
-	ob_start();
-	wc_get_template( 'checkout/pa-place-order.php' );
-	$fragments['.checkout-review__actions'] = ob_get_clean();
-
-	return $fragments;
+	return array_merge( $fragments, $parts );
 }
 add_filter( 'woocommerce_update_order_review_fragments', 'prairie_ash_checkout_fragments' );
 
@@ -231,7 +293,11 @@ function prairie_ash_next_roast_day( $from ) {
  *
  * The data attributes feed the design's own form script, which checks the
  * field before the order is sent and builds the error summary from the same
- * wording WooCommerce's validation prints after it.
+ * wording WooCommerce's validation prints after it. The script prints the
+ * error beside the field as markup, so the error is escaped here, and the
+ * format named in the hint is set as a figure in it, as the design sets it.
+ * A required label carries its "(required)" as the design's mark, which the
+ * motion layer stamps once the label is written.
  *
  * @since 1.0.0
  *
@@ -250,7 +316,14 @@ function prairie_ash_checkout_input( $key, $hint = '' ) {
 	$address  = in_array( $key, array( 'billing_address_1', 'billing_city', 'billing_postcode', 'billing_state' ), true );
 	$required = $required || $address;
 	$code     = in_array( $type, array( 'tel' ), true ) || in_array( $key, array( 'billing_postcode' ), true );
-	$attrs    = array(
+	$message  = '';
+	if ( $required && $error ) {
+		$message = esc_html( prairie_ash_wording( 'error_prefix' ) . ' ' . prairie_ash_wording( $error ) );
+		if ( preg_match( '/\[([^\]]+)\]/', $hint, $pattern ) ) {
+			$message = str_replace( esc_html( $pattern[1] ), '<span class="figure">' . esc_html( $pattern[1] ) . '</span>', $message );
+		}
+	}
+	$attrs = array(
 		'class'            => $code ? 'input input--code' : 'input',
 		'id'               => $key,
 		'type'             => $type,
@@ -259,12 +332,16 @@ function prairie_ash_checkout_input( $key, $hint = '' ) {
 		'autocomplete'     => $autocomplete,
 		'aria-describedby' => '' !== $hint ? $key . '-hint' : '',
 		'data-required'    => $required ? ( 'email' === $type ? 'email' : '' ) : null,
-		'data-error'       => $required && $error ? prairie_ash_wording( 'error_prefix' ) . ' ' . prairie_ash_wording( $error ) : '',
+		'data-error'       => $message,
 		'data-summary'     => $required && $error ? prairie_ash_wording( $error ) : '',
 	);
 	?>
 	<div class="field">
-		<label class="field__label" for="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( prairie_ash_wording( $label ) . ' ' . ( $required ? prairie_ash_wording( 'required' ) : prairie_ash_wording( 'optional' ) ) ); ?></label>
+		<?php if ( $required ) : ?>
+			<label class="field__label" for="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( prairie_ash_wording( $label ) ); ?> <span class="field__mark"><?php echo esc_html( prairie_ash_wording( 'required' ) ); ?></span></label>
+		<?php else : ?>
+			<label class="field__label" for="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( prairie_ash_wording( $label ) . ' ' . prairie_ash_wording( 'optional' ) ); ?></label>
+		<?php endif; ?>
 		<?php if ( '' !== $hint ) : ?>
 			<span class="field__hint field__hint--format" id="<?php echo esc_attr( $key . '-hint' ); ?>"><?php prairie_ash_hint_text( $hint ); ?></span>
 		<?php endif; ?>
@@ -311,3 +388,18 @@ function prairie_ash_hint_text( $hint ) {
 		array( 'span' => array( 'class' => true ) )
 	);
 }
+
+/**
+ * Leave out WooCommerce's "cart is empty" notice on the empty cart.
+ *
+ * The design's empty cart says it in its own heading, so the notice would
+ * only repeat it, in an element the design does not draw.
+ *
+ * @since 1.1.0
+ *
+ * @return void
+ */
+function prairie_ash_drop_empty_cart_notice() {
+	remove_action( 'woocommerce_cart_is_empty', 'wc_empty_cart_message', 10 );
+}
+add_action( 'init', 'prairie_ash_drop_empty_cart_notice' );

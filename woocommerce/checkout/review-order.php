@@ -3,7 +3,10 @@
  * The order review: one line per coffee and the totals.
  *
  * WooCommerce's checkout script replaces this block, found by its
- * woocommerce-checkout-review-order-table class, whenever the order changes.
+ * checkout-review__order class, when a change of the order changes it, see
+ * prairie_ash_checkout_fragments(). The block leaves out WooCommerce's
+ * woocommerce-checkout-review-order-table class, so the script never lays its
+ * busy shade over the receipt the motion layer prints.
  *
  * Overrides WooCommerce's checkout/review-order.php.
  *
@@ -16,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
 $prairie_ash_cart  = WC()->cart;
 $prairie_ash_lines = prairie_ash_cart_lines( $prairie_ash_cart->get_cart() );
 ?>
-<div class="checkout-review__order woocommerce-checkout-review-order-table">
+<div class="checkout-review__order">
 	<h2 class="checkout-review__title" id="checkout-review-title"><?php echo esc_html( prairie_ash_wording( 'review_title' ) ); ?></h2>
 	<div class="review-table">
 		<div class="review-table__head" aria-hidden="true">
@@ -42,12 +45,14 @@ $prairie_ash_lines = prairie_ash_cart_lines( $prairie_ash_cart->get_cart() );
 			<?php endforeach; ?>
 		</ul>
 	</div>
-	<dl class="lv lv--total">
-		<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( 'subtotal' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_price_text( $prairie_ash_cart->get_subtotal() ) ); ?></dd></div>
-		<?php if ( $prairie_ash_cart->needs_shipping() ) : ?>
-			<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_chosen_pickup() ? prairie_ash_wording( 'pickup' ) : prairie_ash_wording( 'shipping' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_shipping_value() ); ?></dd></div>
-		<?php endif; ?>
-		<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( 'tax' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_price_text( $prairie_ash_cart->get_total_tax() ) ); ?></dd></div>
-		<div class="lv__row lv__row--due"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( 'total_to_pay' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_price_text( $prairie_ash_cart->get_total( 'edit' ) ) ); ?></dd></div>
-	</dl>
+	<div class="checkout-review__receipt" data-motion="cart-receipt">
+		<dl class="lv lv--total">
+			<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( 'subtotal' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_price_text( $prairie_ash_cart->get_subtotal() ) ); ?></dd></div>
+			<?php if ( $prairie_ash_cart->needs_shipping() ) : ?>
+				<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_chosen_pickup() ? prairie_ash_wording( 'pickup' ) : prairie_ash_wording( 'shipping' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_shipping_value() ); ?></dd></div>
+			<?php endif; ?>
+			<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( 'tax' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_price_text( $prairie_ash_cart->get_total_tax() ) ); ?></dd></div>
+			<div class="lv__row lv__row--due"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( 'total_to_pay' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_price_text( $prairie_ash_cart->get_total( 'edit' ) ) ); ?></dd></div>
+		</dl>
+	</div>
 </div>

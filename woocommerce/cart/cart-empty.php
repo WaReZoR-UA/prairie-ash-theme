@@ -15,8 +15,8 @@ do_action( 'woocommerce_cart_is_empty' );
 $prairie_ash_image = function_exists( 'get_field' ) ? get_field( 'wording_empty_image', 'option' ) : 0;
 ?>
 <section class="cart-empty" aria-labelledby="cart-empty-title">
-	<div class="cart-empty__container">
-		<div class="cart-empty__text" data-motion="sign">
+	<div class="cart-empty__container" data-motion="cart-note">
+		<div class="cart-empty__text">
 			<p class="cart-empty__eyebrow"><?php echo esc_html( prairie_ash_wording( 'empty_eyebrow' ) ); ?></p>
 			<h1 class="cart-empty__heading" id="cart-empty-title"><?php echo esc_html( prairie_ash_wording( 'empty_heading' ) ); ?></h1>
 			<p class="cart-empty__body"><?php echo esc_html( prairie_ash_wording( 'empty_body' ) ); ?></p>

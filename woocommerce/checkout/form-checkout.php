@@ -36,7 +36,7 @@ do_action( 'woocommerce_before_checkout_form', $checkout );
 	</section>
 
 	<section class="checkout-title" aria-labelledby="checkout-title">
-		<div class="checkout-title__container" data-motion="sign">
+		<div class="checkout-title__container" data-motion="checkout-sign">
 			<div class="checkout-title__text">
 				<p class="checkout-title__eyebrow"><?php echo esc_html( prairie_ash_wording_with( 'checkout_eyebrow', array( 'count' => prairie_ash_cart_count_words() ) ) ); ?></p>
 				<h1 class="checkout-title__heading" id="checkout-title"><?php echo esc_html( prairie_ash_wording( 'checkout_heading' ) ); ?></h1>
@@ -52,7 +52,7 @@ do_action( 'woocommerce_before_checkout_form', $checkout );
 				<h2 class="checkout-step__title" id="checkout-details-title"><?php echo esc_html( prairie_ash_wording( 'details_title' ) ); ?></h2>
 				<p class="checkout-step__note"><?php echo esc_html( prairie_ash_wording( 'details_note' ) ); ?></p>
 			</div>
-			<div class="checkout-step__panel">
+			<div class="checkout-step__panel" data-motion="checkout-fields">
 				<div class="checkout-fields">
 					<?php prairie_ash_checkout_input( 'billing_email' ); ?>
 					<div class="checkout-fields__row">
@@ -71,7 +71,7 @@ do_action( 'woocommerce_before_checkout_form', $checkout );
 				<h2 class="checkout-step__title" id="checkout-delivery-title"><?php echo esc_html( prairie_ash_wording( 'delivery_title' ) ); ?></h2>
 				<p class="checkout-step__note"><?php echo esc_html( prairie_ash_wording( 'delivery_note' ) ); ?></p>
 			</div>
-			<div class="checkout-step__panel">
+			<div class="checkout-step__panel" data-motion="checkout-fields">
 				<div class="checkout-fields">
 					<?php wc_get_template( 'checkout/pa-delivery-options.php' ); ?>
 					<div class="checkout-fields__group" data-address-fields<?php echo prairie_ash_chosen_pickup() ? ' hidden' : ''; ?>>
@@ -101,7 +101,7 @@ do_action( 'woocommerce_before_checkout_form', $checkout );
 	<section class="checkout-review" aria-labelledby="checkout-review-title">
 		<div class="checkout-review__container">
 			<?php woocommerce_order_review(); ?>
-			<div class="checkout-review__submit">
+			<div class="checkout-review__submit" data-motion="checkout-submit">
 				<div class="checkbox">
 					<input class="checkbox__input" id="checkout-consent" type="checkbox" name="roast_notes" value="yes" aria-describedby="checkout-consent-sender">
 					<label class="checkbox__label" for="checkout-consent">

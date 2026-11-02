@@ -22,7 +22,7 @@ do_action( 'woocommerce_before_cart' );
 ?>
 <section class="cart-items" aria-labelledby="cart-title">
 	<div class="cart-items__container">
-		<div class="cart-items__title" data-motion="sign">
+		<div class="cart-items__title" data-motion="cart-sign">
 			<p class="cart-items__eyebrow"><?php echo esc_html( prairie_ash_cart_eyebrow( $prairie_ash_lines ) ); ?></p>
 			<h1 class="cart-items__heading" id="cart-title"><?php echo esc_html( prairie_ash_wording( 'cart_heading' ) ); ?></h1>
 		</div>
@@ -32,7 +32,7 @@ do_action( 'woocommerce_before_cart' );
 				<span class="cart-table__col cart-table__col--each"><?php echo esc_html( prairie_ash_wording( 'col_each' ) ); ?></span>
 				<span class="cart-table__col cart-table__col--total"><?php echo esc_html( prairie_ash_wording( 'col_total' ) ); ?></span>
 			</div>
-			<ul class="cart-table__list">
+			<ul class="cart-table__list" data-motion="cart-counter">
 				<?php foreach ( $prairie_ash_lines as $prairie_ash_line ) : ?>
 					<li class="cart-line">
 						<?php if ( $prairie_ash_line['image'] ) : ?>
@@ -68,7 +68,7 @@ do_action( 'woocommerce_before_cart' );
 				<p class="cart-summary__note"><?php echo esc_html( prairie_ash_wording( 'summary_note' ) ); ?></p>
 			<?php endif; ?>
 		</div>
-		<div class="cart-summary__totals">
+		<div class="cart-summary__totals" data-motion="cart-receipt">
 			<dl class="lv lv--total">
 				<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( 'subtotal_before_tax' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_price_text( $prairie_ash_cart->get_subtotal() ) ); ?></dd></div>
 				<?php if ( $prairie_ash_cart->needs_shipping() ) : ?>

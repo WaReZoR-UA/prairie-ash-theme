@@ -5,8 +5,10 @@
  *
  * The provider's own fields replace the card fields the design drew as a
  * placeholder. The place order button lives in the review below, not here.
- * WooCommerce's checkout script replaces this block, found by its
- * woocommerce-checkout-payment class, whenever the order changes.
+ * WooCommerce's checkout script replaces this block, found by its id, when a
+ * change of the order changes it, see prairie_ash_checkout_fragments(). The
+ * block leaves out WooCommerce's woocommerce-checkout-payment class, so the
+ * script never lays its busy shade over the panel the motion layer writes in.
  *
  * Overrides WooCommerce's checkout/payment.php.
  *
@@ -22,7 +24,7 @@ if ( ! isset( $prairie_ash_gateways[ $prairie_ash_chosen ] ) ) {
 	$prairie_ash_chosen = (string) array_key_first( $prairie_ash_gateways );
 }
 ?>
-<div id="payment" class="checkout-step__panel checkout-step__panel--shade woocommerce-checkout-payment" data-payment-fields>
+<div id="payment" class="checkout-step__panel checkout-step__panel--shade" data-payment-fields data-motion="checkout-fields">
 	<?php if ( ! $prairie_ash_gateways ) : ?>
 		<div class="checkout-fields">
 			<p class="checkout-fields__text"><?php echo esc_html( prairie_ash_wording( 'no_payment' ) ); ?></p>

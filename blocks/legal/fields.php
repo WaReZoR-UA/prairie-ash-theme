@@ -20,6 +20,21 @@ return array(
 		'values'   => 'Row text',
 	),
 	'fields'   => array(
+		array(
+			'select',
+			'scene',
+			'Page',
+			array(
+				'choices'       => array(
+					'privacy'       => 'Privacy policy',
+					'accessibility' => 'Accessibility statement',
+				),
+				'default_value' => 'privacy',
+				'allow_null'    => 0,
+				'ui'            => 0,
+				'instructions'  => 'The legal page this body belongs to, the same as on its title. It picks the way the parts come in with the scroll.',
+			),
+		),
 		array( 'text', 'label', 'Section name, read by screen readers', array( 'default' => 'Policy' ) ),
 		array( 'text', 'contents_title', 'Contents heading', array( 'default' => 'On this page' ) ),
 		array(

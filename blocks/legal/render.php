@@ -8,6 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 $f     = prairie_ash_fields( 'legal' );
+$scene = prairie_ash_motion_scene( 'prairie-ash/legal-title', (string) $f['scene'] );
 $parts = array();
 foreach ( $f['parts'] as $part ) {
 	if ( '' === trim( (string) $part['heading'] ) ) {
@@ -20,7 +21,7 @@ foreach ( $f['parts'] as $part ) {
 <section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'legal' ), array( 'aria-label' => $f['label'] ) ); ?>>
 	<div class="legal__container">
 		<?php if ( $parts ) : ?>
-			<nav class="legal__contents" aria-labelledby="legal-contents-title">
+			<nav class="legal__contents" aria-labelledby="legal-contents-title" data-motion="<?php echo esc_attr( $scene . '-contents' ); ?>">
 				<h2 class="legal__contents-title" id="legal-contents-title"<?php prairie_ash_el( $block, 'contents' ); ?>><?php echo esc_html( $f['contents_title'] ); ?></h2>
 				<ul class="legal__contents-list">
 					<?php foreach ( $parts as $part ) : ?>
@@ -31,7 +32,7 @@ foreach ( $f['parts'] as $part ) {
 		<?php endif; ?>
 		<div class="legal__body">
 			<?php foreach ( $parts as $part ) : ?>
-				<div class="legal__part" id="<?php echo esc_attr( $part['anchor'] ); ?>">
+				<div class="legal__part" id="<?php echo esc_attr( $part['anchor'] ); ?>" data-motion="<?php echo esc_attr( $scene . '-part' ); ?>">
 					<h2 class="legal__heading"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $part['heading'] ); ?></h2>
 					<?php foreach ( prairie_ash_paragraphs( $part['text_before'] ) as $paragraph ) : ?>
 						<p class="legal__text"<?php prairie_ash_el( $block, 'text' ); ?>><?php prairie_ash_contact_text( $paragraph ); ?></p>

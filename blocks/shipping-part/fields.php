@@ -5,7 +5,8 @@
  * The design draws this band two ways: a text column beside the facts, or a
  * photo beside the facts with the text above them. The arrangement is a field,
  * because it decides whether the photo is used. The band colour is a block
- * style, chosen in the Styles panel.
+ * style, chosen in the Styles panel. How the band comes in with the scroll is
+ * a field too, since the design draws each topic in its own way.
  *
  * @package PrairieAsh
  */
@@ -31,6 +32,22 @@ return array(
 					'photo-beside' => 'Photo beside the facts',
 				),
 				'default_value' => 'text-beside',
+			),
+		),
+		array(
+			'select',
+			'motion',
+			'How the topic comes in',
+			array(
+				'choices'       => array(
+					'board'      => 'Rate board: the facts stand up row by row, prices stamped',
+					'note'       => 'Note: the text and the facts written by the pen',
+					'correction' => 'Correction note: the heading struck through, then written',
+				),
+				'default_value' => 'board',
+				'allow_null'    => 0,
+				'ui'            => 0,
+				'instructions'  => 'On the rate board, every amount such as $12 in the facts is stamped.',
 			),
 		),
 		array( 'text', 'heading', 'Heading' ),
