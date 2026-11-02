@@ -44,13 +44,6 @@
 		],
 		"templates": []
 	},
-	"shared-3b17612d": {
-		"blocks": [
-			"prairie-ash/cupping",
-			"prairie-ash/roastery-cupping"
-		],
-		"templates": []
-	},
 	"shared-bccf63a1": {
 		"blocks": [
 			"prairie-ash/menu",
@@ -232,8 +225,9 @@
 		],
 		"templates": []
 	},
-	"legal-title": {
+	"shared-bec86599": {
 		"blocks": [
+			"prairie-ash/legal",
 			"prairie-ash/legal-title"
 		],
 		"templates": []
