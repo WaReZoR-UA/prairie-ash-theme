@@ -41,7 +41,7 @@ $email  = prairie_ash_setting( 'email' );
 			</div>
 			<div class="visit-hours__open">
 				<p class="visit-hours__label"<?php prairie_ash_el( $block, 'labels' ); ?>><?php echo esc_html( $f['hours_label'] ); ?></p>
-				<dl class="visit-hours__table lv lv--hours lv--stack">
+				<dl class="visit-hours__table lv lv--hours lv--stack" data-motion="visit-board">
 					<?php foreach ( prairie_ash_hours() as $row ) : ?>
 						<div class="lv__row"><dt class="lv__label"><?php echo esc_html( $row['label'] ); ?></dt><dd class="lv__value"><?php echo esc_html( $row['time'] ); ?></dd></div>
 					<?php endforeach; ?>

@@ -24,7 +24,7 @@ $f = prairie_ash_fields( 'visit-access' );
 				<?php endif; ?>
 			</div>
 			<?php if ( $f['facts'] ) : ?>
-				<dl class="visit-access__table lv lv--feature-lead lv--stack">
+				<dl class="visit-access__table lv lv--feature-lead lv--stack" data-motion="visit-facts">
 					<?php foreach ( $f['facts'] as $fact ) : ?>
 						<div class="lv__row"><dt class="lv__label"<?php prairie_ash_el( $block, 'labels' ); ?>><?php echo esc_html( $fact['label'] ); ?></dt><dd class="lv__value"<?php prairie_ash_el( $block, 'values' ); ?>><?php echo esc_html( $fact['value'] ); ?></dd></div>
 					<?php endforeach; ?>

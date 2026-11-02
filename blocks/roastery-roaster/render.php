@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 $f = prairie_ash_fields( 'roastery-roaster' );
 ?>
 <section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'roastery-roaster', 'band', 'band--deep' ) ); ?> aria-labelledby="roastery-roaster-title">
-	<div class="roastery-roaster__container" data-motion="scene">
+	<div class="roastery-roaster__container" data-motion="roast-scene">
 		<?php if ( $f['image'] ) : ?>
 			<div class="roastery-roaster__media media-ibg">
 				<?php prairie_ash_image( $f['image'], prairie_ash_slot_sizes( 'roastery-roaster__media' ), $f['heading'], $f['image_decorative'] ); ?>
@@ -26,7 +26,7 @@ $f = prairie_ash_fields( 'roastery-roaster' );
 			<?php foreach ( prairie_ash_paragraphs( $f['body'] ) as $paragraph ) : ?>
 				<p class="roastery-roaster__body"<?php prairie_ash_el( $block, 'body' ); ?>><?php echo esc_html( $paragraph ); ?></p>
 			<?php endforeach; ?>
-			<figure class="roast-curve" data-motion="curve">
+			<figure class="roast-curve" data-motion="roast-curve">
 				<svg class="roast-curve__chart" viewBox="0 0 640 290" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
 					<g class="roast-curve__grid">
 						<path d="M48 220.7H620M48 147.3H620M48 74H620"/>

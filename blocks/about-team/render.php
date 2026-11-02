@@ -20,7 +20,7 @@ $f = prairie_ash_fields( 'about-team' );
 		<?php if ( $f['people'] ) : ?>
 			<div class="about-team__people">
 				<?php foreach ( $f['people'] as $person ) : ?>
-					<article class="person">
+					<article class="person" data-motion="about-person">
 						<?php if ( $person['image'] ) : ?>
 							<div class="person__media media-ibg">
 								<?php prairie_ash_image( $person['image'], prairie_ash_slot_sizes( 'person__media' ) ); ?>

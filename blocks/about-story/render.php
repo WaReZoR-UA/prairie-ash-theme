@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 $f = prairie_ash_fields( 'about-story' );
 ?>
 <section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'about-story', 'band', 'band--deep' ) ); ?> aria-labelledby="about-title">
-	<div class="about-story__container" data-motion="sign">
+	<div class="about-story__container" data-motion="about-sign">
 		<span class="pinstripe" aria-hidden="true" data-motion="stripe"></span>
 		<div class="about-story__heading">
 			<?php if ( $f['eyebrow'] ) : ?>

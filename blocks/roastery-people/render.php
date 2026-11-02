@@ -24,8 +24,8 @@ $f = prairie_ash_fields( 'roastery-people' );
 			<?php prairie_ash_link_field( $f['link'], 'text-link text-link--on-wall' ); ?>
 		</div>
 		<?php if ( $f['image'] ) : ?>
-			<div class="roastery-people__media media-ibg" data-motion-parallax>
-				<?php prairie_ash_image( $f['image'], prairie_ash_slot_sizes( 'roastery-people__media' ), $f['heading'], $f['image_decorative'] ); ?>
+			<div class="roastery-people__media media-ibg">
+				<?php prairie_ash_image( $f['image'], prairie_ash_slot_sizes( 'roastery-people__media' ), $f['heading'], $f['image_decorative'], array(), array(), array( 'data-motion' => 'roast-photo' ) ); ?>
 			</div>
 		<?php endif; ?>
 	</div>

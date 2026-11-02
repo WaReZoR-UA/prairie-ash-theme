@@ -11,7 +11,7 @@ $f = prairie_ash_fields( 'menu-title' );
 ?>
 <section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'menu-title', 'band', 'band--deep' ) ); ?> aria-labelledby="menu-title">
 	<div class="menu-title__container">
-		<div class="menu-title__board" data-motion="sign">
+		<div class="menu-title__board" data-motion="menu-sign">
 			<span class="pinstripe" aria-hidden="true" data-motion="stripe"></span>
 			<div class="menu-title__row">
 				<div class="menu-title__text">

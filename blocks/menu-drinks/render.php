@@ -17,14 +17,14 @@ $f = prairie_ash_fields( 'menu-drinks' );
 					<h2 class="menu-drinks__heading"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $group['heading'] ); ?></h2>
 				<?php endif; ?>
 				<?php if ( $group['items'] ) : ?>
-					<dl class="menu-drinks__list lv lv--price">
+					<dl class="menu-drinks__list lv lv--price" data-motion="menu-board">
 						<?php foreach ( $group['items'] as $item ) : ?>
 							<div class="lv__row"><dt class="lv__label"<?php prairie_ash_el( $block, 'items' ); ?>><?php echo esc_html( $item['name'] ); ?></dt><dd class="lv__value" data-motion="price"<?php prairie_ash_el( $block, 'prices' ); ?>><?php echo esc_html( $item['price'] ); ?></dd></div>
 						<?php endforeach; ?>
 					</dl>
 				<?php endif; ?>
 				<?php if ( $group['note'] ) : ?>
-					<p class="menu-drinks__note"<?php prairie_ash_el( $block, 'note' ); ?>><?php echo esc_html( $group['note'] ); ?></p>
+					<p class="menu-drinks__note" data-motion="menu-note"<?php prairie_ash_el( $block, 'note' ); ?>><?php echo esc_html( $group['note'] ); ?></p>
 				<?php endif; ?>
 			</div>
 		<?php endforeach; ?>

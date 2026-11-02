@@ -17,8 +17,8 @@ $when = preg_match( '/^\d{8}$/', $raw ) ? DateTimeImmutable::createFromFormat( '
 <section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'roastery-cupping', 'band', 'band--wall' ), array( 'id' => 'cupping' ) ); ?> aria-labelledby="roastery-cupping-title">
 	<div class="roastery-cupping__container">
 		<?php if ( $f['image'] ) : ?>
-			<div class="roastery-cupping__media media-ibg" data-motion-parallax>
-				<?php prairie_ash_image( $f['image'], prairie_ash_slot_sizes( 'roastery-cupping__media' ), $f['heading'], $f['image_decorative'] ); ?>
+			<div class="roastery-cupping__media media-ibg">
+				<?php prairie_ash_image( $f['image'], prairie_ash_slot_sizes( 'roastery-cupping__media' ), $f['heading'], $f['image_decorative'], array(), array(), array( 'data-motion' => 'roast-photo' ) ); ?>
 			</div>
 		<?php endif; ?>
 		<div class="roastery-cupping__bill">
@@ -34,7 +34,7 @@ $when = preg_match( '/^\d{8}$/', $raw ) ? DateTimeImmutable::createFromFormat( '
 			<?php if ( $when || $f['next_text'] ) : ?>
 				<div class="roastery-cupping__next">
 					<?php if ( $when ) : ?>
-						<time class="date-plate" data-motion="plate" datetime="<?php echo esc_attr( $when->format( 'Y-m-d' ) ); ?>">
+						<time class="date-plate" data-motion="roast-plate" datetime="<?php echo esc_attr( $when->format( 'Y-m-d' ) ); ?>">
 							<span class="date-plate__weekday"><?php echo esc_html( wp_date( 'D', $when->getTimestamp() ) ); ?></span>
 							<span class="date-plate__day"><?php echo esc_html( wp_date( 'j', $when->getTimestamp() ) ); ?></span>
 							<span class="date-plate__month"><?php echo esc_html( wp_date( 'M Y', $when->getTimestamp() ) ); ?></span>

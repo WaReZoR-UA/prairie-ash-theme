@@ -3,9 +3,9 @@
  * Render template for the prairie-ash/visit-route block.
  *
  * The map is a static picture that links out to the map service: no embed and
- * no third-party request on load. With both map pictures set, data-route asks
- * the motion layer to trace the walk from the bus stop, whose coordinates
- * belong to those two drawings.
+ * no third-party request on load. The motion layer traces the walk from the
+ * bus stop over the picture, with coordinates that belong to the two drawings
+ * of the design, so both map pictures are expected to be set.
  *
  * @package PrairieAsh
  */
@@ -25,7 +25,7 @@ $map_url = prairie_ash_setting( 'map_url' );
 				<p class="visit-route__body"<?php prairie_ash_el( $block, 'body' ); ?>><?php echo esc_html( $f['body'] ); ?></p>
 			<?php endif; ?>
 			<?php if ( $f['ways'] ) : ?>
-				<dl class="visit-route__table lv lv--feature lv--stack">
+				<dl class="visit-route__table lv lv--feature lv--stack" data-motion="visit-facts">
 					<?php foreach ( $f['ways'] as $way ) : ?>
 						<div class="lv__row"><dt class="lv__label"<?php prairie_ash_el( $block, 'labels' ); ?>><?php echo esc_html( $way['label'] ); ?></dt><dd class="lv__value"<?php prairie_ash_el( $block, 'values' ); ?>><?php echo esc_html( $way['value'] ); ?></dd></div>
 					<?php endforeach; ?>
@@ -34,7 +34,7 @@ $map_url = prairie_ash_setting( 'map_url' );
 			<?php prairie_ash_link( $f['map_link_label'], $map_url, 'text-link text-link--on-paper' ); ?>
 		</div>
 		<?php if ( $map_url && $f['map_image'] ) : ?>
-			<a class="visit-route__map" href="<?php echo esc_url( $map_url ); ?>"<?php echo $f['map_image_wide'] ? ' data-route' : ''; ?>>
+			<a class="visit-route__map" href="<?php echo esc_url( $map_url ); ?>">
 				<?php
 				prairie_ash_image(
 					$f['map_image'],
