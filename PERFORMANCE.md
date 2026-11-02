@@ -30,32 +30,46 @@ date and URL once the site is deployed.
 - Both are versioned on the file's modification time (`prairie_ash_asset_version()`), so an edit is
   served at once. An omitted version would append the WordPress core version and serve the old file
   until core updates. This is a house decision, not a documented WordPress one.
-- The script loads in the footer with the `defer` strategy and no dependency. It uses no jQuery.
-- GSAP and the motion layer are not in `main.js`: they are separate chunks (`assets/js/motion.*.js` and
-  the GSAP vendor chunk), fetched in idle time once four things hold (`src/js/files/motion-loader.js`):
-  the page is shown (a prerendered page waits for activation), the `load` event has fired, the page
-  transition has finished (`window.paReveal`, 2.5 s backstop), and the largest paint is on screen (the
-  page's `fetchpriority="high"` image is complete, a frame has been presented since, and the browser has
-  reported a `largest-contentful-paint` entry, 2.5 s backstop). The last gate is what keeps the chunks
-  out of Home's LCP window: on a fast connection `load` and idle time can come before the first frame.
-  Content already on screen when they arrive keeps its painted state.
-- The stylesheet build (`tools/css-slim.mjs`) drops the `@supports not (clamp)` fallbacks the
-  template's `adaptiveValue` writes and folds its three media blocks per fluid value into the one
-  `clamp()` that already holds both pins: 477,740 bytes to 163,694 (gzip 32.5 KB to 17.1 KB), with
-  full-page renders of six pages at five widths pixel-identical before and after.
+- The script is printed in the head with the `defer` strategy and no dependency, so it runs once the
+  document is parsed, as the markup's script at the end of its body does, and the theme prints no script
+  inside the body: a script inside the body or main pauses the parser, the browser shows the new page
+  mid-parse and aborts the cross-document view transition (measured on the markup, 2026-10-22). It uses
+  no jQuery.
+- The motion layer (GSAP 3.15 with ScrollTrigger, ScrollSmoother, Flip, MotionPath and CustomEase, and
+  `src/js/files/motion.js` with the shared lettering, paint, motion-utils and form-ink modules) is part of
+  `main.js` and starts with the page, exactly as in the markup, whose accepted look sets the opening
+  scenes up before the first paint: each page's title is drawn faint from a flag the head sets after the
+  stylesheet (`inc/motion.php`, `data-<page>="pre"`) and lettered on load. Each page's own module
+  (hero, roastery, shop, product, visit, about, menu, wholesale, contact, signup, cart, checkout, order,
+  shipping, privacy, accessibility) is a chunk of its own, fetched only where its `data-motion="<page>-*"`
+  regions render. The theme's earlier loader, which held the motion back until after the largest paint,
+  is gone (2026-11-02): with it, the opening lettering started late, after the faint title's own 5 s
+  fallback could already have finished it, and content already on screen jumped back to its start state.
+  The markup accepted the cost on the mobile LCP (mobile score 95 and above).
+- The stylesheet is built the way the markup builds it: the design's entry point is compiled expanded and
+  its media queries are grouped by `group-css-media-queries` 1.4.1, the package the markup's gulp task
+  uses, before it is minified. Grouping moves every `@media` block to its group and so decides which of
+  two rules of the same specificity wins: on Visit at 390 the plate starts turned sideways only because
+  of it. A static check of every pair of same-selector rules that set a common property (2,555 pairs)
+  against the markup's `dist/css/style.min.css` finds the same order in the theme. `tools/css-slim.mjs`
+  then drops the `@supports not (clamp)` fallbacks `adaptiveValue` writes; its folding of the three pinned
+  media blocks per fluid value into one rule is no longer applied, because after grouping the three
+  blocks no longer sit together and folding them would move each value in the cascade. The split keeps
+  rules that share a selector in one sheet, since two sheets of one page print in the order their blocks
+  render, and keeps a rule whose only unit classes are added by the design's scripts in the global sheet.
 - Page transitions are a cross-document view transition (`@view-transition` and the
   `::view-transition-*` animations in `src/scss/motion.scss`, none under reduced motion). `header.php`
   prints a render-blocking `<link rel="expect" href="#site-footer" blocking="render">`, so the new page's
-  first frame waits until the whole document is parsed, and a small inline script that resolves
-  `window.paReveal` when the transition has finished. A browser without view transitions simply
+  first frame waits until the whole document is parsed. A browser without view transitions simply
   navigates.
-- Speculative loading is prerender at moderate eagerness (hover or pointer down), through core's
-  `wp_speculation_rules_configuration` filter (`inc/performance.php`), so a page transition starts from a
-  finished page. Core still turns it off for a logged-in visitor and for plain permalinks. The cart, the
-  checkout and the account pages are excluded through `wp_speculation_rules_href_exclude_paths`; core
-  already excludes every URL with a query string, which covers the add-to-cart links. A prerendered page
-  loads no motion until it is shown, and the theme sends no analytics beacon, so a prerender that is
-  never visited costs the server one page render and nothing else.
+- Speculative loading is prefetch at moderate eagerness (hover or pointer down), through core's
+  `wp_speculation_rules_configuration` filter (`inc/performance.php`): the next document is fetched
+  ahead, so the transition starts sooner. It was prerender until 2026-11-02; a prerendered page runs its
+  scripts while hidden, so its opening lettering would play before it is shown and the page would arrive
+  finished. Core still turns speculative loading off for a logged-in visitor and for plain permalinks.
+  The cart, the checkout and the account pages are excluded through
+  `wp_speculation_rules_href_exclude_paths`; core already excludes every URL with a query string, which
+  covers the add-to-cart links.
 - WooCommerce's add-to-cart, cookie, block UI and notice scripts, and jQuery with them, are dequeued
   on every page that is not the shop, a product, the cart, the checkout or the account
   (`prairie_ash_dequeue_shop_scripts()` in `inc/performance.php`). The coffee cards on content pages
@@ -73,10 +87,12 @@ date and URL once the site is deployed.
 
 ## Fonts
 
-- All three faces are `font-display: optional` (hand-edited `src/scss/fonts/fonts.scss`), so no page
-  ever swaps a face in after its first paint, including mid-transition. All three are preloaded through
-  `wp_preload_resources` with `crossorigin`, since a font is a CORS-mode fetch; the italic is preloaded
-  too, because under `optional` a face that is not there by the first paint is not used on that page.
+- All three faces are `font-display: swap`, as in the markup, and all three are preloaded in the head
+  through `wp_preload_resources` with `crossorigin` (a font is a CORS-mode fetch), before the
+  stylesheet, as the markup's head does. The motion layer measures the page again once the fonts are
+  in, so a cached visit and a fresh one end with the same choreography. The theme used `optional` until
+  2026-11-02; on a slow first visit that keeps a face out of the page for good, which the markup never
+  does.
 - The fonts are served from the theme. No font host, so no preconnect.
 - Licences, checked 2026-10-20. All three files are subsets (Latin; 220 code points for League
   Gothic, 203 for each Instrument Serif face) and keep the upstream names. SIL OFL 1.1 forbids a
