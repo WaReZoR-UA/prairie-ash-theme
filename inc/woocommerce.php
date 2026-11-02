@@ -32,6 +32,7 @@ function prairie_ash_register_product_fields() {
 	$fields = array(
 		array( 'tab', 'tab_card', 'Card and summary' ),
 		array( 'text', 'origin_line', 'Origin line', array( 'instructions' => 'The small line above the name on cards and on the product page, for example "Huila, Colombia, direct from the farm".' ) ),
+		array( 'text', 'page_origin', 'Origin line on the product page', array( 'instructions' => 'Leave empty to use the origin line above. Set it when the product page says more than the card, for example "Sidama, Ethiopia, direct from the washing station".' ) ),
 		array( 'text', 'notes', 'Tasting notes' ),
 		array( 'text', 'roast_line', 'Roast line', array( 'instructions' => 'Shown on the cards, for example "Light roast, washed".' ) ),
 		array( 'text', 'pack_label', 'Pack size, for a product with no bag sizes', array( 'instructions' => 'Printed after the price, for example "3 x 100 g". A coffee with bag sizes prints each size from its variations instead.' ) ),
@@ -398,8 +399,27 @@ function prairie_ash_woocommerce_cleanup() {
 	remove_action( 'woocommerce_before_main_content', 'woocommerce_output_content_wrapper', 10 );
 	remove_action( 'woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10 );
 	remove_action( 'woocommerce_sidebar', 'woocommerce_get_sidebar', 10 );
+	remove_action( 'woocommerce_before_single_product', 'woocommerce_output_all_notices', 10 );
+	add_action( 'woocommerce_before_single_product', 'prairie_ash_product_notices', 10 );
 }
 add_action( 'init', 'prairie_ash_woocommerce_cleanup' );
+
+/**
+ * Print the notices above a product only when there are any.
+ *
+ * WooCommerce prints an empty notices wrapper on every product page. The
+ * design has no element there, so the wrapper is left out until a notice,
+ * such as an add-to-cart error posted without JavaScript, has to be shown.
+ *
+ * @since 1.0.0
+ *
+ * @return void
+ */
+function prairie_ash_product_notices() {
+	if ( function_exists( 'wc_notice_count' ) && wc_notice_count() > 0 ) {
+		woocommerce_output_all_notices();
+	}
+}
 
 /**
  * Whether a cart or order line is a pickup.

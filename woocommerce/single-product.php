@@ -33,13 +33,17 @@ while ( have_posts() ) :
 	$prairie_ash_shop_id = wc_get_page_id( 'shop' );
 	$prairie_ash_options = $prairie_ash_product->is_type( 'variable' ) ? $prairie_ash_product->get_variation_attributes() : array();
 	$prairie_ash_default = $prairie_ash_product->get_default_attributes();
+	$prairie_ash_origin  = (string) get_field( 'page_origin', $prairie_ash_id );
+	if ( '' === $prairie_ash_origin ) {
+		$prairie_ash_origin = $prairie_ash_coffee['origin'];
+	}
 	?>
 		<main class="page" id="main" tabindex="-1" data-motion-scope data-motion-scrub>
 			<?php do_action( 'woocommerce_before_single_product' ); ?>
-			<nav class="breadcrumb" aria-label="<?php echo esc_attr( prairie_ash_wording( 'breadcrumb_label' ) ); ?>">
+			<nav class="breadcrumb" aria-label="<?php echo esc_attr( prairie_ash_wording( 'breadcrumb_label' ) ); ?>" data-motion="product-crumb">
 				<div class="breadcrumb__container">
 					<ol class="breadcrumb__list">
-						<li class="breadcrumb__item"><a class="text-link text-link--on-paper" href="<?php echo esc_url( get_permalink( $prairie_ash_shop_id ) ); ?>"><?php echo esc_html( get_the_title( $prairie_ash_shop_id ) ); ?></a></li>
+						<li class="breadcrumb__item"><a class="text-link text-link--on-paper" href="<?php echo esc_url( get_permalink( $prairie_ash_shop_id ) ); ?>"><?php echo esc_html( prairie_ash_wording( 'breadcrumb_shop' ) ); ?></a></li>
 						<li class="breadcrumb__item"><span class="breadcrumb__current" aria-current="page"><?php echo esc_html( $prairie_ash_coffee['name'] ); ?></span></li>
 					</ol>
 				</div>
@@ -47,7 +51,7 @@ while ( have_posts() ) :
 
 			<section class="product-summary" aria-labelledby="product-title">
 				<div class="product-summary__container">
-					<div class="product-summary__gallery">
+					<div class="product-summary__gallery" data-motion="product-shelf">
 						<?php if ( $prairie_ash_coffee['image'] ) : ?>
 							<div class="product-summary__media media-ibg">
 								<?php
@@ -67,9 +71,9 @@ while ( have_posts() ) :
 						<?php endif; ?>
 					</div>
 					<div class="product-summary__details">
-						<div class="product-summary__top" data-motion="sign">
-							<?php if ( $prairie_ash_coffee['origin'] ) : ?>
-								<p class="product-summary__origin"><?php echo esc_html( $prairie_ash_coffee['origin'] ); ?></p>
+						<div class="product-summary__top" data-motion="product-sign">
+							<?php if ( $prairie_ash_origin ) : ?>
+								<p class="product-summary__origin"><?php echo esc_html( $prairie_ash_origin ); ?></p>
 							<?php endif; ?>
 							<h1 class="product-summary__title" id="product-title"><?php echo esc_html( $prairie_ash_coffee['name'] ); ?></h1>
 							<?php if ( $prairie_ash_coffee['notes'] ) : ?>
@@ -78,15 +82,15 @@ while ( have_posts() ) :
 							<p class="product-summary__price" data-motion="price"><?php echo esc_html( $prairie_ash_coffee['price'] ); ?></p>
 						</div>
 						<div class="product-summary__rest">
-							<dl class="lv lv--fact lv--stack">
+							<dl class="lv lv--fact lv--stack" data-motion="product-board">
 								<?php foreach ( $prairie_ash_facts as $prairie_ash_fact ) : ?>
 									<?php if ( ! empty( $prairie_ash_fact['label'] ) ) : ?>
 										<div class="lv__row"><dt class="lv__label"><?php echo esc_html( $prairie_ash_fact['label'] ); ?></dt><dd class="lv__value"><?php echo esc_html( $prairie_ash_fact['value'] ); ?></dd></div>
 									<?php endif; ?>
 								<?php endforeach; ?>
-								<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( 'stock_label' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( $prairie_ash_coffee['sold_out'] ? $prairie_ash_coffee['sold_label'] : prairie_ash_wording( 'in_stock' ) ); ?></dd></div>
+								<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( 'stock_label' ) ); ?></dt><dd class="lv__value"<?php echo $prairie_ash_coffee['sold_out'] ? ' data-product-struck' : ''; ?>><?php echo esc_html( $prairie_ash_coffee['sold_out'] ? $prairie_ash_coffee['sold_label'] : prairie_ash_wording( 'in_stock' ) ); ?></dd></div>
 							</dl>
-							<form class="product-summary__form" action="<?php echo esc_url( get_permalink() ); ?>" method="post">
+							<form class="product-summary__form" data-motion="product-form" action="<?php echo esc_url( get_permalink() ); ?>" method="post">
 								<?php foreach ( $prairie_ash_options as $prairie_ash_taxonomy => $prairie_ash_values ) : ?>
 									<fieldset class="product-summary__option">
 										<legend class="product-summary__legend"><?php echo esc_html( wc_attribute_label( $prairie_ash_taxonomy, $prairie_ash_product ) ); ?></legend>
@@ -140,7 +144,7 @@ while ( have_posts() ) :
 							<?php endforeach; ?>
 						</div>
 						<?php if ( get_field( 'story_image', $prairie_ash_id ) ) : ?>
-							<div class="product-story__media media-ibg" data-motion-parallax>
+							<div class="product-story__media media-ibg" data-motion="product-origin">
 								<?php prairie_ash_image( get_field( 'story_image', $prairie_ash_id ), prairie_ash_slot_sizes( 'product-story__media' ), prairie_ash_product_text( 'story_title', 'story_title' ) ); ?>
 							</div>
 						<?php endif; ?>
@@ -158,7 +162,7 @@ while ( have_posts() ) :
 						<?php endif; ?>
 						<div class="product-brewing__text">
 							<h2 class="product-brewing__title" id="product-brewing-title"><?php echo esc_html( prairie_ash_product_text( 'brewing_title', 'brewing_title' ) ); ?></h2>
-							<dl class="lv lv--fact lv--stack">
+							<dl class="lv lv--fact lv--stack" data-motion="product-board">
 								<?php foreach ( $prairie_ash_recipe as $prairie_ash_row ) : ?>
 									<div class="lv__row"><dt class="lv__label"><?php echo esc_html( $prairie_ash_row['label'] ); ?></dt><dd class="lv__value"><?php echo esc_html( $prairie_ash_row['value'] ); ?></dd></div>
 								<?php endforeach; ?>

@@ -55,7 +55,7 @@ endif;
 			<h2 class="shop-list__title" id="shop-list-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
 			<p class="shop-list__count" aria-live="polite" data-shop-count data-count-all="<?php echo esc_attr( $count_text['all'] ); ?>" data-count-filter="<?php echo esc_attr( $count_text['filter'] ); ?>" data-count-espresso="<?php echo esc_attr( $count_text['espresso'] ); ?>"<?php prairie_ash_el( $block, 'count' ); ?>><?php echo esc_html( $count_text['all'] ); ?></p>
 		</div>
-		<ul class="shop-list__grid">
+		<ul class="shop-list__grid" data-motion="shop-list">
 			<?php foreach ( $coffees as $coffee ) : ?>
 				<li class="product-card" id="<?php echo esc_attr( $coffee['slug'] ); ?>" data-brew="<?php echo esc_attr( $coffee['brew'] ); ?>">
 					<?php if ( $coffee['image'] ) : ?>

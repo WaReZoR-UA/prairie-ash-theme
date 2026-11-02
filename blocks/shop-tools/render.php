@@ -4,7 +4,8 @@
  *
  * The search posts to the shop with q, which the theme hands to the product
  * search, so the field keeps the markup's own name. The brew buttons filter the
- * list in the browser by each coffee's brew methods.
+ * list in the browser by each coffee's brew methods. The wrapper carries the
+ * motion hook the shop scenes read, as the design wraps the tools.
  *
  * @package PrairieAsh
  */
@@ -15,6 +16,7 @@ $f          = prairie_ash_fields( 'shop-tools' );
 $search_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/' );
 $query      = prairie_ash_shop_search_term();
 ?>
+<div data-motion="shop-tools">
 <section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'shop-tools' ), array( 'aria-label' => $f['label'] ) ); ?>>
 	<div class="shop-tools__container">
 		<form class="shop-tools__search field" role="search" action="<?php echo esc_url( $search_url ); ?>" method="get">
@@ -40,3 +42,4 @@ $query      = prairie_ash_shop_search_term();
 		</fieldset>
 	</div>
 </section>
+</div>

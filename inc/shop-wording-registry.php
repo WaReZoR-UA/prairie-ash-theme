@@ -38,6 +38,7 @@ function prairie_ash_wording_registry() {
 		),
 		'Product page'   => array(
 			'breadcrumb_label' => array( 'Breadcrumb, read by screen readers', 'Breadcrumb' ),
+			'breadcrumb_shop'  => array( 'Breadcrumb link back to the shop', 'Shop coffee' ),
 			'stock_label'      => array( 'Stock row label', 'Stock' ),
 			'in_stock'         => array( 'In stock', 'In stock' ),
 			'add_to_cart'      => array( 'Button', 'Add to cart' ),

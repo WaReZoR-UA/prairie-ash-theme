@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 $f = prairie_ash_fields( 'shop-title' );
 ?>
 <section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'shop-title' ) ); ?> aria-labelledby="shop-title">
-	<div class="shop-title__container">
+	<div class="shop-title__container" data-motion="shop-sign">
 		<?php if ( $f['image'] ) : ?>
 			<div class="shop-title__media media-ibg">
 				<?php
@@ -19,7 +19,7 @@ $f = prairie_ash_fields( 'shop-title' );
 				?>
 			</div>
 		<?php endif; ?>
-		<div class="shop-title__label" data-motion="sign">
+		<div class="shop-title__label">
 			<span class="pinstripe pinstripe--brick" aria-hidden="true" data-motion="stripe"></span>
 			<?php if ( $f['eyebrow'] ) : ?>
 				<p class="shop-title__eyebrow"<?php prairie_ash_el( $block, 'eyebrow' ); ?>><?php echo esc_html( $f['eyebrow'] ); ?></p>

@@ -56,6 +56,42 @@ document.addEventListener("click", async (event) => {
 	button.removeAttribute("aria-busy");
 });
 
+// Product page: Add to cart stays on the page, as the design stamps the press on the price line and
+// announces it. The form is posted to its own address, which runs WooCommerce's add-to-cart handler
+// exactly as the plain post does, and the header cart links are taken from the page that comes back.
+// An error, or a failed request, posts the form for real, so WooCommerce shows its notice.
+const productForm = document.querySelector("form.product-summary__form");
+if (productForm) {
+	let plain = false;
+	productForm.addEventListener("submit", async (event) => {
+		const button = event.submitter;
+		if (plain || !button || button.name !== "add-to-cart" || !window.fetch || !window.DOMParser) return;
+		event.preventDefault();
+		if (productForm.getAttribute("aria-busy") === "true") return;
+		productForm.setAttribute("aria-busy", "true");
+		const postForReal = () => {
+			plain = true;
+			productForm.removeAttribute("aria-busy");
+			productForm.requestSubmit(button);
+		};
+		try {
+			const body = new FormData(productForm);
+			body.set(button.name, button.value);
+			const response = await fetch(productForm.action, { method: "POST", body, credentials: "same-origin" });
+			if (!response.ok) return postForReal();
+			const page = new DOMParser().parseFromString(await response.text(), "text/html");
+			if (page.querySelector(".woocommerce-error, [data-wc-errors]")) return postForReal();
+			const fresh = [...page.querySelectorAll("a[data-cart-link]")];
+			document.querySelectorAll("a[data-cart-link]").forEach((link, i) => {
+				if (fresh[i]) link.replaceWith(document.importNode(fresh[i], true));
+			});
+		} catch (error) {
+			return postForReal();
+		}
+		productForm.removeAttribute("aria-busy");
+	});
+}
+
 // Cart: a changed quantity updates the cart at once, through WooCommerce's own update handler.
 const cartForm = document.querySelector("[data-cart-form]");
 if (cartForm) {
