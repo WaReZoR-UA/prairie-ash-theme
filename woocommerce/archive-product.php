@@ -18,7 +18,7 @@ get_header();
 
 $prairie_ash_shop = get_post( wc_get_page_id( 'shop' ) );
 ?>
-		<main class="page" id="main" tabindex="-1" data-motion-scope>
+		<main class="page" id="main" tabindex="-1" data-motion-scope data-motion-scrub>
 			<?php
 			if ( $prairie_ash_shop ) {
 				echo prairie_ash_page_content( $prairie_ash_shop );

@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
 
 get_header();
 ?>
-		<main class="page" id="main" tabindex="-1" data-motion-scope>
+		<main class="page" id="main" tabindex="-1" data-motion-scope data-motion-scrub>
 			<?php
 			if ( function_exists( 'is_cart' ) && is_cart() ) {
 				WC_Shortcode_Cart::output( array() );

@@ -34,7 +34,7 @@ while ( have_posts() ) :
 	$prairie_ash_options = $prairie_ash_product->is_type( 'variable' ) ? $prairie_ash_product->get_variation_attributes() : array();
 	$prairie_ash_default = $prairie_ash_product->get_default_attributes();
 	?>
-		<main class="page" id="main" tabindex="-1" data-motion-scope>
+		<main class="page" id="main" tabindex="-1" data-motion-scope data-motion-scrub>
 			<?php do_action( 'woocommerce_before_single_product' ); ?>
 			<nav class="breadcrumb" aria-label="<?php echo esc_attr( prairie_ash_wording( 'breadcrumb_label' ) ); ?>">
 				<div class="breadcrumb__container">

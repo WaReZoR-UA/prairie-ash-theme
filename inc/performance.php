@@ -81,16 +81,18 @@ function prairie_ash_defer_form_scripts() {
 add_action( 'wp_enqueue_scripts', 'prairie_ash_defer_form_scripts', 100 );
 
 /**
- * Prerender a same-site page when the visitor shows intent to open it.
+ * Prefetch a same-site page when the visitor shows intent to open it.
  *
- * The page change is a cross-document view transition, and a prerendered page
- * is ready to be revealed at once, so the transition starts from a finished
- * page. Core switches speculative loading off for a logged-in visitor and for
- * plain permalinks by passing null, and that is kept. The prerendered page runs
- * no motion until it is shown: src/js/files/motion-loader.js waits for
- * activation.
+ * The document of the next page is fetched on hover or pointer down, so the
+ * cross-document view transition starts sooner. It is fetched and not
+ * prerendered: the motion layer starts with the page, as it does in the
+ * markup, and a prerendered page would play its on-load lettering while
+ * hidden and arrive finished. Core switches speculative loading off for a
+ * logged-in visitor and for plain permalinks by passing null, and that is
+ * kept.
  *
  * @since 1.0.0
+ * @since 1.1.0 Prefetch instead of prerender, so a page's motion starts when it is shown.
  *
  * @param array<string, string>|null $config Mode and eagerness, or null when speculative loading is off.
  * @return array<string, string>|null
@@ -101,17 +103,17 @@ function prairie_ash_speculation_config( $config ) {
 	}
 
 	return array(
-		'mode'      => 'prerender',
+		'mode'      => 'prefetch',
 		'eagerness' => 'moderate',
 	);
 }
 add_filter( 'wp_speculation_rules_configuration', 'prairie_ash_speculation_config' );
 
 /**
- * Never prerender the cart, the checkout (order received and order pay sit
+ * Never prefetch the cart, the checkout (order received and order pay sit
  * under it) or the account pages (orders sit under it).
  *
- * Their state changes with every visit, and a prerender would build it for a
+ * Their state changes with every visit, and a prefetch would fetch it for a
  * visit that may never happen. Core already excludes every URL that carries a
  * query string, which covers the add-to-cart links. Paths are relative to the
  * home URL; core prefixes them.

@@ -14,8 +14,12 @@ defined( 'ABSPATH' ) || exit;
  * assets/css/main.css. The rules only a WooCommerce template uses are split
  * into their own sheets and enqueued here on that template; the rules only a
  * block uses load with the block, see prairie_ash_enqueue_block_sheets(). The
- * bundle is the design's own JS plus the WordPress glue, deferred, with no
- * dependency: it uses no jQuery of its own.
+ * bundle is the design's own JS, its motion layer included, plus the WordPress
+ * glue, with no dependency: it uses no jQuery of its own. It is deferred from
+ * the head, so it runs once the document is parsed, as the markup's script at
+ * the end of the body does, and the body carries no script of the theme's: a
+ * script inside the body pauses the parser and aborts the cross-document view
+ * transition.
  *
  * @since 1.0.0
  *
@@ -35,7 +39,7 @@ function prairie_ash_enqueue_assets() {
 		array(),
 		prairie_ash_asset_version( 'assets/js/main.js' ),
 		array(
-			'in_footer' => true,
+			'in_footer' => false,
 			'strategy'  => 'defer',
 		)
 	);

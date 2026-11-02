@@ -49,6 +49,7 @@ require_once get_theme_file_path( 'inc/blocks.php' );
 require_once get_theme_file_path( 'inc/fields.php' );
 require_once get_theme_file_path( 'inc/forms.php' );
 require_once get_theme_file_path( 'inc/performance.php' );
+require_once get_theme_file_path( 'inc/motion.php' );
 require_once get_theme_file_path( 'inc/seo.php' );
 
 if ( class_exists( 'WooCommerce' ) ) {

@@ -23,8 +23,6 @@ foreach ( $prairie_ash_items as $prairie_ash_item ) {
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
 	<meta name="format-detection" content="telephone=no">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<?php // Resolves window.paReveal when the cross-document view transition has finished: src/js/files/motion-loader.js waits for it. ?>
-	<script>(function(){var w=window;w.paReveal=new Promise(function(r){if(!("onpagereveal" in w))return r();addEventListener("pagereveal",function(e){var t=e.viewTransition;t?t.finished.then(r,r):r()},{once:true})})})();</script>
 	<?php // The first frame waits until the footer is parsed, so the view transition captures the whole new page. ?>
 	<link rel="expect" href="#site-footer" blocking="render">
 	<?php wp_head(); ?>
