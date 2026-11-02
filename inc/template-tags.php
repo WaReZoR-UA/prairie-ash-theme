@@ -227,23 +227,33 @@ function prairie_ash_image( $image, $sizes = '100vw', $heading = '', $decorative
  * Lcp-image: one per template, never lazy, fetched ahead of the rest.
  *
  * @since 1.0.0
+ * @since 1.1.0 The $attr, $art and $picture_attr parameters.
  *
- * @param int|string|array $image      Attachment ID or field value.
- * @param string           $sizes      The sizes attribute.
- * @param string           $heading    Heading of the section, the alt fallback.
- * @param bool             $decorative Whether the picture carries no information.
+ * @param int|string|array $image        Attachment ID or field value.
+ * @param string           $sizes        The sizes attribute.
+ * @param string           $heading      Heading of the section, the alt fallback.
+ * @param bool             $decorative   Whether the picture carries no information.
+ * @param array            $attr         Further attributes merged into the img. Loading
+ *                                       and fetchpriority are always set here.
+ * @param array            $art          Art-directed images shown first, as in prairie_ash_image().
+ * @param array            $picture_attr Attributes printed on the picture element, name => value.
  * @return void
  */
-function prairie_ash_lcp_image( $image, $sizes = '100vw', $heading = '', $decorative = false ) {
+function prairie_ash_lcp_image( $image, $sizes = '100vw', $heading = '', $decorative = false, $attr = array(), $art = array(), $picture_attr = array() ) {
 	prairie_ash_image(
 		$image,
 		$sizes,
 		$heading,
 		$decorative,
-		array(
-			'loading'       => false,
-			'fetchpriority' => 'high',
-		)
+		array_merge(
+			(array) $attr,
+			array(
+				'loading'       => false,
+				'fetchpriority' => 'high',
+			)
+		),
+		$art,
+		$picture_attr
 	);
 }
 
@@ -317,7 +327,7 @@ function prairie_ash_nbsp_postcode( $text ) {
 
 /**
  * Print text with each range of clock times kept on one line, as the design
- * does for the cupping time in the footer ("First Saturday, 10:00 to 11:30").
+ * does for the monthly tasting time in the footer ("First Saturday, 10:00 to 11:30").
  *
  * The text is escaped first and only the span around a range such as
  * "10:00 to 11:30" is markup, whatever word joins the two times.
