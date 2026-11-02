@@ -128,15 +128,48 @@ export function splitCss(css, root, postcss, hash) {
 		return [...union].sort().join(' ');
 	};
 
+	// Rules that share a selector stay together: each one's sheet is the union of their unit sets, or the
+	// global sheet when any of them is global. Two sheets of one page are printed in the order their blocks
+	// render, not in the stylesheet's order, so a base rule and its @media override in two different sheets
+	// could trade places; in one sheet they keep their order.
+	const parent = new Map();
+	const find = (x) => {
+		while (parent.get(x) !== x) {
+			parent.set(x, parent.get(parent.get(x)));
+			x = parent.get(x);
+		}
+		return x;
+	};
+	const bySelector = new Map();
+	const own = new Map();
+	tree.walkRules((rule) => {
+		if (rule.parent && rule.parent.type === 'atrule' && /keyframes$/.test(rule.parent.name)) return;
+		parent.set(rule, rule);
+		own.set(rule, ownerOfRule(rule));
+		for (const sel of rule.selectors) {
+			const key = sel.replace(/["']/g, '').replace(/\s+/g, '');
+			if (bySelector.has(key)) parent.set(find(rule), find(bySelector.get(key)));
+			else bySelector.set(key, rule);
+		}
+	});
+	const group = new Map();
+	for (const rule of parent.keys()) {
+		const top = find(rule);
+		const key = own.get(rule);
+		const prev = group.has(top) ? group.get(top) : '';
+		group.set(top, prev === null || key === null ? null : [...new Set([...prev.split(' '), ...key.split(' ')].filter(Boolean))].sort().join(' '));
+	}
+	const ownerOfGroup = (rule) => (parent.has(rule) ? group.get(find(rule)) : ownerOfRule(rule));
+
 	// A set whose rules add up to less than MIN_BYTES stays in the global sheet, where it costs less
 	// than a stylesheet handle of its own and keeps its original place in the cascade.
 	const size = new Map();
 	tree.walkRules((rule) => {
-		const key = ownerOfRule(rule);
+		const key = ownerOfGroup(rule);
 		if (key) size.set(key, (size.get(key) || 0) + rule.toString().length);
 	});
 	const ownerOf = (rule) => {
-		const key = ownerOfRule(rule);
+		const key = ownerOfGroup(rule);
 		return key && size.get(key) >= MIN_BYTES ? key : null;
 	};
 

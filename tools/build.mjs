@@ -11,7 +11,7 @@ import { createHash } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { slimCss, collapseFluid } from './css-slim.mjs';
+import { slimCss } from './css-slim.mjs';
 import { splitCss } from './css-split.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -19,6 +19,7 @@ const modules = process.env.PRAIRIE_ASH_NODE_MODULES || path.join(root, 'node_mo
 const require = createRequire(path.join(modules, 'noop.js'));
 const sass = require('sass');
 const postcss = require('postcss');
+const gcmq = require('group-css-media-queries');
 const webpack = require('webpack');
 const watch = process.argv.includes('--watch');
 
@@ -30,12 +31,24 @@ const sheets = [
 	[['src/scss/wp/editor.scss'], 'assets/css/editor.css'],
 ];
 
+// The design's entry point is compiled the way the markup project builds it: its media queries are
+// grouped by group-css-media-queries (gulp-group-css-media-queries in the markup's gulp css task), which
+// moves every @media block to its group. That changes the cascade order, and the accepted look is the
+// grouped one: a nested @media rule and a base rule of the same specificity can trade places. The theme's
+// own additions are compiled after it, ungrouped, as before.
+const grouped = new Set(['src/scss/style.scss']);
+
 function buildCss() {
 	for (const [sources, out] of sheets) {
-		const parts = sources.map((src) => sass.compile(path.join(root, src), { style: 'compressed', loadPaths: [path.join(root, 'src/scss')] }).css);
+		const parts = sources.map((src) => {
+			const options = { loadPaths: [path.join(root, 'src/scss')] };
+			if (!grouped.has(src)) return sass.compile(path.join(root, src), { ...options, style: 'compressed' }).css;
+			const expanded = sass.compile(path.join(root, src), { ...options, style: 'expanded' }).css;
+			return sass.compileString(gcmq(expanded), { style: 'compressed' }).css;
+		});
 		// The markup project resolves the @img alias at build time. Here the images sit in assets/img.
-		// minus the clamp() fallbacks and the pinned blocks adaptiveValue writes around each clamp(), see css-slim.mjs
-		let css = collapseFluid(slimCss(parts.join('\n'))).replaceAll('@img/', '../img/');
+		// minus the clamp() fallbacks adaptiveValue writes for browsers without clamp(), see css-slim.mjs
+		let css = slimCss(parts.join('\n')).replaceAll('@img/', '../img/');
 		fs.mkdirSync(path.dirname(path.join(root, out)), { recursive: true });
 		if (out === 'assets/css/main.css') css = writeSplit(css);
 		fs.writeFileSync(path.join(root, out), css);
