@@ -10,9 +10,9 @@ defined( 'ABSPATH' ) || exit;
 $f = prairie_ash_fields( 'signup-done' );
 ?>
 <section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'signup-done', 'band', 'band--wall' ) ); ?> aria-labelledby="signup-done-title">
-	<div class="signup-done__container">
+	<div class="signup-done__container" data-motion="signup-sign">
 		<div class="signup-done__message">
-			<div class="signup-done__heading" data-motion="sign">
+			<div class="signup-done__heading">
 				<?php if ( $f['eyebrow'] ) : ?>
 					<p class="eyebrow signup-done__eyebrow"<?php prairie_ash_el( $block, 'eyebrow' ); ?>><?php echo esc_html( $f['eyebrow'] ); ?></p>
 				<?php endif; ?>

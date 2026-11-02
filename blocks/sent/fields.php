@@ -19,5 +19,18 @@ return array(
 		array( 'link', 'link', 'Link' ),
 		array( 'image', 'image', 'Photo', array( 'instructions' => 'The first picture on the page.' ) ),
 		array( 'true_false', 'image_decorative', 'The photo is decoration only', array( 'ui' => 1 ) ),
+		array(
+			'select',
+			'scene',
+			'Page',
+			array(
+				'choices'       => array(
+					'contact'   => 'Message sent (Contact)',
+					'wholesale' => 'Inquiry sent (Wholesale)',
+				),
+				'default_value' => 'contact',
+				'instructions'  => 'Which form this notice follows. It picks the motion the page opens with.',
+			),
+		),
 	),
 );

@@ -20,7 +20,7 @@ $f = prairie_ash_fields( 'contact-message' );
 			<?php endif; ?>
 			<?php prairie_ash_link_field( $f['link'], 'text-link text-link--on-wall' ); ?>
 			<?php if ( $f['image'] ) : ?>
-				<div class="contact-message__media media-ibg">
+				<div class="contact-message__media media-ibg" data-motion="contact-photo">
 					<?php prairie_ash_image( $f['image'], prairie_ash_slot_sizes( 'contact-message__media' ), $f['heading'], $f['image_decorative'] ); ?>
 				</div>
 			<?php endif; ?>

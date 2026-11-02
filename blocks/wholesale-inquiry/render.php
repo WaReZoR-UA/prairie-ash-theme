@@ -16,11 +16,11 @@ $f = prairie_ash_fields( 'wholesale-inquiry' );
 				<h2 class="wholesale-inquiry__heading" id="wholesale-offer-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
 			<?php endif; ?>
 			<?php if ( $f['figures'] || $f['body'] ) : ?>
-				<div class="wholesale-inquiry__terms">
+				<div class="wholesale-inquiry__terms" data-motion="wholesale-board">
 					<?php if ( $f['figures'] ) : ?>
 						<ul class="figures">
 							<?php foreach ( $f['figures'] as $figure ) : ?>
-								<li class="figures__item"><span class="figures__number" data-motion="count"<?php prairie_ash_el( $block, 'figures' ); ?>><?php echo esc_html( $figure['number'] ); ?></span> <span class="figures__caption"<?php prairie_ash_el( $block, 'caption' ); ?>><?php echo esc_html( $figure['caption'] ); ?></span></li>
+								<li class="figures__item"><span class="figures__number"<?php prairie_ash_el( $block, 'figures' ); ?>><?php echo esc_html( $figure['number'] ); ?></span> <span class="figures__caption"<?php prairie_ash_el( $block, 'caption' ); ?>><?php echo esc_html( $figure['caption'] ); ?></span></li>
 							<?php endforeach; ?>
 						</ul>
 					<?php endif; ?>

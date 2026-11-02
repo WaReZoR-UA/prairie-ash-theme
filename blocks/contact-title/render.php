@@ -10,8 +10,8 @@ defined( 'ABSPATH' ) || exit;
 $f = prairie_ash_fields( 'contact-title' );
 ?>
 <section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'contact-title' ) ); ?> aria-labelledby="contact-title">
-	<div class="contact-title__container">
-		<div class="contact-title__text" data-motion="sign">
+	<div class="contact-title__container" data-motion="contact-sign">
+		<div class="contact-title__text">
 			<?php if ( $f['eyebrow'] ) : ?>
 				<p class="eyebrow contact-title__eyebrow"<?php prairie_ash_el( $block, 'eyebrow' ); ?>><?php echo esc_html( $f['eyebrow'] ); ?></p>
 			<?php endif; ?>

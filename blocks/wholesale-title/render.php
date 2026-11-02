@@ -10,8 +10,8 @@ defined( 'ABSPATH' ) || exit;
 $f = prairie_ash_fields( 'wholesale-title' );
 ?>
 <section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'wholesale-title', 'band', 'band--wall' ) ); ?> aria-labelledby="wholesale-title">
-	<div class="wholesale-title__container">
-		<div class="wholesale-title__sign" data-motion="sign" data-motion-plate>
+	<div class="wholesale-title__container" data-motion="wholesale-sign">
+		<div class="wholesale-title__sign">
 			<span class="pinstripe" aria-hidden="true" data-motion="stripe"></span>
 			<div class="wholesale-title__text">
 				<?php if ( $f['eyebrow'] ) : ?>

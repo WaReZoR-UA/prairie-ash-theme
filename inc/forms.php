@@ -20,21 +20,27 @@ defined( 'ABSPATH' ) || exit;
  *
  * @since 1.0.0
  *
- * @return array<string, array{form: string, panel: string}>
+ * The motion entry names the scene the design's motion layer plays on the form
+ * panel, printed as the panel's data-motion attribute.
+ *
+ * @return array<string, array{form: string, panel: string, motion: string}>
  */
 function prairie_ash_form_classes() {
 	return array(
 		'roast-notes' => array(
-			'form'  => 'signup__form',
-			'panel' => '',
+			'form'   => 'signup__form',
+			'panel'  => '',
+			'motion' => '',
 		),
 		'contact'     => array(
-			'form'  => 'contact-message__form',
-			'panel' => 'form-panel form-panel--fill',
+			'form'   => 'contact-message__form',
+			'panel'  => 'form-panel form-panel--fill',
+			'motion' => 'contact-note',
 		),
 		'wholesale'   => array(
-			'form'  => 'wholesale-inquiry__form',
-			'panel' => 'form-panel',
+			'form'   => 'wholesale-inquiry__form',
+			'panel'  => 'form-panel',
+			'motion' => 'wholesale-ticket',
 		),
 	);
 }
@@ -86,6 +92,71 @@ function prairie_ash_frm_fields_class( $classes, $values ) {
 	return $classes;
 }
 add_filter( 'frm_form_fields_class', 'prairie_ash_frm_fields_class', 10, 2 );
+
+/**
+ * Put the design's motion scene on the wrapper that holds the fields.
+ *
+ * Formidable escapes the class filter above and offers no attribute filter for
+ * that wrapper, so the attribute is added to the rendered form. The wrapper is
+ * matched with the form_key field Formidable prints inside it, so a page with
+ * several forms gives each panel its own scene.
+ *
+ * @since 1.1.0
+ *
+ * @param string $html The rendered form.
+ * @return string
+ */
+function prairie_ash_frm_panel_motion( $html ) {
+	if ( ! is_string( $html ) || false === strpos( $html, 'frm_form_fields' ) ) {
+		return $html;
+	}
+
+	$design = prairie_ash_form_classes();
+
+	return preg_replace_callback(
+		'#<div class="(frm_form_fields [^"]*)">(.*?name="form_key" value="([^"]*)")#s',
+		static function ( $found ) use ( $design ) {
+			$key = $found[3];
+
+			if ( empty( $design[ $key ]['motion'] ) ) {
+				return $found[0];
+			}
+
+			return '<div class="' . $found[1] . '" data-motion="' . esc_attr( $design[ $key ]['motion'] ) . '">' . $found[2];
+		},
+		$html
+	);
+}
+add_filter( 'frm_filter_final_form', 'prairie_ash_frm_panel_motion' );
+
+/**
+ * Leave the invalid state of a design form's fields to the design's script.
+ *
+ * Formidable marks every field aria-invalid="false" on a fresh form. The
+ * design's script shows an error without touching that attribute, so a field
+ * in error would still be announced as valid. The design's markup carries no
+ * aria-invalid on a fresh form, so the false marks are dropped; a true mark
+ * from a send Formidable rejected on the server stays.
+ *
+ * @since 1.1.0
+ *
+ * @param string $html The rendered form.
+ * @return string
+ */
+function prairie_ash_frm_drop_valid_marks( $html ) {
+	if ( ! is_string( $html ) || false === strpos( $html, 'aria-invalid="false"' ) ) {
+		return $html;
+	}
+
+	return preg_replace_callback(
+		'#<form\b[^>]*\bclass="[^"]*\bpa-form\b[^"]*"[^>]*>.*?</form>#s',
+		static function ( $found ) {
+			return str_replace( ' aria-invalid="false"', '', $found[0] );
+		},
+		$html
+	);
+}
+add_filter( 'frm_filter_final_form', 'prairie_ash_frm_drop_valid_marks' );
 
 /**
  * Whether a form is one of the design's forms.

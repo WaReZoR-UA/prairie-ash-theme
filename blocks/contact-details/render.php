@@ -19,7 +19,7 @@ $f = prairie_ash_fields( 'contact-details' );
 				<p class="contact-details__body"<?php prairie_ash_el( $block, 'body' ); ?>><?php echo esc_html( $f['body'] ); ?></p>
 			<?php endif; ?>
 		</div>
-		<div class="contact-details__contact">
+		<div class="contact-details__contact" data-motion="contact-board">
 			<p class="contact-details__prose contact-measure"<?php prairie_ash_el( $block, 'prose' ); ?>><?php prairie_ash_contact_text( $f['prose'] ); ?></p>
 			<?php if ( $f['links'] ) : ?>
 				<ul class="contact-details__links">
