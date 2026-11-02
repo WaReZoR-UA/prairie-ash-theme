@@ -58,10 +58,45 @@ function prairie_ash_menu_items( $location ) {
 			'url'     => $item->url,
 			'classes' => array_filter( (array) $item->classes ),
 			'current' => $current > 0 && 'post_type' === $item->type && (int) $item->object_id === $current,
+			'object'  => 'post_type' === $item->type ? (int) $item->object_id : 0,
 		);
 	}
 
+	if ( $current > 0 && ! array_filter( wp_list_pluck( $out, 'current' ) ) ) {
+		$out = prairie_ash_mark_scene_owner( $out, $current );
+	}
+
 	return $out;
+}
+
+/**
+ * Mark the navigation page a follow-up page belongs to.
+ *
+ * A page that opens with the same scene as a page in the navigation is that
+ * page's follow-up, as the sent notice after a message is to Contact and the
+ * one after an inquiry is to Wholesale, and the design marks that page as
+ * current. A page whose scene no navigation page shares marks nothing.
+ *
+ * @since 1.1.0
+ *
+ * @param array $items   Items as built by prairie_ash_menu_items().
+ * @param int   $current ID of the current page.
+ * @return array The items, with the owner marked current.
+ */
+function prairie_ash_mark_scene_owner( $items, $current ) {
+	$flag = prairie_ash_content_flag( (string) get_post_field( 'post_content', $current ) );
+	if ( '' === $flag ) {
+		return $items;
+	}
+
+	foreach ( $items as $index => $item ) {
+		if ( $item['object'] && prairie_ash_content_flag( (string) get_post_field( 'post_content', $item['object'] ) ) === $flag ) {
+			$items[ $index ]['current'] = true;
+			break;
+		}
+	}
+
+	return $items;
 }
 
 /**

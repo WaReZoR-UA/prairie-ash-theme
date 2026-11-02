@@ -38,7 +38,7 @@ $prairie_ash_legal   = prairie_ash_menu_items( 'legal' );
 								<div class="footer__hours-row"><dt><?php echo esc_html( $prairie_ash_row['label'] ); ?></dt><dd><?php echo esc_html( $prairie_ash_row['time'] ); ?></dd></div>
 							<?php endforeach; ?>
 							<div class="footer__hours-row"><dt><?php echo esc_html( prairie_ash_setting( 'roast_days_label' ) ); ?></dt><dd><?php echo esc_html( prairie_ash_setting( 'roast_days' ) ); ?></dd></div>
-							<div class="footer__hours-row"><dt><?php echo esc_html( prairie_ash_setting( 'cupping_label' ) ); ?></dt><dd><?php echo esc_html( prairie_ash_setting( 'cupping_when' ) ); ?></dd></div>
+							<div class="footer__hours-row"><dt><?php echo esc_html( prairie_ash_setting( 'cupping_label' ) ); ?></dt><dd><?php prairie_ash_nowrap_times( prairie_ash_setting( 'cupping_when' ) ); ?></dd></div>
 						</dl>
 					</div>
 					<div class="footer__column">

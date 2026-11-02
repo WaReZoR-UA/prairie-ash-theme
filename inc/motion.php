@@ -57,7 +57,7 @@ function prairie_ash_motion_flags() {
  *
  * WooCommerce's own templates are recognised by its conditionals. Every other
  * page takes the flag of the first section block in its content that opens a
- * scene.
+ * scene, see prairie_ash_content_flag().
  *
  * @since 1.1.0
  *
@@ -86,8 +86,20 @@ function prairie_ash_motion_flag() {
 		return '';
 	}
 
+	return prairie_ash_content_flag( (string) get_post_field( 'post_content', get_queried_object_id() ) );
+}
+
+/**
+ * The flag of the scene a page's content opens with.
+ *
+ * @since 1.1.0
+ *
+ * @param string $content Post content.
+ * @return string The flag of the first section block that opens a scene, or an empty string.
+ */
+function prairie_ash_content_flag( $content ) {
 	$flags = prairie_ash_motion_flags();
-	foreach ( parse_blocks( (string) get_post_field( 'post_content', get_queried_object_id() ) ) as $block ) {
+	foreach ( parse_blocks( $content ) as $block ) {
 		$name = $block['blockName'] ?? '';
 		if ( ! isset( $flags[ $name ] ) ) {
 			continue;
