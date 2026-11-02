@@ -327,6 +327,71 @@ function prairie_ash_checkout_fragments( $fragments ) {
 add_filter( 'woocommerce_update_order_review_fragments', 'prairie_ash_checkout_fragments' );
 
 /**
+ * Mark the refreshing parts of the checkout busy while WooCommerce recalculates the order.
+ *
+ * WooCommerce lays its busy shade on its own payment and review classes, which
+ * the design's parts leave out, see checkout/payment.php. Instead, the parts
+ * listed in prairie_ash_checkout_parts() carry aria-busy from the moment its
+ * script asks for them until the answer is in, and frontend.scss gives them
+ * the design's disabled look. The first refresh, which WooCommerce runs as the
+ * page loads, is left alone, so the opening scene plays untouched.
+ *
+ * WooCommerce signals a refresh only through jQuery, its update_order_review
+ * request, so the script listens to jQuery's request events. It is printed in
+ * the head before WooCommerce's deferred checkout script, which keeps that
+ * script deferred, and binds once the document is parsed, before the first
+ * request leaves.
+ *
+ * @since 1.1.0
+ *
+ * @return void
+ */
+function prairie_ash_checkout_busy_script() {
+	if ( ! wp_script_is( 'wc-checkout', 'enqueued' ) ) {
+		return;
+	}
+
+	$parts  = array( '.checkout-title__total', '.checkout-choice', '#payment', '.checkout-review__order', '.checkout-review__actions' );
+	$script = <<<'JS'
+document.addEventListener("DOMContentLoaded", function () {
+	var $ = window.jQuery;
+	var parts = %s;
+	var first = true;
+	var pending = 0;
+	if (!$) return;
+	var mark = function (busy) {
+		document.querySelectorAll(parts).forEach(function (el) {
+			if (busy) el.setAttribute("aria-busy", "true");
+			else el.removeAttribute("aria-busy");
+		});
+	};
+	var review = function (o) {
+		return !!o && typeof o.url === "string" && o.url.indexOf("update_order_review") !== -1;
+	};
+	$(document)
+		.on("ajaxSend", function (e, xhr, o) {
+			if (!review(o)) return;
+			if (first) {
+				first = false;
+				xhr.prairieAshQuiet = true;
+				return;
+			}
+			pending++;
+			mark(true);
+		})
+		.on("ajaxComplete", function (e, xhr, o) {
+			if (!review(o) || xhr.prairieAshQuiet) return;
+			pending = Math.max(0, pending - 1);
+			if (!pending) mark(false);
+		});
+});
+JS;
+
+	wp_add_inline_script( 'wc-checkout', sprintf( $script, wp_json_encode( implode( ', ', $parts ) ) ), 'before' );
+}
+add_action( 'wp_enqueue_scripts', 'prairie_ash_checkout_busy_script', 20 );
+
+/**
  * The number of coffees in the cart, as the design words it.
  *
  * @since 1.0.0

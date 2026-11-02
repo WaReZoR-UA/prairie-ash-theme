@@ -49,3 +49,21 @@
 .checkout-fields__group[hidden] {
 	display: none;
 }
+
+// WooCommerce lays its busy shade on classes the design's checkout parts leave out. While its script
+// refreshes the parts, inc/checkout.php marks them aria-busy, and they take the design's disabled look
+// (InputField, Options and Button State=Disabled: faded to half) with a wait cursor. They fade in the
+// design's 0.25 s state change, never under reduced motion, and come back at once with the answer.
+.checkout-title__total,
+.checkout-choice,
+.checkout-step__panel[data-payment-fields],
+.checkout-review__order,
+.checkout-review__actions {
+	&[aria-busy="true"] {
+		opacity: 0.5;
+		cursor: wait;
+		@media (prefers-reduced-motion: no-preference) {
+			transition: opacity 0.25s ease;
+		}
+	}
+}
