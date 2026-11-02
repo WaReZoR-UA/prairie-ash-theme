@@ -18,6 +18,9 @@ import fs from 'fs';
 import path from 'path';
 
 const SCAN_SKIP = new Set(['vendor', 'node_modules', 'assets', '.git', 'tools', 'src', 'languages', 'acf-json']);
+// Files that print no markup but name blocks or pages in plain words: the package manifests and the
+// motion layer's page-flag map (inc/motion.php), whose block names would read as printed classes.
+const SCAN_SKIP_FILES = new Set(['package.json', 'package-lock.json', 'composer.json', 'composer.lock', 'inc/motion.php']);
 
 // The unit a theme file belongs to: a block, a WooCommerce template group, or null for global.
 function unitOf(rel) {
@@ -36,7 +39,7 @@ function themeFiles(root) {
 			const p = path.join(dir, f.name);
 			if (f.isDirectory()) {
 				if (!SCAN_SKIP.has(f.name)) walk(p);
-			} else if (/\.(php|json|html)$/.test(f.name)) {
+			} else if (/\.(php|json|html)$/.test(f.name) && !SCAN_SKIP_FILES.has(path.relative(root, p).split(path.sep).join('/'))) {
 				out.push([path.relative(root, p).split(path.sep).join('/'), fs.readFileSync(p, 'utf8')]);
 			}
 		}

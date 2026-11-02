@@ -93,7 +93,22 @@ const report = (err, stats) => {
 		return;
 	}
 	console.log('js', stats.toString({ assets: true, modules: false, colors: false }).split('\n').slice(0, 4).join('\n'));
+	pruneChunks(stats);
 };
+
+// Lazy chunks carry a content hash in their name, so a rebuild leaves the previous ones behind.
+// Every hashed chunk this build did not emit is removed; the entry and the hand-written scripts
+// beside it carry no hash and are never touched.
+function pruneChunks(stats) {
+	const emitted = new Set(Object.keys(stats.compilation.assets));
+	const dir = path.join(root, 'assets/js');
+	for (const file of fs.readdirSync(dir)) {
+		if (/^[\w-]+\.[0-9a-f]{8}\.js(\.LICENSE\.txt)?$/.test(file) && !emitted.has(file)) {
+			fs.rmSync(path.join(dir, file));
+			console.log('js', 'removed stale chunk', file);
+		}
+	}
+}
 if (watch) {
 	compiler.watch({}, report);
 	fs.watch(path.join(root, 'src/scss'), { recursive: true }, () => {
