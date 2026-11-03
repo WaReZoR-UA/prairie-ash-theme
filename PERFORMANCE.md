@@ -208,5 +208,19 @@ largest paint: mobile Home 99 (LCP 2.05 s), Shop 99, Huila Pink Bourbon 99, Roas
 desktop 100 on all five; Accessibility, Best Practices and SEO 100 on all ten. In the Home mobile trace
 `load` fired at 242 ms, the observed LCP at 262 ms and both motion chunks were requested at 282 ms.
 
+Local lab, 2026-11-02, after the port of the markup's motion layer (motion loading with the page, as in
+the markup), Lighthouse 12.8.2 on Chromium 1243, a local server with the local gzip toggle on
+(the markup's own preview server sends brotli). The host was busy with other work during the runs, so
+the markup's Home was measured beside the theme's in the same minutes: markup Home mobile 67 to 68 in
+five runs (TBT 1.6 to 1.9 s), theme Home mobile 81 to 91, median 89 (TBT 170 to 430 ms, LCP 3.2 to
+3.3 s); markup Shop mobile 94 in five runs, theme Shop mobile 84 to 93, median 90, after WooCommerce's
+scripts and jQuery were left off the shop list. Single runs, mobile: Roastery 94, Huila Pink Bourbon 92,
+Visit 95, About 95, Menu 96, Contact 95, Wholesale 95, Privacy policy 99; desktop 99 to 100 on all ten;
+CLS 0 everywhere (Home desktop 0.001); Accessibility 100 except Home and the product page at 96 (the
+faint ghost text of the opening sign, accepted on the markup at the same contrast); Best Practices and
+SEO 100. The theme's mobile LCP is about 0.3 s later than the markup's, mostly WordPress's time to
+first byte (about 250 ms against 40 ms for a static file). Home loads jQuery and Formidable's script
+for its signup form, which the markup does not.
+
 | Date | URL | LCP | CLS | INP | LCP element |
 |---|---|---|---|---|---|
