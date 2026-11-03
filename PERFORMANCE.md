@@ -75,14 +75,23 @@ date and URL once the site is deployed.
   (`prairie_ash_dequeue_shop_scripts()` in `inc/performance.php`). The coffee cards on content pages
   add to the cart through the theme's own script.
 - Formidable enqueues jQuery and its own script only on the pages that print a form (home, contact,
-  wholesale; `FrmFormsController::footer_js()` checks `forms_loaded`). Both stay, because the
-  plugin does not document which of its features work without its own front-end script, but they
-  are deferred (`prairie_ash_defer_form_scripts()` in `inc/performance.php`), as is jQuery in the
-  head of the WooCommerce pages. Formidable binds on document ready and every WooCommerce script
-  that depends on jQuery is deferred already. WordPress keeps a script blocking by itself when a
-  dependent has no strategy or an inline script after it (`WP_Scripts::filter_eligible_strategies()`).
-  The theme's bundle reads `window.jQuery` when it needs it rather than when it loads, since on a
-  form page it now runs before jQuery.
+  wholesale; `FrmFormsController::footer_js()` checks `forms_loaded`). Every form here posts and
+  validates on the server (Ajax submit and JavaScript validation off), so the page does not need either
+  script to load. `prairie_ash_hold_form_scripts()` (`inc/performance.php`) prints the three tags inert,
+  as `type="text/plain"` data blocks with the address in `data-intent-src`, and the theme's bundle
+  (`src/js/wp/form-intent.js`) turns them into scripts, in their order, on the first pointer, key or
+  focus inside a form. Formidable starts on jQuery's ready, which fires at once on a parsed page, so its
+  submit handling (the loading state, the duplicate check's unique id) is in place before the visitor
+  can submit. They load as before on a form's own response (a POST, where the plugin focuses the
+  errors), on a page with an Ajax form, and on any page where another script needs jQuery (the
+  product, cart, checkout and account pages). Where they load, they are deferred
+  (`prairie_ash_defer_form_scripts()`), as is jQuery in the head of the WooCommerce pages. Formidable
+  binds on document ready and every WooCommerce script that depends on jQuery is deferred already.
+  WordPress keeps a script blocking by itself when a dependent has no strategy or an inline script
+  after it (`WP_Scripts::filter_eligible_strategies()`). The theme's bundle reads `window.jQuery` when it
+  needs it rather than when it loads, since on a form page it runs before jQuery. Proved on Home
+  (2026-11-03): no request for jQuery or `frm.min.js` until the signup form is touched, the design's
+  error summary on an empty submit, and the confirmation page after a valid one.
 - Formidable's own stylesheet is off ("Load form styling", none). Every form rule is the theme's.
 
 ## Fonts

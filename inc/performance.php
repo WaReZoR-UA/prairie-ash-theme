@@ -83,6 +83,93 @@ function prairie_ash_defer_form_scripts() {
 add_action( 'wp_enqueue_scripts', 'prairie_ash_defer_form_scripts', 100 );
 
 /**
+ * Hold jQuery and Formidable's script back until the visitor reaches for a form.
+ *
+ * A form that is not submitted over Ajax posts and validates on the server
+ * without the plugin's script, so the page does not need it to load. The
+ * three tags are printed inert, as data blocks the browser neither fetches
+ * nor runs, and the theme's bundle (src/js/wp/form-intent.js) turns them into
+ * scripts, in their order, the first time a pointer, a key or the focus lands
+ * in a form. Formidable starts on jQuery's ready, which fires at once on a
+ * page already parsed. The scripts load as before on a form's own response,
+ * where the plugin focuses the errors, on a page with an Ajax form, and on a
+ * page where any other script needs jQuery.
+ *
+ * @since 1.1.0
+ *
+ * @return void
+ */
+function prairie_ash_hold_form_scripts() {
+	global $frm_vars;
+
+	$method = isset( $_SERVER['REQUEST_METHOD'] ) ? sanitize_key( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : '';
+	if ( is_admin() || 'post' === $method || ! wp_script_is( 'formidable', 'enqueued' ) ) {
+		return;
+	}
+
+	$forms = isset( $frm_vars['forms_loaded'] ) ? (array) $frm_vars['forms_loaded'] : array();
+	foreach ( $forms as $form ) {
+		if ( ! is_object( $form ) || ! empty( $form->options['ajax_submit'] ) || ! empty( $form->options['js_validate'] ) ) {
+			return;
+		}
+	}
+
+	$jquery  = array( 'jquery', 'jquery-core', 'jquery-migrate' );
+	$scripts = wp_scripts();
+	if ( array_intersect( $jquery, $scripts->done ) ) {
+		return;
+	}
+
+	$pending = array_diff( $scripts->queue, $jquery, array( 'formidable' ) );
+	$seen    = array();
+	while ( $pending ) {
+		$handle = array_pop( $pending );
+		if ( isset( $seen[ $handle ] ) || ! isset( $scripts->registered[ $handle ] ) ) {
+			continue;
+		}
+		$seen[ $handle ] = true;
+		$deps            = (array) $scripts->registered[ $handle ]->deps;
+		if ( array_intersect( $jquery, $deps ) ) {
+			return;
+		}
+		$pending = array_merge( $pending, $deps );
+	}
+
+	add_filter( 'script_loader_tag', 'prairie_ash_inert_form_script', 10, 2 );
+}
+add_action( 'wp_print_footer_scripts', 'prairie_ash_hold_form_scripts', 1 );
+
+/**
+ * Print jQuery and Formidable's script as inert tags carrying their address.
+ *
+ * @since 1.1.0
+ *
+ * @param string $tag    The script tags printed for the handle.
+ * @param string $handle The script handle.
+ * @return string
+ */
+function prairie_ash_inert_form_script( $tag, $handle ) {
+	if ( ! in_array( $handle, array( 'jquery-core', 'jquery-migrate', 'formidable' ), true ) ) {
+		return $tag;
+	}
+
+	$tags = new WP_HTML_Tag_Processor( $tag );
+	while ( $tags->next_tag( 'script' ) ) {
+		$src = $tags->get_attribute( 'src' );
+		if ( $handle . '-js' !== $tags->get_attribute( 'id' ) || ! is_string( $src ) ) {
+			continue;
+		}
+		$tags->set_attribute( 'type', 'text/plain' );
+		$tags->set_attribute( 'data-intent-src', $src );
+		foreach ( array( 'src', 'defer', 'async', 'data-wp-strategy' ) as $attribute ) {
+			$tags->remove_attribute( $attribute );
+		}
+	}
+
+	return $tags->get_updated_html();
+}
+
+/**
  * Prefetch a same-site page when the visitor shows intent to open it.
  *
  * The document of the next page is fetched on hover or pointer down, so the
