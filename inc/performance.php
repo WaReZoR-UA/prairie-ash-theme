@@ -37,16 +37,18 @@ add_filter( 'should_load_remote_block_patterns', '__return_false' );
  * Leave WooCommerce's front-end scripts off the pages that sell nothing.
  *
  * WooCommerce enqueues its add-to-cart, cookie and notice scripts, and jQuery
- * with them, on every page. Outside the shop, a product, the cart, the checkout
- * and the account they have nothing to act on: the coffee cards on content
- * pages add to the cart through the theme's own script, which needs no jQuery.
+ * with them, on every page. Outside a product, the cart, the checkout and the
+ * account they have nothing to act on: the coffee cards on content pages and
+ * on the shop's own list and search add to the cart through the theme's own
+ * script (src/js/wp/shop.js), which needs no jQuery.
  *
  * @since 1.0.0
+ * @since 1.1.0 Left off the shop list and its search as well.
  *
  * @return void
  */
 function prairie_ash_dequeue_shop_scripts() {
-	if ( ! function_exists( 'is_woocommerce' ) || is_woocommerce() || is_cart() || is_checkout() || is_account_page() ) {
+	if ( ! function_exists( 'is_woocommerce' ) || is_product() || is_cart() || is_checkout() || is_account_page() ) {
 		return;
 	}
 
