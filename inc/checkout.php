@@ -40,8 +40,9 @@ function prairie_ash_checkout_field_list() {
  * Narrow WooCommerce's checkout fields to the design's set.
  *
  * Company, the second address line, the shipping address and the order notes
- * are not in the design. The country is Canada, the only country the shop
- * sells to, and is posted as a hidden value.
+ * are not in the design. A shipped order takes its shipping address from the
+ * billing fields, see prairie_ash_ship_to_billing_address(). The country is
+ * Canada, the only country the shop sells to, and is posted as a hidden value.
  *
  * @since 1.0.0
  *
@@ -160,6 +161,80 @@ function prairie_ash_posted_province_code( $value ) {
 add_filter( 'woocommerce_process_checkout_field_billing_state', 'prairie_ash_posted_province_code' );
 
 /**
+ * Whether the posted delivery choice is pickup at the cafe.
+ *
+ * @since 1.1.0
+ *
+ * @param array $data Posted checkout data.
+ * @return bool
+ */
+function prairie_ash_posted_pickup( $data ) {
+	return isset( $data['shipping_method'][0] ) && prairie_ash_is_pickup( strtok( (string) $data['shipping_method'][0], ':' ) );
+}
+
+/**
+ * Ship a delivery to the address the visitor typed, the one address the design asks for.
+ *
+ * The design draws one address, posted as the billing fields, so the shipping
+ * fieldset is empty, see prairie_ash_checkout_fields(). WooCommerce fills the
+ * shipping address from the billing one when the visitor does not ship to a
+ * different address, but only for the keys of the shipping fieldset, so with
+ * the fieldset empty nothing was copied and a shipped order had no shipping
+ * address. This copies the same way, for the keys WooCommerce's own shipping
+ * fieldset holds, on the same filter and under the same conditions. A pickup
+ * is not shipped, so it gets no shipping address, see
+ * prairie_ash_pickup_without_shipping_address().
+ *
+ * @since 1.1.0
+ *
+ * @param array $data Posted checkout data.
+ * @return array
+ */
+function prairie_ash_ship_to_billing_address( $data ) {
+	if ( ! empty( $data['ship_to_different_address'] ) || prairie_ash_posted_pickup( $data ) ) {
+		return $data;
+	}
+	if ( ! WC()->cart || ! ( WC()->cart->needs_shipping_address() || wc_ship_to_billing_address_only() ) ) {
+		return $data;
+	}
+
+	$country = ! empty( $data['billing_country'] ) ? $data['billing_country'] : WC()->countries->get_base_country();
+	foreach ( array_keys( WC()->countries->get_address_fields( $country, 'shipping_' ) ) as $key ) {
+		$data[ $key ] = isset( $data[ 'billing_' . substr( $key, 9 ) ] ) ? $data[ 'billing_' . substr( $key, 9 ) ] : '';
+	}
+
+	return $data;
+}
+add_filter( 'woocommerce_checkout_posted_data', 'prairie_ash_ship_to_billing_address' );
+
+/**
+ * Keep a pickup order free of a shipping address.
+ *
+ * WooCommerce reuses an order still awaiting payment when the same cart comes
+ * back to the checkout, and sets only the posted fields on it, so a pickup
+ * could keep the address of an earlier attempt to ship. The order alone is
+ * cleared: the customer's saved address stays.
+ *
+ * @since 1.1.0
+ *
+ * @param WC_Order $order The order being created.
+ * @param array    $data  Posted checkout data.
+ * @return void
+ */
+function prairie_ash_pickup_without_shipping_address( $order, $data ) {
+	if ( ! prairie_ash_posted_pickup( $data ) ) {
+		return;
+	}
+
+	foreach ( array_keys( $order->get_address( 'shipping' ) ) as $field ) {
+		if ( is_callable( array( $order, 'set_shipping_' . $field ) ) ) {
+			$order->{'set_shipping_' . $field}( '' );
+		}
+	}
+}
+add_action( 'woocommerce_checkout_create_order', 'prairie_ash_pickup_without_shipping_address', 10, 2 );
+
+/**
  * Require the address for delivery, and write every error in the design's words.
  *
  * WooCommerce's own messages name the field and its rule. The design writes one
@@ -173,10 +248,9 @@ add_filter( 'woocommerce_process_checkout_field_billing_state', 'prairie_ash_pos
  * @return void
  */
 function prairie_ash_checkout_validate( $data, $errors ) {
-	$list   = prairie_ash_checkout_field_list();
-	$pickup = isset( $data['shipping_method'][0] ) && prairie_ash_is_pickup( strtok( (string) $data['shipping_method'][0], ':' ) );
+	$list = prairie_ash_checkout_field_list();
 
-	if ( ! $pickup ) {
+	if ( ! prairie_ash_posted_pickup( $data ) ) {
 		foreach ( array( 'billing_address_1', 'billing_city', 'billing_postcode', 'billing_state' ) as $key ) {
 			if ( '' === trim( (string) ( $data[ $key ] ?? '' ) ) && ! $errors->get_error_data( $key . '_required' ) ) {
 				$errors->add( $key . '_required', prairie_ash_wording( $list[ $key ][4] ), array( 'id' => $key ) );
