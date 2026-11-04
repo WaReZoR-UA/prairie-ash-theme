@@ -60,8 +60,8 @@ The import:
   everywhere else, and the demo payment method, which takes orders without a charge;
 - writes the site title and tagline, the time zone, the permalinks (`/%postname%/`), the store settings, and the
   theme's Site settings and Shop wording;
-- uploads the 51 photographs, so WordPress writes every size the theme uses and the theme writes an AVIF and a
-  WebP copy of each.
+- uploads the 51 photographs, so WordPress writes every size the theme uses, then writes an AVIF and a WebP copy
+  of each, one copy at a time, so a host with a 30 second time limit and a 128 MB memory limit finishes it.
 
 It is meant for a new site: it sets the site title, the front page, the permalinks and the store settings, and
 moves the sample post and pages a new WordPress and WooCommerce start with to the trash, and removes the
@@ -69,6 +69,18 @@ sample contact form Formidable adds while it has no entries. Running it again
 updates the same records and creates nothing twice. No user, order, form entry or mail setting is imported.
 
 On Apache the permalinks need a writable `.htaccess`, or the rules shown under Settings, Permalinks.
+
+## Repair the image copies
+
+A copy that the server cannot write, for lack of memory or time, is never offered to a browser: the page offers
+the next format in its place, WebP and then the original JPEG or PNG. The Demo content screen counts the copies
+that are missing or empty and lists each copy that could not be written, with the reason.
+
+Image copies, Repair image copies writes every missing, empty or unreadable copy of every JPEG and PNG in the
+media library, a few at a time, and lists what still cannot be written. Running the import again does the same
+for the demo images. From the command line:
+
+    wp prairie-ash-demo repair-images
 
 The demo data lives in `demo/`: `content.json`, `forms.xml` and the photographs under `demo/media/`. The
 command `wp prairie-ash-demo export` writes that folder again from a site built with the theme.

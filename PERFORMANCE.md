@@ -164,6 +164,24 @@ theme follows it, the reason is that the design's look and motion were set there
   `sources` key in the metadata. The hook runs on every metadata write, so it covers an upload, a
   regeneration and the sizes the block editor uploads after processing in the browser. A copy
   newer than its source is reused. GIF and WebP uploads get no copies.
+- A copy counts only when it is usable: larger than 0 bytes and with a header that reads as an
+  image of its format (`prairie_ash_is_image_copy()`). An encoder that runs out of memory or
+  time can leave an empty file, and a browser offered an empty source shows a broken image
+  rather than falling back. A failed or empty output is deleted at once, only usable copies are
+  recorded, and a format is offered only when every width of the srcset has a copy, so a
+  missing copy sends the browser to the next format at the same width.
+- Before each copy the theme checks the memory and the time left. A copy that could never fit
+  under the limits is skipped and reported, and one that does not fit in what is left of the
+  request waits for the next. The copy being written is noted first, so a request that dies
+  inside the encoder is reported on the next attempt instead of dying again. The demo import
+  writes the copies in a step of their own, one copy at a time against a time budget of at
+  most half of PHP's time limit. It was tested with a 128 MB memory limit and a 30 second
+  time limit.
+- GD cannot write WebP or AVIF from a palette PNG, so the full-size copy of a palette image is
+  converted to true colour first (`Prairie_Ash_Image_Editor_GD`). Resized copies are already
+  true colour.
+- Failures are listed on Appearance, Demo content, and Repair image copies or
+  `wp prairie-ash-demo repair-images` writes every missing or empty copy in batches.
 - Deletion: core deletes only the files its own metadata names, so
   `prairie_ash_delete_image_formats()` deletes the copies on `delete_attachment`. Measured: an
   image uploaded and then deleted through the admin screens left no file behind.
