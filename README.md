@@ -91,10 +91,10 @@ The PHP follows the WordPress Coding Standards:
 
 ## Credits and licences
 
-- The theme: GPL-2.0-or-later, see `style.css`.
-- GSAP 3.15.0 and its plugins, bundled in `assets/js/`: the Standard "No Charge" GSAP License,
-  https://gsap.com/standard-license. GSAP is not GPL software; its licence notices are kept in
-  `assets/js/main.js.LICENSE.txt`.
+- The theme: GPL-2.0-or-later, see `LICENSE`.
+- GSAP 3.15.0 and its plugins, bundled in `assets/js/`: the GSAP Standard License,
+  https://gsap.com/standard-license. It is free of charge and it is not the GPL. Its licence notices are kept
+  in `assets/js/main.js.LICENSE.txt`.
 - League Gothic and Instrument Serif, self-hosted in `assets/fonts/`: SIL Open Font License 1.1, with the licence
   texts beside the font files (`OFL-LeagueGothic.txt`, `OFL-InstrumentSerif.txt`).
 - The demo photographs were created for this design as stand-ins for the business's own photography. They are
