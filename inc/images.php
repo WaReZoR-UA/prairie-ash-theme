@@ -216,85 +216,260 @@ function prairie_ash_format_file_name( $file, $mime ) {
 }
 
 /**
- * Write the AVIF and WebP copies of an image and each of its sizes, and record
- * them in the attachment metadata.
+ * The full image an attachment's copies are made from.
  *
- * Runs on every metadata write, which covers an upload, a regeneration and the
- * sizes the block editor uploads after processing an image in the browser.
- * Every copy is resized from the full image rather than from the JPEG size, so
- * it is compressed once. A copy newer than its source is kept, so the repeated
- * writes core makes while it builds the sizes encode each copy once.
+ * @since 1.2.1
  *
- * Copies are recorded under a sources key beside each file, and
- * prairie_ash_delete_image_formats() removes them with the attachment.
- *
- * @since 1.0.0
- *
- * @param array $data          Attachment metadata.
- * @param int   $attachment_id Attachment ID.
- * @return array
+ * @param array $data Attachment metadata.
+ * @return string Absolute path of a JPEG or PNG on disk, or an empty string
+ *                when the attachment gets no copies.
  */
-function prairie_ash_add_image_formats( $data, $attachment_id ) {
-	unset( $attachment_id );
-
+function prairie_ash_image_source( $data ) {
 	if ( ! is_array( $data ) || empty( $data['file'] ) || empty( $data['width'] ) ) {
-		return $data;
+		return '';
 	}
 
 	$full = trailingslashit( wp_get_upload_dir()['basedir'] ) . $data['file'];
 	$type = wp_check_filetype( $full )['type'];
 
 	if ( ! in_array( $type, array( 'image/jpeg', 'image/png' ), true ) || ! file_exists( $full ) ) {
-		return $data;
+		return '';
 	}
 
+	return $full;
+}
+
+/**
+ * The files an attachment has copies of: the full image and each size.
+ *
+ * @since 1.2.1
+ *
+ * @param array  $data Attachment metadata.
+ * @param string $full Absolute path of the full image.
+ * @return array Size name, or full, to the source path, its width and its
+ *               height. Width and height are 0 for the full image, which is
+ *               copied without a resize.
+ */
+function prairie_ash_image_targets( $data, $full ) {
 	$dir     = trailingslashit( dirname( $full ) );
 	$targets = array( 'full' => array( $full, 0, 0 ) );
 
 	foreach ( (array) ( $data['sizes'] ?? array() ) as $name => $size ) {
-		$targets[ $name ] = array( $dir . $size['file'], (int) $size['width'], (int) $size['height'] );
+		if ( ! empty( $size['file'] ) ) {
+			$targets[ $name ] = array( $dir . $size['file'], (int) $size['width'], (int) $size['height'] );
+		}
+	}
+
+	return $targets;
+}
+
+/**
+ * Whether a file on disk is a usable copy in the given format.
+ *
+ * An encoder that runs out of memory or time can leave an empty file behind,
+ * and a browser offered an empty source shows a broken image instead of
+ * falling back to the next one. A copy therefore counts only when it is
+ * larger than 0 bytes and its header reads as an image of that format with a
+ * width and a height, which costs one short read and no decoding.
+ *
+ * @since 1.2.1
+ *
+ * @param string $path Absolute path of the copy.
+ * @param string $mime MIME type the copy has to be.
+ * @return bool
+ */
+function prairie_ash_is_image_copy( $path, $mime ) {
+	clearstatcache( true, $path );
+
+	if ( ! is_file( $path ) || wp_filesize( $path ) < 1 ) {
+		return false;
+	}
+
+	$size = wp_getimagesize( $path );
+
+	return is_array( $size ) && ! empty( $size[0] ) && ! empty( $size[1] ) && isset( $size['mime'] ) && $mime === $size['mime'];
+}
+
+/**
+ * Write one copy, or say why it was not written.
+ *
+ * A failed or empty output is deleted at once, so no empty file is ever on
+ * disk to be taken for a copy.
+ *
+ * @since 1.2.1
+ *
+ * @param int    $attachment_id Attachment ID.
+ * @param array  $data          Attachment metadata.
+ * @param string $name          Size name, or full.
+ * @param array  $target        Source path, width and height of the size.
+ * @param string $mime          Target MIME type.
+ * @return true|WP_Error True when written.
+ */
+function prairie_ash_write_image_copy( $attachment_id, $data, $name, $target, $mime ) {
+	list( $source, $width, $height ) = $target;
+
+	$full = prairie_ash_image_source( $data );
+	$copy = prairie_ash_format_file_name( $source, $mime );
+
+	/**
+	 * Filters the writing of one AVIF or WebP copy before the encoder runs.
+	 *
+	 * Return true when the copy was written another way, or a WP_Error to
+	 * report it as failed. Either way the file is checked afterwards, and an
+	 * empty or unreadable one counts as a failure.
+	 *
+	 * @since 1.2.1
+	 *
+	 * @param null|true|WP_Error $written       Null to let the theme write it.
+	 * @param string             $copy          Absolute path of the copy.
+	 * @param string             $mime          Target MIME type.
+	 * @param int                $attachment_id Attachment ID.
+	 * @param string             $name          Size name, or full.
+	 */
+	$saved = apply_filters( 'prairie_ash_pre_write_image_copy', null, $copy, $mime, $attachment_id, $name );
+
+	if ( null === $saved ) {
+		$editor = wp_get_image_editor( $full );
+		$saved  = $editor;
+
+		if ( ! is_wp_error( $editor ) && $width ) {
+			$saved = $editor->resize( $width, $height, true );
+		}
+
+		if ( ! is_wp_error( $saved ) ) {
+			$saved = $editor->save( $copy, $mime );
+		}
+
+		unset( $editor );
+	}
+
+	if ( is_wp_error( $saved ) || ! prairie_ash_is_image_copy( $copy, $mime ) ) {
+		if ( file_exists( $copy ) ) {
+			wp_delete_file( $copy );
+		}
+
+		return is_wp_error( $saved ) ? $saved : new WP_Error( 'prairie_ash_image_failed', 'The image editor wrote an empty or unreadable file.' );
+	}
+
+	return true;
+}
+
+/**
+ * Write every copy of an attachment that is missing, empty or older than its
+ * source.
+ *
+ * @since 1.2.1
+ *
+ * @param int   $attachment_id Attachment ID.
+ * @param array $data          Attachment metadata.
+ * @return void
+ */
+function prairie_ash_write_image_copies( $attachment_id, $data ) {
+	$full = prairie_ash_image_source( $data );
+
+	if ( '' === $full ) {
+		return;
 	}
 
 	foreach ( prairie_ash_image_formats() as $mime ) {
-		foreach ( $targets as $name => $target ) {
-			list( $source, $width, $height ) = $target;
-
-			if ( ! file_exists( $source ) ) {
+		foreach ( prairie_ash_image_targets( $data, $full ) as $name => $target ) {
+			if ( ! file_exists( $target[0] ) ) {
 				continue;
 			}
 
-			$copy = prairie_ash_format_file_name( $source, $mime );
+			$copy = prairie_ash_format_file_name( $target[0], $mime );
 
-			if ( ! file_exists( $copy ) || filemtime( $copy ) < filemtime( $source ) ) {
-				$editor = wp_get_image_editor( $full );
-
-				if ( is_wp_error( $editor ) ) {
-					continue;
-				}
-
-				if ( $width && is_wp_error( $editor->resize( $width, $height, true ) ) ) {
-					continue;
-				}
-
-				if ( is_wp_error( $editor->save( $copy, $mime ) ) ) {
-					continue;
-				}
+			if ( prairie_ash_is_image_copy( $copy, $mime ) && filemtime( $copy ) >= filemtime( $target[0] ) ) {
+				continue;
 			}
 
-			$entry = array(
-				'file'     => wp_basename( $copy ),
-				'filesize' => (int) wp_filesize( $copy ),
-			);
+			prairie_ash_write_image_copy( $attachment_id, $data, $name, $target, $mime );
+		}
+	}
+}
 
-			if ( 'full' === $name ) {
-				$data['sources'][ $mime ] = $entry;
-			} else {
-				$data['sizes'][ $name ]['sources'][ $mime ] = $entry;
+/**
+ * Record the copies that are on disk in the attachment metadata, and only
+ * those.
+ *
+ * A copy is recorded under a sources key beside its file only when it is a
+ * usable image of its format. A record of a missing or empty copy is
+ * dropped, and an empty or unreadable file is deleted, so the picture never
+ * offers a browser a source it cannot show.
+ *
+ * @since 1.2.1
+ *
+ * @param array $data Attachment metadata.
+ * @return array
+ */
+function prairie_ash_record_image_formats( $data ) {
+	$full = prairie_ash_image_source( $data );
+
+	if ( '' === $full ) {
+		return $data;
+	}
+
+	foreach ( prairie_ash_image_targets( $data, $full ) as $name => $target ) {
+		$sources = 'full' === $name ? ( $data['sources'] ?? array() ) : ( $data['sizes'][ $name ]['sources'] ?? array() );
+
+		foreach ( array( 'image/avif', 'image/webp' ) as $mime ) {
+			$copy = prairie_ash_format_file_name( $target[0], $mime );
+			unset( $sources[ $mime ] );
+
+			if ( prairie_ash_is_image_copy( $copy, $mime ) ) {
+				$sources[ $mime ] = array(
+					'file'     => wp_basename( $copy ),
+					'filesize' => (int) wp_filesize( $copy ),
+				);
+			} elseif ( file_exists( $copy ) ) {
+				wp_delete_file( $copy );
+			}
+		}
+
+		if ( 'full' === $name ) {
+			$data['sources'] = $sources;
+			if ( ! $sources ) {
+				unset( $data['sources'] );
+			}
+		} else {
+			$data['sizes'][ $name ]['sources'] = $sources;
+			if ( ! $sources ) {
+				unset( $data['sizes'][ $name ]['sources'] );
 			}
 		}
 	}
 
 	return $data;
+}
+
+/**
+ * Write the AVIF and WebP copies of an image and each of its sizes, and record
+ * them in the attachment metadata.
+ *
+ * Runs on every metadata write, which covers an upload, a regeneration and the
+ * sizes the block editor uploads after processing an image in the browser.
+ * Every copy is resized from the full image rather than from the JPEG size, so
+ * it is compressed once. A usable copy newer than its source is kept, so the
+ * repeated writes core makes while it builds the sizes encode each copy once.
+ *
+ * Copies are recorded under a sources key beside each file, and
+ * prairie_ash_delete_image_formats() removes them with the attachment.
+ *
+ * @since 1.0.0
+ * @since 1.2.1 Writes only usable copies and records only what is on disk.
+ *
+ * @param array $data          Attachment metadata.
+ * @param int   $attachment_id Attachment ID.
+ * @return array
+ */
+function prairie_ash_add_image_formats( $data, $attachment_id ) {
+	if ( '' === prairie_ash_image_source( $data ) ) {
+		return $data;
+	}
+
+	prairie_ash_write_image_copies( $attachment_id, $data );
+
+	return prairie_ash_record_image_formats( $data );
 }
 add_filter( 'wp_update_attachment_metadata', 'prairie_ash_add_image_formats', 10, 2 );
 
@@ -302,9 +477,12 @@ add_filter( 'wp_update_attachment_metadata', 'prairie_ash_add_image_formats', 10
  * Delete the AVIF and WebP copies with their attachment.
  *
  * Core deletes the files its own metadata names and nothing under sources.
- * Runs before core removes the metadata.
+ * Every file at a copy's name is deleted, recorded or not, so an empty file
+ * an encoder left behind goes as well. Runs before core removes the
+ * metadata.
  *
  * @since 1.0.0
+ * @since 1.2.1 Deletes unrecorded copies as well.
  *
  * @param int $post_id Attachment ID.
  * @return void
@@ -317,16 +495,25 @@ function prairie_ash_delete_image_formats( $post_id ) {
 	}
 
 	$base  = wp_get_upload_dir()['basedir'];
-	$dir   = trailingslashit( dirname( trailingslashit( $base ) . $meta['file'] ) );
-	$lists = array( $meta['sources'] ?? array() );
+	$full  = trailingslashit( $base ) . $meta['file'];
+	$dir   = trailingslashit( dirname( $full ) );
+	$files = array();
 
-	foreach ( (array) ( $meta['sizes'] ?? array() ) as $size ) {
-		$lists[] = $size['sources'] ?? array();
+	foreach ( prairie_ash_image_targets( $meta, $full ) as $target ) {
+		foreach ( array( 'image/avif', 'image/webp' ) as $mime ) {
+			$files[] = prairie_ash_format_file_name( $target[0], $mime );
+		}
 	}
 
-	foreach ( $lists as $sources ) {
-		foreach ( $sources as $source ) {
-			wp_delete_file_from_directory( $dir . $source['file'], $base );
+	foreach ( array_merge( array( $meta['sources'] ?? array() ), array_column( (array) ( $meta['sizes'] ?? array() ), 'sources' ) ) as $sources ) {
+		foreach ( (array) $sources as $source ) {
+			$files[] = $dir . $source['file'];
+		}
+	}
+
+	foreach ( array_unique( $files ) as $file ) {
+		if ( file_exists( $file ) ) {
+			wp_delete_file_from_directory( $file, $base );
 		}
 	}
 }
@@ -336,13 +523,20 @@ add_action( 'delete_attachment', 'prairie_ash_delete_image_formats' );
  * The srcset of an image in another format, candidate for candidate.
  *
  * Built from core's own srcset for the image, so every format offers the same
- * widths. A candidate with no copy in that format is left out.
+ * widths. A format offers a source only when it has a copy of every
+ * candidate: with one missing, the browser would take a narrower copy in that
+ * format over the right width in the next one, so the whole format is left
+ * out and the picture falls back to the next format. A copy is recorded only
+ * when it is a usable file, and a record with no size, which an older version
+ * of the theme could write for an empty file, counts as no copy.
  *
  * @since 1.0.0
+ * @since 1.2.1 Leaves the format out unless every candidate has a copy.
  *
  * @param int    $attachment_id Attachment ID.
  * @param string $mime          Target MIME type.
- * @return string The srcset, or an empty string when there is no copy.
+ * @return string The srcset, or an empty string when there is no complete
+ *                set of copies.
  */
 function prairie_ash_format_srcset( $attachment_id, $mime ) {
 	$meta = wp_get_attachment_metadata( $attachment_id );
@@ -353,12 +547,12 @@ function prairie_ash_format_srcset( $attachment_id, $mime ) {
 
 	$copies = array();
 
-	if ( isset( $meta['sources'][ $mime ] ) ) {
+	if ( ! empty( $meta['sources'][ $mime ]['filesize'] ) ) {
 		$copies[ wp_basename( $meta['file'] ) ] = $meta['sources'][ $mime ]['file'];
 	}
 
 	foreach ( (array) ( $meta['sizes'] ?? array() ) as $size ) {
-		if ( isset( $size['sources'][ $mime ] ) ) {
+		if ( ! empty( $size['sources'][ $mime ]['filesize'] ) ) {
 			$copies[ $size['file'] ] = $size['sources'][ $mime ]['file'];
 		}
 	}
@@ -378,9 +572,11 @@ function prairie_ash_format_srcset( $attachment_id, $mime ) {
 		list( $url, $descriptor ) = array_pad( explode( ' ', trim( $candidate ), 2 ), 2, '' );
 		$name                     = wp_basename( $url );
 
-		if ( isset( $copies[ $name ] ) ) {
-			$out[] = trim( substr( $url, 0, -strlen( $name ) ) . $copies[ $name ] . ' ' . $descriptor );
+		if ( ! isset( $copies[ $name ] ) ) {
+			return '';
 		}
+
+		$out[] = trim( substr( $url, 0, -strlen( $name ) ) . $copies[ $name ] . ' ' . $descriptor );
 	}
 
 	return implode( ', ', $out );
