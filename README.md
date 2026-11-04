@@ -1,5 +1,7 @@
 # Prairie Ash
 
+![Prairie Ash: the home page, a product page and the home page on a mobile screen](.github/preview.png)
+
 A WordPress theme for a cafe and coffee roastery: Prairie Ash Coffee & Roastery, a fictional business in the
 Exchange District of Winnipeg. Every content section of every page is a block with named fields and the block
 editor's own styling controls, the shop runs on WooCommerce with the design's own templates for the shop,

@@ -1,0 +1,2 @@
+# Repository presentation files stay out of archives built from the repository.
+/.github export-ignore
