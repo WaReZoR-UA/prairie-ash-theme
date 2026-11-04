@@ -71,7 +71,30 @@ class Prairie_Ash_Demo_Command {
 			}
 		} while ( ! $state['done'] );
 
+		$this->report_image_failures();
+
 		WP_CLI::success( 'The demo content is in place.' );
+	}
+
+	/**
+	 * List the image copies that could not be written.
+	 *
+	 * @since 1.2.1
+	 *
+	 * @return int How many there are.
+	 */
+	private function report_image_failures() {
+		$failures = prairie_ash_image_failure_lines();
+
+		foreach ( $failures as $line ) {
+			WP_CLI::warning( 'Image copy not written: ' . $line );
+		}
+
+		if ( $failures ) {
+			WP_CLI::warning( sprintf( '%d image copies could not be written. Run the import again to try them again.', count( $failures ) ) );
+		}
+
+		return count( $failures );
 	}
 
 	/**

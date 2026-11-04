@@ -294,8 +294,8 @@ function prairie_ash_is_image_copy( $path, $mime ) {
  * Switch the writing of copies off for the rest of the request, or ask
  * whether it is off.
  *
- * The demo import writes copies in its own batches, one file at a time
- * against a time budget. While they run, a metadata write only
+ * The demo import and the repair write copies in their own batches, one
+ * file at a time against a time budget. While they run, a metadata write only
  * records the copies already on disk.
  *
  * @since 1.2.1
@@ -374,6 +374,25 @@ function prairie_ash_set_image_failure( $key, $record ) {
 	}
 
 	update_option( 'prairie_ash_image_failures', $failures, false );
+}
+
+/**
+ * The failures as lines for a screen or a terminal, file first.
+ *
+ * @since 1.2.1
+ *
+ * @return string[]
+ */
+function prairie_ash_image_failure_lines() {
+	$lines = array();
+
+	foreach ( prairie_ash_image_failures() as $record ) {
+		$lines[] = $record['file'] . ': ' . $record['reason'];
+	}
+
+	sort( $lines );
+
+	return $lines;
 }
 
 /**
@@ -762,8 +781,10 @@ function prairie_ash_record_image_formats( $data ) {
  * repeated writes core makes while it builds the sizes encode each copy once.
  *
  * A copy that does not fit in what is left of the request marks the
- * attachment as waiting for the next write. While the demo import runs,
- * copies are written in its batches and this only records them.
+ * attachment as waiting, and the Repair image copies button or the
+ * wp prairie-ash-demo repair-images command writes it. While the demo import
+ * or a repair runs, copies are written in their batches and this only
+ * records them.
  *
  * Copies are recorded under a sources key beside each file, and
  * prairie_ash_delete_image_formats() removes them with the attachment.
@@ -792,8 +813,9 @@ add_filter( 'wp_update_attachment_metadata', 'prairie_ash_add_image_formats', 10
 /**
  * Write the missing copies of one attachment and record them.
  *
- * Used by the demo import, which calls it once per attachment against a
- * time budget and comes back to the same attachment when it returns false.
+ * Used by the demo import and the repair, which call it once per attachment
+ * against a time budget and come back to the same attachment when it
+ * returns false.
  *
  * @since 1.2.1
  *
@@ -819,6 +841,64 @@ function prairie_ash_complete_image_copies( $attachment_id, $pass, $until = 0.0 
 	prairie_ash_set_image_pending( $attachment_id, ! $done );
 
 	return $done;
+}
+
+/**
+ * Every JPEG and PNG attachment, in the order the repair walks them.
+ *
+ * @since 1.2.1
+ *
+ * @return int[] Attachment IDs, lowest first.
+ */
+function prairie_ash_image_attachments() {
+	return array_map(
+		'absint',
+		get_posts(
+			array(
+				'post_type'      => 'attachment',
+				'post_status'    => 'inherit',
+				'post_mime_type' => array( 'image/jpeg', 'image/png' ),
+				'posts_per_page' => -1,
+				'orderby'        => 'ID',
+				'order'          => 'ASC',
+				'fields'         => 'ids',
+			)
+		)
+	);
+}
+
+/**
+ * How many copies are missing or empty right now, without writing any.
+ *
+ * @since 1.2.1
+ *
+ * @return int
+ */
+function prairie_ash_missing_image_copies() {
+	$missing = 0;
+
+	foreach ( prairie_ash_image_attachments() as $attachment_id ) {
+		$data = wp_get_attachment_metadata( $attachment_id );
+		$full = prairie_ash_image_source( $data );
+
+		if ( '' === $full ) {
+			continue;
+		}
+
+		foreach ( prairie_ash_image_formats() as $mime ) {
+			foreach ( prairie_ash_image_targets( $data, $full ) as $target ) {
+				$copy = prairie_ash_format_file_name( $target[0], $mime );
+
+				clearstatcache( true, $copy );
+
+				if ( file_exists( $target[0] ) && ( ! is_file( $copy ) || wp_filesize( $copy ) < 1 ) ) {
+					++$missing;
+				}
+			}
+		}
+	}
+
+	return $missing;
 }
 
 /**

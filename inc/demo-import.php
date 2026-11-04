@@ -234,13 +234,19 @@ function prairie_ash_demo_assets( $hook_suffix ) {
 			'steps'   => Prairie_Ash_Demo_Importer::steps(),
 			'text'    => array(
 				/* translators: %s: name of the step being imported. */
-				'running' => __( 'Importing: %s', 'prairie-ash' ),
+				'running'      => __( 'Importing: %s', 'prairie-ash' ),
 				/* translators: 1: number of images imported so far, 2: number of images in all. */
-				'media'   => __( 'Importing: Media, %1$d of %2$d', 'prairie-ash' ),
-				'done'    => __( 'The demo content is in place.', 'prairie-ash' ),
+				'media'        => __( 'Importing: Media, %1$d of %2$d', 'prairie-ash' ),
+				/* translators: 1: number of images whose copies are written, 2: number of images in all. */
+				'images'       => __( 'Importing: Image copies, %1$d of %2$d', 'prairie-ash' ),
+				'done'         => __( 'The demo content is in place.', 'prairie-ash' ),
+				/* translators: %d: number of image copies that could not be written. */
+				'doneFailures' => __( 'The demo content is in place, but %d image copies could not be written. They are listed under Image copies.', 'prairie-ash' ),
 				/* translators: %s: the reason the import stopped. */
-				'failed'  => __( 'The import stopped: %s', 'prairie-ash' ),
-				'network' => __( 'The server did not answer. Press the button again to carry on where the import stopped.', 'prairie-ash' ),
+				'failed'       => __( 'The import stopped: %s', 'prairie-ash' ),
+				'network'      => __( 'The server did not answer. Press the button again to carry on where the import stopped.', 'prairie-ash' ),
+				/* translators: %d: number of image copies that could not be written. */
+				'failureCount' => __( 'Image copies that could not be written: %d. The pages offer the next format in their place.', 'prairie-ash' ),
 			),
 		)
 	);
@@ -349,6 +355,58 @@ function prairie_ash_demo_screen() {
 		<p data-prairie-ash-demo-view <?php echo ( $state && $state['done'] ) ? '' : 'hidden'; ?>>
 			<a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'View the site', 'prairie-ash' ); ?></a>
 		</p>
+
+		<?php prairie_ash_image_copies_section(); ?>
+	</div>
+	<?php
+}
+
+/**
+ * The Image copies part of the Demo content screen: what is missing and what
+ * could not be written.
+ *
+ * @since 1.2.1
+ *
+ * @return void
+ */
+function prairie_ash_image_copies_section() {
+	$missing  = prairie_ash_missing_image_copies();
+	$pending  = count( prairie_ash_image_pending() );
+	$failures = prairie_ash_image_failure_lines();
+	?>
+	<h2><?php esc_html_e( 'Image copies', 'prairie-ash' ); ?></h2>
+	<p><?php esc_html_e( 'Every JPEG and PNG image is also saved as AVIF and WebP, the formats the pages offer first. A copy the server could not write is listed here with the reason, and the pages offer the next format in its place.', 'prairie-ash' ); ?></p>
+	<p data-prairie-ash-repair-summary>
+		<?php
+		if ( ! prairie_ash_image_formats() ) {
+			esc_html_e( 'The image editor on this server writes neither AVIF nor WebP, so the pages offer the original JPEG and PNG files.', 'prairie-ash' );
+		} elseif ( $missing || $pending ) {
+			printf(
+				/* translators: 1: number of missing or empty copies, 2: number of images waiting for copies. */
+				esc_html__( 'Copies missing or empty: %1$d. Images waiting for their copies: %2$d.', 'prairie-ash' ),
+				absint( $missing ),
+				absint( $pending )
+			);
+		} else {
+			esc_html_e( 'Every image has its AVIF and WebP copies.', 'prairie-ash' );
+		}
+		?>
+	</p>
+	<div data-prairie-ash-image-failures <?php echo $failures ? '' : 'hidden'; ?>>
+		<p data-prairie-ash-image-failures-count>
+			<?php
+			printf(
+				/* translators: %d: number of image copies that could not be written. */
+				esc_html__( 'Image copies that could not be written: %d. The pages offer the next format in their place.', 'prairie-ash' ),
+				absint( count( $failures ) )
+			);
+			?>
+		</p>
+		<ul class="ul-disc" data-prairie-ash-image-failures-list>
+			<?php foreach ( $failures as $line ) : ?>
+				<li><?php echo esc_html( $line ); ?></li>
+			<?php endforeach; ?>
+		</ul>
 	</div>
 	<?php
 }
@@ -398,7 +456,8 @@ function prairie_ash_demo_run_share( $carry_on ) {
 	$state = $importer->run( 20 );
 
 	if ( ! is_wp_error( $state ) ) {
-		$state['log'] = $importer->log;
+		$state['log']      = $importer->log;
+		$state['failures'] = prairie_ash_image_failure_lines();
 	}
 
 	return $state;
@@ -426,11 +485,12 @@ function prairie_ash_demo_ajax() {
 
 	wp_send_json_success(
 		array(
-			'done'   => (bool) $state['done'],
-			'step'   => $state['done'] ? '' : $names[ $state['step'] ],
-			'cursor' => (int) $state['cursor'],
-			'media'  => is_array( $data ) ? count( $data['media'] ) : 0,
-			'log'    => $state['log'],
+			'done'     => (bool) $state['done'],
+			'step'     => $state['done'] ? '' : $names[ $state['step'] ],
+			'cursor'   => (int) $state['cursor'],
+			'media'    => is_array( $data ) ? count( $data['media'] ) : 0,
+			'log'      => $state['log'],
+			'failures' => $state['failures'],
 		)
 	);
 }
@@ -464,8 +524,3 @@ function prairie_ash_demo_post() {
 	exit;
 }
 add_action( 'admin_post_prairie_ash_demo_import', 'prairie_ash_demo_post' );
-
-if ( defined( 'WP_CLI' ) && WP_CLI ) {
-	require_once get_theme_file_path( 'inc/class-prairie-ash-demo-command.php' );
-	WP_CLI::add_command( 'prairie-ash-demo', 'Prairie_Ash_Demo_Command' );
-}

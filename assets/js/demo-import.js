@@ -1,19 +1,17 @@
 /**
  * Demo content screen: runs the import one share at a time and reports the
- * step in the status line, so a host with a short time limit finishes it.
+ * progress in a status line, so a host with a short time limit finishes it.
+ * The image copies that could not be written are listed from each reply.
  * Without this script the form posts and the screen offers to carry on.
  */
 ( function () {
 	const settings = window.prairieAshDemo;
-	const form = document.querySelector( '[data-prairie-ash-demo]' );
-	const status = document.querySelector( '[data-prairie-ash-demo-status]' );
-	const view = document.querySelector( '[data-prairie-ash-demo-view]' );
 
-	if ( ! settings || ! form || ! status ) {
+	if ( ! settings ) {
 		return;
 	}
 
-	const button = form.querySelector( 'button[type="submit"]' );
+	const failureBox = document.querySelector( '[data-prairie-ash-image-failures]' );
 	const format = ( text, ...values ) => {
 		let index = 0;
 		return text.replace( /%(\d\$)?[sd]/g, ( match, position ) => {
@@ -22,10 +20,29 @@
 		} );
 	};
 
-	const share = async ( carryOn ) => {
+	const showFailures = ( failures ) => {
+		if ( ! failureBox || ! Array.isArray( failures ) ) {
+			return;
+		}
+
+		const count = failureBox.querySelector( '[data-prairie-ash-image-failures-count]' );
+		const list = failureBox.querySelector( '[data-prairie-ash-image-failures-list]' );
+
+		count.textContent = format( settings.text.failureCount, failures.length );
+		list.replaceChildren(
+			...failures.map( ( line ) => {
+				const item = document.createElement( 'li' );
+				item.textContent = line;
+				return item;
+			} )
+		);
+		failureBox.hidden = failures.length === 0;
+	};
+
+	const share = async ( action, nonce, carryOn ) => {
 		const body = new FormData();
-		body.append( 'action', 'prairie_ash_demo_import' );
-		body.append( '_ajax_nonce', settings.nonce );
+		body.append( 'action', action );
+		body.append( '_ajax_nonce', nonce );
 		body.append( 'continue', carryOn ? '1' : '0' );
 
 		const response = await fetch( settings.ajaxUrl, {
@@ -37,44 +54,91 @@
 		return response.json();
 	};
 
-	form.addEventListener( 'submit', async ( event ) => {
-		event.preventDefault();
+	/*
+	 * A share that dies on the server, at a time or memory limit, answers with
+	 * no JSON. The server notes the copy it was writing, so the next share
+	 * reports that copy and moves on: the runner asks again up to three times
+	 * in a row before it gives up.
+	 */
+	const run = ( form, status, job ) => {
+		const button = form.querySelector( 'button[type="submit"]' );
 
-		let carryOn = form.elements.continue.value === '1';
-		button.disabled = true;
-		if ( view ) {
-			view.hidden = true;
-		}
-		status.textContent = format( settings.text.running, Object.values( settings.steps )[ 0 ] );
+		form.addEventListener( 'submit', async ( event ) => {
+			event.preventDefault();
 
-		try {
-			for (;;) {
-				const result = await share( carryOn );
+			let carryOn = form.elements.continue.value === '1';
+			let misses = 0;
+			button.disabled = true;
+			job.start();
 
-				if ( ! result.success ) {
-					status.textContent = format( settings.text.failed, result.data.message );
+			for ( ;; ) {
+				let result;
+
+				try {
+					result = await share( job.action, job.nonce, carryOn );
+					misses = 0;
+				} catch ( error ) {
+					misses++;
+					if ( misses < 3 ) {
+						carryOn = true;
+						continue;
+					}
+					status.textContent = job.network;
 					break;
 				}
 
+				if ( ! result.success ) {
+					status.textContent = format( job.failed, result.data.message );
+					break;
+				}
+
+				showFailures( result.data.failures );
+
 				if ( result.data.done ) {
-					status.textContent = settings.text.done;
 					form.elements.continue.value = '0';
-					if ( view ) {
-						view.hidden = false;
-					}
+					job.finish( result.data );
 					break;
 				}
 
 				carryOn = true;
 				form.elements.continue.value = '1';
-				status.textContent = 'media' === result.data.step
-					? format( settings.text.media, result.data.cursor, result.data.media )
-					: format( settings.text.running, settings.steps[ result.data.step ] );
+				status.textContent = job.progress( result.data );
 			}
-		} catch ( error ) {
-			status.textContent = settings.text.network;
-		}
 
-		button.disabled = false;
-	} );
+			button.disabled = false;
+		} );
+	};
+
+	const importForm = document.querySelector( '[data-prairie-ash-demo]' );
+	const importStatus = document.querySelector( '[data-prairie-ash-demo-status]' );
+	const view = document.querySelector( '[data-prairie-ash-demo-view]' );
+
+	if ( importForm && importStatus ) {
+		run( importForm, importStatus, {
+			action: 'prairie_ash_demo_import',
+			nonce: settings.nonce,
+			failed: settings.text.failed,
+			network: settings.text.network,
+			start: () => {
+				if ( view ) {
+					view.hidden = true;
+				}
+				importStatus.textContent = format( settings.text.running, Object.values( settings.steps )[ 0 ] );
+			},
+			progress: ( data ) => {
+				if ( 'media' === data.step || 'images' === data.step ) {
+					return format( settings.text[ data.step ], data.cursor, data.media );
+				}
+				return format( settings.text.running, settings.steps[ data.step ] );
+			},
+			finish: ( data ) => {
+				importStatus.textContent = data.failures.length
+					? format( settings.text.doneFailures, data.failures.length )
+					: settings.text.done;
+				if ( view ) {
+					view.hidden = false;
+				}
+			},
+		} );
+	}
 }() );
