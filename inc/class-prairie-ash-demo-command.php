@@ -1,7 +1,7 @@
 <?php
 /**
- * The wp prairie-ash-demo command: the same import as the Demo content
- * screen, and the export that writes the demo folder.
+ * The wp prairie-ash-demo command: the same import and image copy repair as
+ * the Demo content screen, and the export that writes the demo folder.
  *
  * @package PrairieAsh
  */
@@ -9,7 +9,8 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Imports or exports the Prairie Ash demo content.
+ * Imports or exports the Prairie Ash demo content, and repairs the image
+ * copies.
  *
  * @since 1.2.0
  */
@@ -77,6 +78,51 @@ class Prairie_Ash_Demo_Command {
 	}
 
 	/**
+	 * Write every AVIF and WebP image copy that is missing, empty or unreadable.
+	 *
+	 * Walks every JPEG and PNG in the media library, the demo's and any other,
+	 * lets WordPress write the sizes an image is missing, and writes the
+	 * missing copies one at a time, checking the memory left before each.
+	 * Copies that still cannot be written are listed, and the pages offer the
+	 * next format in their place. Same as the Repair image copies button under
+	 * Appearance, Demo content.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp prairie-ash-demo repair-images
+	 *
+	 * @since 1.2.1
+	 *
+	 * @subcommand repair-images
+	 *
+	 * @param array $args       Positional arguments, unused.
+	 * @param array $assoc_args Named arguments, unused.
+	 * @return void
+	 */
+	public function repair_images( $args, $assoc_args ) {
+		unset( $args, $assoc_args );
+
+		$carry_on = false;
+
+		do {
+			$share    = prairie_ash_image_repair_share( $carry_on, 30 );
+			$carry_on = true;
+
+			foreach ( $share['log'] as $line ) {
+				WP_CLI::log( $line );
+			}
+
+			WP_CLI::log( sprintf( '... %1$d of %2$d images checked', $share['checked'], $share['total'] ) );
+		} while ( ! $share['done'] );
+
+		if ( $this->report_image_failures() ) {
+			WP_CLI::error( 'Some image copies could not be written. The pages offer the next format in their place.' );
+		}
+
+		WP_CLI::success( 'Every image has its AVIF and WebP copies.' );
+	}
+
+	/**
 	 * List the image copies that could not be written.
 	 *
 	 * @since 1.2.1
@@ -91,7 +137,7 @@ class Prairie_Ash_Demo_Command {
 		}
 
 		if ( $failures ) {
-			WP_CLI::warning( sprintf( '%d image copies could not be written. Run the import again to try them again.', count( $failures ) ) );
+			WP_CLI::warning( sprintf( '%d image copies could not be written. Run wp prairie-ash-demo repair-images to try them again.', count( $failures ) ) );
 		}
 
 		return count( $failures );

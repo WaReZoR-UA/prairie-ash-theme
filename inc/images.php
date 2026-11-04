@@ -868,6 +868,48 @@ function prairie_ash_image_attachments() {
 }
 
 /**
+ * Repair the copies of every image, as many as fit in a time budget.
+ *
+ * Finds each image whose sizes or copies are missing, empty or unreadable,
+ * lets core write the missing sizes, and writes the missing copies. Called
+ * again with the cursor it returns, it carries on where it stopped.
+ *
+ * @since 1.2.1
+ *
+ * @param int    $after Repair the attachments after this ID.
+ * @param string $pass  The repair run.
+ * @param float  $until Time to stop by, or 0 for none.
+ * @return int|true The last attachment finished, or true when all are.
+ */
+function prairie_ash_repair_image_copies( $after, $pass, $until = 0.0 ) {
+	require_once ABSPATH . 'wp-admin/includes/image.php';
+
+	prairie_ash_defer_image_formats( true );
+
+	foreach ( prairie_ash_image_attachments() as $attachment_id ) {
+		if ( $attachment_id <= $after ) {
+			continue;
+		}
+
+		if ( $until && microtime( true ) >= $until ) {
+			return $after;
+		}
+
+		if ( wp_get_missing_image_subsizes( $attachment_id ) ) {
+			wp_update_image_subsizes( $attachment_id );
+		}
+
+		if ( ! prairie_ash_complete_image_copies( $attachment_id, $pass, $until ) ) {
+			return $after;
+		}
+
+		$after = $attachment_id;
+	}
+
+	return true;
+}
+
+/**
  * How many copies are missing or empty right now, without writing any.
  *
  * @since 1.2.1

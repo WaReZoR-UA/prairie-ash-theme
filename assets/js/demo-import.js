@@ -1,8 +1,9 @@
 /**
- * Demo content screen: runs the import one share at a time and reports the
- * progress in a status line, so a host with a short time limit finishes it.
- * The image copies that could not be written are listed from each reply.
- * Without this script the form posts and the screen offers to carry on.
+ * Demo content screen: runs the import and the image copy repair one share at
+ * a time and reports the progress in a status line, so a host with a short
+ * time limit finishes both. The image copies that could not be written are
+ * listed from each reply. Without this script each form posts and the screen
+ * offers to carry on.
  */
 ( function () {
 	const settings = window.prairieAshDemo;
@@ -137,6 +138,31 @@
 					: settings.text.done;
 				if ( view ) {
 					view.hidden = false;
+				}
+			},
+		} );
+	}
+
+	const repairForm = document.querySelector( '[data-prairie-ash-repair]' );
+	const repairStatus = document.querySelector( '[data-prairie-ash-repair-status]' );
+	const summary = document.querySelector( '[data-prairie-ash-repair-summary]' );
+
+	if ( repairForm && repairStatus ) {
+		run( repairForm, repairStatus, {
+			action: 'prairie_ash_image_repair',
+			nonce: settings.repairNonce,
+			failed: settings.text.repairStopped,
+			network: settings.text.repairNetwork,
+			start: () => {
+				repairStatus.textContent = format( settings.text.repairing, 0, '...' );
+			},
+			progress: ( data ) => format( settings.text.repairing, data.checked, data.total ),
+			finish: ( data ) => {
+				repairStatus.textContent = data.failures.length
+					? format( settings.text.repairFailed, data.failures.length )
+					: settings.text.repaired;
+				if ( summary && ! data.failures.length ) {
+					summary.textContent = settings.text.repaired;
 				}
 			},
 		} );
