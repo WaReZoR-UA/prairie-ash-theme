@@ -291,6 +291,47 @@ function prairie_ash_is_image_copy( $path, $mime ) {
 }
 
 /**
+ * The image editor a copy is written with.
+ *
+ * GD cannot write WebP or AVIF from a palette PNG: the save fails and leaves
+ * an empty file. A copy that is resized is already true colour, because the
+ * resize draws into a new true colour image, so only a full-size copy needs
+ * the conversion, and the theme's own GD editor provides it.
+ *
+ * @since 1.2.1
+ *
+ * @param string $full      Absolute path of the full image.
+ * @param bool   $truecolor Whether to convert a palette image to true colour.
+ * @return WP_Image_Editor|WP_Error
+ */
+function prairie_ash_image_copy_editor( $full, $truecolor ) {
+	if ( ! $truecolor ) {
+		return wp_get_image_editor( $full );
+	}
+
+	$swap = static function ( $editors ) {
+		require_once get_theme_file_path( 'inc/class-prairie-ash-image-editor-gd.php' );
+
+		return array_map(
+			static function ( $editor ) {
+				return 'WP_Image_Editor_GD' === $editor ? 'Prairie_Ash_Image_Editor_GD' : $editor;
+			},
+			(array) $editors
+		);
+	};
+
+	add_filter( 'wp_image_editors', $swap );
+	$editor = wp_get_image_editor( $full );
+	remove_filter( 'wp_image_editors', $swap );
+
+	if ( ! is_wp_error( $editor ) && $editor instanceof Prairie_Ash_Image_Editor_GD ) {
+		$editor->make_truecolor();
+	}
+
+	return $editor;
+}
+
+/**
  * Write one copy, or say why it was not written.
  *
  * A failed or empty output is deleted at once, so no empty file is ever on
@@ -329,7 +370,7 @@ function prairie_ash_write_image_copy( $attachment_id, $data, $name, $target, $m
 	$saved = apply_filters( 'prairie_ash_pre_write_image_copy', null, $copy, $mime, $attachment_id, $name );
 
 	if ( null === $saved ) {
-		$editor = wp_get_image_editor( $full );
+		$editor = prairie_ash_image_copy_editor( $full, ! $width );
 		$saved  = $editor;
 
 		if ( ! is_wp_error( $editor ) && $width ) {
