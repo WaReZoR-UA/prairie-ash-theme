@@ -385,28 +385,11 @@ function prairie_ash_demo_screen() {
 function prairie_ash_image_copies_section() {
 	$repair   = get_option( 'prairie_ash_image_repair' );
 	$running  = is_array( $repair ) && empty( $repair['done'] );
-	$missing  = prairie_ash_missing_image_copies();
-	$pending  = count( prairie_ash_image_pending() );
 	$failures = prairie_ash_image_failure_lines();
 	?>
 	<h2><?php esc_html_e( 'Image copies', 'prairie-ash' ); ?></h2>
 	<p><?php esc_html_e( 'Every JPEG and PNG image is also saved as AVIF and WebP, the formats the pages offer first. The repair finds every copy that is missing, empty or unreadable and writes it again, a few at a time so it fits a short time limit, and lists any copy that still cannot be written.', 'prairie-ash' ); ?></p>
-	<p data-prairie-ash-repair-summary>
-		<?php
-		if ( ! prairie_ash_image_formats() ) {
-			esc_html_e( 'The image editor on this server writes neither AVIF nor WebP, so the pages offer the original JPEG and PNG files.', 'prairie-ash' );
-		} elseif ( $missing || $pending ) {
-			printf(
-				/* translators: 1: number of missing or empty copies, 2: number of images waiting for copies. */
-				esc_html__( 'Copies missing or empty: %1$d. Images waiting for their copies: %2$d.', 'prairie-ash' ),
-				absint( $missing ),
-				absint( $pending )
-			);
-		} else {
-			esc_html_e( 'Every image has its AVIF and WebP copies.', 'prairie-ash' );
-		}
-		?>
-	</p>
+	<p data-prairie-ash-repair-summary><?php echo esc_html( prairie_ash_image_copies_summary() ); ?></p>
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-prairie-ash-repair>
 		<input type="hidden" name="action" value="prairie_ash_image_repair">
 		<input type="hidden" name="continue" value="<?php echo $running ? '1' : '0'; ?>">
@@ -458,6 +441,35 @@ function prairie_ash_demo_counts() {
 		'pages'    => is_array( $data ) ? count( $data['pages'] ) : 0,
 		'products' => is_array( $data ) ? count( $data['products'] ) : 0,
 		'media'    => is_array( $data ) ? count( $data['media'] ) : 0,
+	);
+}
+
+/**
+ * One sentence on the state of the image copies on disk, for the screen and
+ * for the reply that ends an import or a repair, so the screen never keeps a
+ * summary from before the run.
+ *
+ * @since 1.2.1
+ *
+ * @return string
+ */
+function prairie_ash_image_copies_summary() {
+	if ( ! prairie_ash_image_formats() ) {
+		return __( 'The image editor on this server writes neither AVIF nor WebP, so the pages offer the original JPEG and PNG files.', 'prairie-ash' );
+	}
+
+	$missing = prairie_ash_missing_image_copies();
+	$pending = count( prairie_ash_image_pending() );
+
+	if ( ! $missing && ! $pending ) {
+		return __( 'Every image has its AVIF and WebP copies.', 'prairie-ash' );
+	}
+
+	return sprintf(
+		/* translators: 1: number of missing or empty copies, 2: number of images waiting for copies. */
+		__( 'Copies missing or empty: %1$d. Images waiting for their copies: %2$d.', 'prairie-ash' ),
+		$missing,
+		$pending
 	);
 }
 
@@ -523,6 +535,7 @@ function prairie_ash_demo_ajax() {
 			'media'    => is_array( $data ) ? count( $data['media'] ) : 0,
 			'log'      => $state['log'],
 			'failures' => $state['failures'],
+			'summary'  => $state['done'] ? prairie_ash_image_copies_summary() : '',
 		)
 	);
 }
@@ -614,6 +627,7 @@ function prairie_ash_image_repair_share( $carry_on, $budget = 20 ) {
 		'total'    => count( $ids ),
 		'log'      => prairie_ash_image_log(),
 		'failures' => prairie_ash_image_failure_lines(),
+		'summary'  => $state['done'] ? prairie_ash_image_copies_summary() : '',
 	);
 }
 

@@ -13,6 +13,7 @@
 	}
 
 	const failureBox = document.querySelector( '[data-prairie-ash-image-failures]' );
+	const summary = document.querySelector( '[data-prairie-ash-repair-summary]' );
 	const format = ( text, ...values ) => {
 		let index = 0;
 		return text.replace( /%(\d\$)?[sd]/g, ( match, position ) => {
@@ -95,6 +96,10 @@
 
 				showFailures( result.data.failures );
 
+				if ( summary && result.data.summary ) {
+					summary.textContent = result.data.summary;
+				}
+
 				if ( result.data.done ) {
 					form.elements.continue.value = '0';
 					job.finish( result.data );
@@ -145,7 +150,6 @@
 
 	const repairForm = document.querySelector( '[data-prairie-ash-repair]' );
 	const repairStatus = document.querySelector( '[data-prairie-ash-repair-status]' );
-	const summary = document.querySelector( '[data-prairie-ash-repair-summary]' );
 
 	if ( repairForm && repairStatus ) {
 		run( repairForm, repairStatus, {
@@ -161,9 +165,6 @@
 				repairStatus.textContent = data.failures.length
 					? format( settings.text.repairFailed, data.failures.length )
 					: settings.text.repaired;
-				if ( summary && ! data.failures.length ) {
-					summary.textContent = settings.text.repaired;
-				}
 			},
 		} );
 	}
