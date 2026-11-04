@@ -26,8 +26,8 @@ root element by `prairie_ash_section_attrs()`, in the editor preview as well as 
 
 ## Narrowed for the whole site, with the reason
 
-The client asked for colours and sizes from the theme presets only. So every control offers the design's own values
-and no value of the client's own. These rows record that narrowing once for the site.
+The client asked for colours and sizes from the theme presets only. So every control offers the design's
+own values and no value of the client's own. These rows record that narrowing once for the site.
 
 | Block | Capability | Decided | Reason |
 |---|---|---|---|
