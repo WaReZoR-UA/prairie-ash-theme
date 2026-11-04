@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- generator="WordPress/7.1.3" created="2026-11-04 14:59" -->
+
+<channel>
+	<title>Prairie Ash Coffee &#38; Roastery</title>
+	<pubDate>Wed, 04 Nov 2026 14:59:25 +0000</pubDate>
+
+	<form>
+		<id>8</id>
+		<form_key><![CDATA[roast-notes]]></form_key>
+		<name><![CDATA[Roast notes signup]]></name>
+		<description><![CDATA[]]></description>
+		<created_at>2026-10-19 22:35:34</created_at>
+		<logged_in>0</logged_in>
+		<is_template>0</is_template>
+		<editable>0</editable>
+		<options><![CDATA[{"before_html":"<div class=\"error-summary\" data-error-summary-box hidden tabindex=\"-1\">\n\t<h3 class=\"error-summary__title\">There is a problem with the signup<\/h3>\n\t<ul class=\"error-summary__list\" data-error-summary-list><\/ul>\n<\/div>","after_html":"<p class=\"signup__text\">Sent by [name], [address], [website]<\/p>\n<p class=\"signup__text\">We use your email address only to send roast notes. It is stored with our email service provider and never sold. If that provider were breached, your address could get unwanted email. Saying no changes nothing at the cafe or in the shop. We email you a link to confirm before the first issue.<\/p>","submit_html":"<div class=\"signup__actions\">\n\t<button class=\"button button--soot\" type=\"submit\" [button_action]>[button_label]<\/button>\n\t<a class=\"text-link text-link--on-paper\" href=\"{{home_json}}\/privacy-policy\/\">Read the privacy policy<\/a>\n<\/div>","submit_value":"Sign up for roast notes","success_action":"redirect","success_url":"{{home_json}}\/signup-confirmation\/","on_submit_migrated":1}]]></options>
+		<status><![CDATA[published]]></status>
+		<parent_form_id>0</parent_form_id>
+		<field>
+			<id>30</id>
+			<field_key><![CDATA[signup-email]]></field_key>
+			<name><![CDATA[Email address]]></name>
+			<description><![CDATA[]]></description>
+			<type><![CDATA[email]]></type>
+			<default_value><![CDATA[]]></default_value>
+			<field_order>1</field_order>
+			<form_id>8</form_id>
+			<required>1</required>
+			<options><![CDATA[[]]]></options>
+			<field_options><![CDATA[{"custom_html":"<div id=\"frm_field_[id]_container\" class=\"field\">\n\t<label class=\"field__label\" for=\"field_[key]\">[field_name]<\/label>\n\t[if error]<p class=\"form__error\" id=\"frm_error_field_[key]\">[error]<\/p>[\/if error]\n\t[input class=\"input\" autocomplete=\"email\" data-required=\"email\" data-error=\"Error: Enter an email address in the format name@example.com\" data-summary=\"Enter an email address in the format name@example.com\"]\n\t[if description]<p class=\"field__hint\" id=\"frm_desc_field_[key]\">[description]<\/p>[\/if description]\n<\/div>","blank":"Error: Enter an email address in the format name@example.com","invalid":"Error: Enter an email address in the format name@example.com"}]]></field_options>
+		</field>
+		<field>
+			<id>31</id>
+			<field_key><![CDATA[signup-consent]]></field_key>
+			<name><![CDATA[Consent to roast notes]]></name>
+			<description><![CDATA[]]></description>
+			<type><![CDATA[checkbox]]></type>
+			<default_value><![CDATA[]]></default_value>
+			<field_order>2</field_order>
+			<form_id>8</form_id>
+			<required>1</required>
+			<options><![CDATA[[{"label":"Yes, send me monthly roast notes from [name] by email. I can unsubscribe at any time.","value":"yes"}]]]></options>
+			<field_options><![CDATA[{"separate_value":1,"blank":"Error: Tick the box to get the roast notes","custom_html":"<div id=\"frm_field_[id]_container\" class=\"checkbox\">\n\t[input label=0 class=\"checkbox__input\" data-required=\"\" data-error=\"Error: Tick the box to get the roast notes\" data-summary=\"Tick the box to get the roast notes\"]\n\t[if error]<p class=\"form__error\" id=\"frm_error_field_[key]\">[error]<\/p>[\/if error]\n<\/div>"}]]></field_options>
+		</field>
+	</form>
+	<form>
+		<id>9</id>
+		<form_key><![CDATA[contact]]></form_key>
+		<name><![CDATA[Send a message]]></name>
+		<description><![CDATA[]]></description>
+		<created_at>2026-10-19 22:35:35</created_at>
+		<logged_in>0</logged_in>
+		<is_template>0</is_template>
+		<editable>0</editable>
+		<options><![CDATA[{"before_html":"<div class=\"error-summary\" data-error-summary-box hidden tabindex=\"-1\">\n\t<h3 class=\"error-summary__title\">There is a problem with the form<\/h3>\n\t<ul class=\"error-summary__list\" data-error-summary-list><\/ul>\n<\/div>\n<h3 class=\"form-panel__title\">[form_name]<\/h3>","after_html":"<p class=\"form-panel__note\">Your name and email address are used only to answer this message. They stay in our email inbox, are never sold or shared, and are deleted after a year. If our inbox were breached, someone could see what you wrote.<\/p>\n<a class=\"text-link text-link--on-paper\" href=\"{{home_json}}\/privacy-policy\/\">Read the privacy policy<\/a>","submit_html":"<button class=\"button button--primary\" type=\"submit\" [button_action]>[button_label]<\/button>","submit_value":"Send the message","success_action":"redirect","success_url":"{{home_json}}\/contact-sent\/","on_submit_migrated":1}]]></options>
+		<status><![CDATA[published]]></status>
+		<parent_form_id>0</parent_form_id>
+		<field>
+			<id>32</id>
+			<field_key><![CDATA[contact-name]]></field_key>
+			<name><![CDATA[Your name]]></name>
+			<description><![CDATA[]]></description>
+			<type><![CDATA[text]]></type>
+			<default_value><![CDATA[]]></default_value>
+			<field_order>1</field_order>
+			<form_id>9</form_id>
+			<required>1</required>
+			<options><![CDATA[[]]]></options>
+			<field_options><![CDATA[{"custom_html":"<div id=\"frm_field_[id]_container\" class=\"field\">\n\t<label class=\"field__label\" for=\"field_[key]\">[field_name][if required_label] <span class=\"field__mark\">[required_label]<\/span>[\/if required_label]<\/label>\n\t[if error]<p class=\"form__error\" id=\"frm_error_field_[key]\">[error]<\/p>[\/if error]\n\t[input class=\"input\" autocomplete=\"name\" data-required=\"\" data-error=\"Error: Enter your name\" data-summary=\"Enter your name\"]\n\t[if description]<p class=\"field__hint\" id=\"frm_desc_field_[key]\">[description]<\/p>[\/if description]\n<\/div>","blank":"Error: Enter your name","invalid":"Error: Enter your name","required_indicator":"(required)"}]]></field_options>
+		</field>
+		<field>
+			<id>33</id>
+			<field_key><![CDATA[contact-email]]></field_key>
+			<name><![CDATA[Email address]]></name>
+			<description><![CDATA[]]></description>
+			<type><![CDATA[email]]></type>
+			<default_value><![CDATA[]]></default_value>
+			<field_order>2</field_order>
+			<form_id>9</form_id>
+			<required>1</required>
+			<options><![CDATA[[]]]></options>
+			<field_options><![CDATA[{"custom_html":"<div id=\"frm_field_[id]_container\" class=\"field\">\n\t<label class=\"field__label\" for=\"field_[key]\">[field_name][if required_label] <span class=\"field__mark\">[required_label]<\/span>[\/if required_label]<\/label>\n\t[if error]<p class=\"form__error\" id=\"frm_error_field_[key]\">[error]<\/p>[\/if error]\n\t[input class=\"input\" autocomplete=\"email\" data-required=\"email\" data-error=\"Error: Enter an email address in the format name@example.com\" data-summary=\"Enter an email address in the format name@example.com\"]\n\t[if description]<p class=\"field__hint\" id=\"frm_desc_field_[key]\">[description]<\/p>[\/if description]\n<\/div>","blank":"Error: Enter an email address in the format name@example.com","invalid":"Error: Enter an email address in the format name@example.com","required_indicator":"(required)"}]]></field_options>
+		</field>
+		<field>
+			<id>34</id>
+			<field_key><![CDATA[contact-message]]></field_key>
+			<name><![CDATA[Message]]></name>
+			<description><![CDATA[]]></description>
+			<type><![CDATA[textarea]]></type>
+			<default_value><![CDATA[]]></default_value>
+			<field_order>3</field_order>
+			<form_id>9</form_id>
+			<required>1</required>
+			<options><![CDATA[[]]]></options>
+			<field_options><![CDATA[{"custom_html":"<div id=\"frm_field_[id]_container\" class=\"field\">\n\t<label class=\"field__label\" for=\"field_[key]\">[field_name][if required_label] <span class=\"field__mark\">[required_label]<\/span>[\/if required_label]<\/label>\n\t[if error]<p class=\"form__error\" id=\"frm_error_field_[key]\">[error]<\/p>[\/if error]\n\t[input class=\"input input--multi\" data-required=\"\" data-error=\"Error: Enter your message\" data-summary=\"Enter your message\"]\n\t[if description]<p class=\"field__hint\" id=\"frm_desc_field_[key]\">[description]<\/p>[\/if description]\n<\/div>","blank":"Error: Enter your message","invalid":"Error: Enter your message","max":4,"required_indicator":"(required)"}]]></field_options>
+		</field>
+	</form>
+	<form>
+		<id>10</id>
+		<form_key><![CDATA[wholesale]]></form_key>
+		<name><![CDATA[Send a wholesale inquiry]]></name>
+		<description><![CDATA[]]></description>
+		<created_at>2026-10-19 22:35:36</created_at>
+		<logged_in>0</logged_in>
+		<is_template>0</is_template>
+		<editable>0</editable>
+		<options><![CDATA[{"before_html":"<div class=\"error-summary\" data-error-summary-box hidden tabindex=\"-1\">\n\t<h2 class=\"error-summary__title\">There is a problem with your inquiry<\/h2>\n\t<ul class=\"error-summary__list\" data-error-summary-list><\/ul>\n<\/div>\n<h2 class=\"form-panel__title\" id=\"wholesale-form-title\">[form_name]<\/h2>","after_html":"<p class=\"form-panel__note\">We use these details only to answer your inquiry and prepare a quote. They are kept in our email inbox and never sold or shared. If that inbox were breached, your contact details could get unwanted email.<\/p>\n<a class=\"text-link text-link--on-paper\" href=\"{{home_json}}\/privacy-policy\/\">Read the privacy policy<\/a>","submit_html":"<button class=\"button button--primary\" type=\"submit\" [button_action]>[button_label]<\/button>","submit_value":"Send wholesale inquiry","success_action":"redirect","success_url":"{{home_json}}\/wholesale-success\/","on_submit_migrated":1}]]></options>
+		<status><![CDATA[published]]></status>
+		<parent_form_id>0</parent_form_id>
+		<field>
+			<id>35</id>
+			<field_key><![CDATA[wholesale-business]]></field_key>
+			<name><![CDATA[Business name]]></name>
+			<description><![CDATA[]]></description>
+			<type><![CDATA[text]]></type>
+			<default_value><![CDATA[]]></default_value>
+			<field_order>1</field_order>
+			<form_id>10</form_id>
+			<required>1</required>
+			<options><![CDATA[[]]]></options>
+			<field_options><![CDATA[{"custom_html":"<div id=\"frm_field_[id]_container\" class=\"field\">\n\t<label class=\"field__label\" for=\"field_[key]\">[field_name][if required_label] <span class=\"field__mark\">[required_label]<\/span>[\/if required_label]<\/label>\n\t[if error]<p class=\"form__error\" id=\"frm_error_field_[key]\">[error]<\/p>[\/if error]\n\t[input class=\"input\" autocomplete=\"organization\" data-required=\"\" data-error=\"Error: Enter the name of your business\" data-summary=\"Enter the name of your business\"]\n\t[if description]<p class=\"field__hint\" id=\"frm_desc_field_[key]\">[description]<\/p>[\/if description]\n<\/div>","blank":"Error: Enter the name of your business","invalid":"Error: Enter the name of your business","required_indicator":"(required)"}]]></field_options>
+		</field>
+		<field>
+			<id>36</id>
+			<field_key><![CDATA[wholesale-name]]></field_key>
+			<name><![CDATA[Your name]]></name>
+			<description><![CDATA[]]></description>
+			<type><![CDATA[text]]></type>
+			<default_value><![CDATA[]]></default_value>
+			<field_order>2</field_order>
+			<form_id>10</form_id>
+			<required>1</required>
+			<options><![CDATA[[]]]></options>
+			<field_options><![CDATA[{"custom_html":"<div id=\"frm_field_[id]_container\" class=\"field\">\n\t<label class=\"field__label\" for=\"field_[key]\">[field_name][if required_label] <span class=\"field__mark\">[required_label]<\/span>[\/if required_label]<\/label>\n\t[if error]<p class=\"form__error\" id=\"frm_error_field_[key]\">[error]<\/p>[\/if error]\n\t[input class=\"input\" autocomplete=\"name\" data-required=\"\" data-error=\"Error: Enter your name\" data-summary=\"Enter your name\"]\n\t[if description]<p class=\"field__hint\" id=\"frm_desc_field_[key]\">[description]<\/p>[\/if description]\n<\/div>","blank":"Error: Enter your name","invalid":"Error: Enter your name","required_indicator":"(required)"}]]></field_options>
+		</field>
+		<field>
+			<id>37</id>
+			<field_key><![CDATA[wholesale-email]]></field_key>
+			<name><![CDATA[Email address]]></name>
+			<description><![CDATA[]]></description>
+			<type><![CDATA[email]]></type>
+			<default_value><![CDATA[]]></default_value>
+			<field_order>3</field_order>
+			<form_id>10</form_id>
+			<required>1</required>
+			<options><![CDATA[[]]]></options>
+			<field_options><![CDATA[{"custom_html":"<div id=\"frm_field_[id]_container\" class=\"field\">\n\t<label class=\"field__label\" for=\"field_[key]\">[field_name][if required_label] <span class=\"field__mark\">[required_label]<\/span>[\/if required_label]<\/label>\n\t[if error]<p class=\"form__error\" id=\"frm_error_field_[key]\">[error]<\/p>[\/if error]\n\t[input class=\"input\" autocomplete=\"email\" data-required=\"email\" data-error=\"Error: Enter an email address in the format name@example.com\" data-summary=\"Enter an email address in the format name@example.com\"]\n\t[if description]<p class=\"field__hint\" id=\"frm_desc_field_[key]\">[description]<\/p>[\/if description]\n<\/div>","blank":"Error: Enter an email address in the format name@example.com","invalid":"Error: Enter an email address in the format name@example.com","required_indicator":"(required)"}]]></field_options>
+		</field>
+		<field>
+			<id>38</id>
+			<field_key><![CDATA[wholesale-phone]]></field_key>
+			<name><![CDATA[Phone number (optional)]]></name>
+			<description><![CDATA[]]></description>
+			<type><![CDATA[text]]></type>
+			<default_value><![CDATA[]]></default_value>
+			<field_order>4</field_order>
+			<form_id>10</form_id>
+			<required>0</required>
+			<options><![CDATA[[]]]></options>
+			<field_options><![CDATA[{"custom_html":"<div id=\"frm_field_[id]_container\" class=\"field\">\n\t<label class=\"field__label\" for=\"field_[key]\">[field_name]<\/label>\n\t[if error]<p class=\"form__error\" id=\"frm_error_field_[key]\">[error]<\/p>[\/if error]\n\t[input class=\"input input--code\" autocomplete=\"tel\" type=\"tel\"]\n\t[if description]<p class=\"field__hint\" id=\"frm_desc_field_[key]\">[description]<\/p>[\/if description]\n<\/div>","blank":""}]]></field_options>
+		</field>
+		<field>
+			<id>39</id>
+			<field_key><![CDATA[wholesale-type]]></field_key>
+			<name><![CDATA[Type of business]]></name>
+			<description><![CDATA[]]></description>
+			<type><![CDATA[radio]]></type>
+			<default_value><![CDATA[cafe]]></default_value>
+			<field_order>5</field_order>
+			<form_id>10</form_id>
+			<required>0</required>
+			<options><![CDATA[[{"label":"Cafe","value":"cafe"},{"label":"Office","value":"office"},{"label":"Other","value":"other"}]]]></options>
+			<field_options><![CDATA[{"separate_value":1,"custom_html":"<fieldset id=\"frm_field_[id]_container\" class=\"choice\">\n\t<legend class=\"choice__legend\">[field_name]<\/legend>\n\t<div class=\"options options--buttons choice__options\">[input label=0 class=\"options__input\"]<\/div>\n<\/fieldset>"}]]></field_options>
+		</field>
+		<field>
+			<id>40</id>
+			<field_key><![CDATA[wholesale-volume]]></field_key>
+			<name><![CDATA[Coffee you use each week, in kilograms]]></name>
+			<description><![CDATA[An estimate is fine.]]></description>
+			<type><![CDATA[text]]></type>
+			<default_value><![CDATA[]]></default_value>
+			<field_order>6</field_order>
+			<form_id>10</form_id>
+			<required>1</required>
+			<options><![CDATA[[]]]></options>
+			<field_options><![CDATA[{"custom_html":"<div id=\"frm_field_[id]_container\" class=\"field\">\n\t<label class=\"field__label\" for=\"field_[key]\">[field_name][if required_label] <span class=\"field__mark\">[required_label]<\/span>[\/if required_label]<\/label>\n\t[if error]<p class=\"form__error\" id=\"frm_error_field_[key]\">[error]<\/p>[\/if error]\n\t[input class=\"input input--code\" data-required=\"\" data-error=\"Error: Enter how many kilograms of coffee you use each week, for example 8\" data-summary=\"Enter how many kilograms of coffee you use each week, for example 8\" inputmode=\"decimal\"]\n\t[if description]<p class=\"field__hint\" id=\"frm_desc_field_[key]\">[description]<\/p>[\/if description]\n<\/div>","blank":"Error: Enter how many kilograms of coffee you use each week, for example 8","invalid":"Error: Enter how many kilograms of coffee you use each week, for example 8","required_indicator":"(required)"}]]></field_options>
+		</field>
+		<field>
+			<id>41</id>
+			<field_key><![CDATA[wholesale-notes]]></field_key>
+			<name><![CDATA[Anything else we should know (optional)]]></name>
+			<description><![CDATA[]]></description>
+			<type><![CDATA[textarea]]></type>
+			<default_value><![CDATA[]]></default_value>
+			<field_order>7</field_order>
+			<form_id>10</form_id>
+			<required>0</required>
+			<options><![CDATA[[]]]></options>
+			<field_options><![CDATA[{"custom_html":"<div id=\"frm_field_[id]_container\" class=\"field\">\n\t<label class=\"field__label\" for=\"field_[key]\">[field_name]<\/label>\n\t[if error]<p class=\"form__error\" id=\"frm_error_field_[key]\">[error]<\/p>[\/if error]\n\t[input class=\"input input--multi\"]\n\t[if description]<p class=\"field__hint\" id=\"frm_desc_field_[key]\">[description]<\/p>[\/if description]\n<\/div>","blank":"","max":4}]]></field_options>
+		</field>
+	</form>
+	<view>
+		<title>Confirmation</title>
+		<link></link>
+		<post_author><![CDATA[admin]]></post_author>
+		<description></description>
+		<content><![CDATA[{"event":["create"],"success_action":"redirect","success_url":"{{home_json}}\/signup-confirmation\/"}]]></content>
+		<excerpt><![CDATA[on_submit]]></excerpt>
+		<post_id>156</post_id>
+		<post_date>2026-10-19 17:35:35</post_date>
+		<post_date_gmt>2026-10-19 22:35:35</post_date_gmt>
+		<comment_status>closed</comment_status>
+		<ping_status>closed</ping_status>
+		<post_name>confirmation</post_name>
+		<status>publish</status>
+		<post_parent>0</post_parent>
+		<menu_order>8</menu_order>
+		<post_type>frm_form_actions</post_type>
+		<post_password><![CDATA[]]></post_password>
+		<is_sticky>0</is_sticky>
+	</view>
+	<view>
+		<title>Confirmation</title>
+		<link></link>
+		<post_author><![CDATA[admin]]></post_author>
+		<description></description>
+		<content><![CDATA[{"event":["create"],"success_action":"redirect","success_url":"{{home_json}}\/contact-sent\/"}]]></content>
+		<excerpt><![CDATA[on_submit]]></excerpt>
+		<post_id>157</post_id>
+		<post_date>2026-10-19 17:35:36</post_date>
+		<post_date_gmt>2026-10-19 22:35:36</post_date_gmt>
+		<comment_status>closed</comment_status>
+		<ping_status>closed</ping_status>
+		<post_name>confirmation-2</post_name>
+		<status>publish</status>
+		<post_parent>0</post_parent>
+		<menu_order>9</menu_order>
+		<post_type>frm_form_actions</post_type>
+		<post_password><![CDATA[]]></post_password>
+		<is_sticky>0</is_sticky>
+	</view>
+	<view>
+		<title>Confirmation</title>
+		<link></link>
+		<post_author><![CDATA[admin]]></post_author>
+		<description></description>
+		<content><![CDATA[{"event":["create"],"success_action":"redirect","success_url":"{{home_json}}\/wholesale-success\/"}]]></content>
+		<excerpt><![CDATA[on_submit]]></excerpt>
+		<post_id>158</post_id>
+		<post_date>2026-10-19 17:35:37</post_date>
+		<post_date_gmt>2026-10-19 22:35:37</post_date_gmt>
+		<comment_status>closed</comment_status>
+		<ping_status>closed</ping_status>
+		<post_name>confirmation-3</post_name>
+		<status>publish</status>
+		<post_parent>0</post_parent>
+		<menu_order>10</menu_order>
+		<post_type>frm_form_actions</post_type>
+		<post_password><![CDATA[]]></post_password>
+		<is_sticky>0</is_sticky>
+	</view>
+</channel>
