@@ -52,6 +52,10 @@ require_once get_theme_file_path( 'inc/performance.php' );
 require_once get_theme_file_path( 'inc/motion.php' );
 require_once get_theme_file_path( 'inc/seo.php' );
 
+if ( is_admin() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+	require_once get_theme_file_path( 'inc/demo-import.php' );
+}
+
 if ( class_exists( 'WooCommerce' ) ) {
 	require_once get_theme_file_path( 'inc/woocommerce.php' );
 	require_once get_theme_file_path( 'inc/shop-wording.php' );
