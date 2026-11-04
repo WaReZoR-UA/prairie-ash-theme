@@ -1,13 +1,13 @@
 {
     "format": 1,
     "requires": {
-        "wordpress": "7.1.3",
+        "wordpress": "7.1.4",
         "php": "8.1",
         "plugins": [
             {
                 "slug": "secure-custom-fields",
                 "name": "Secure Custom Fields",
-                "version": "6.9.6",
+                "version": "6.9.8",
                 "required": true
             },
             {

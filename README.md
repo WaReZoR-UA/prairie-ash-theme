@@ -13,9 +13,9 @@ payment method, the theme settings and the photographs, imported with one button
 
 | Software | Version the theme is tested with | Needed |
 |---|---|---|
-| WordPress | 7.1.3 (the theme requires 7.0 or later) | yes |
+| WordPress | 7.1.4 (the theme requires 7.0 or later) | yes |
 | PHP | 8.1 or later (tested on 8.3) | yes |
-| Secure Custom Fields | 6.9.6 | yes, the block fields and the theme settings |
+| Secure Custom Fields | 6.9.8 | yes, the block fields and the theme settings |
 | WooCommerce | 11.2.1 | yes, the shop |
 | Formidable Forms | 7.0 | yes, the signup, contact and wholesale forms |
 | FluentSMTP | 2.4.1 | recommended, to send the forms' and the shop's mail through a real mail service |

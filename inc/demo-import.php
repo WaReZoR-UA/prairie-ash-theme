@@ -30,13 +30,13 @@ require_once get_theme_file_path( 'inc/class-prairie-ash-demo-importer.php' );
  */
 function prairie_ash_demo_requirements() {
 	return array(
-		'wordpress' => '7.1.3',
+		'wordpress' => '7.1.4',
 		'php'       => '8.1',
 		'plugins'   => array(
 			array(
 				'slug'     => 'secure-custom-fields',
 				'name'     => 'Secure Custom Fields',
-				'version'  => '6.9.6',
+				'version'  => '6.9.8',
 				'required' => true,
 			),
 			array(

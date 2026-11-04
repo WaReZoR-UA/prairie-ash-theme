@@ -703,7 +703,13 @@ class Prairie_Ash_Demo_Exporter {
 		ob_start();
 		FrmXMLController::generate_xml( array( 'forms', 'actions' ), array( 'ids' => $ids ) );
 
-		return (string) ob_get_clean();
+		// The generator comment and the publication date change on every
+		// export; without them an export of unchanged forms is unchanged.
+		return (string) preg_replace(
+			array( '/^<!-- generator=.*-->\n/m', '/^\s*<pubDate>.*<\/pubDate>\n/m' ),
+			'',
+			(string) ob_get_clean()
+		);
 	}
 
 	/**
