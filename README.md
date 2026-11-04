@@ -97,6 +97,5 @@ The PHP follows the WordPress Coding Standards:
   in `assets/js/main.js.LICENSE.txt`.
 - League Gothic and Instrument Serif, self-hosted in `assets/fonts/`: SIL Open Font License 1.1, with the licence
   texts beside the font files (`OFL-LeagueGothic.txt`, `OFL-InstrumentSerif.txt`).
-- The demo photographs were created for this design as stand-ins for the business's own photography. They are
-  not third-party stock and carry no credit line. The business, its people, its address and its contact details
-  are fictional, and the phone number uses the 555 range reserved for fiction.
+- The business, its people, its address and its contact details are fictional, and the phone number uses the
+  555 range reserved for fiction.
