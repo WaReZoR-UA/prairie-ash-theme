@@ -2,8 +2,11 @@
 
 Each decision with its reason. Targets, from web.dev because WordPress publishes no Core Web Vitals
 guidance of its own: LCP 2.5 s or less, CLS 0.1 or less, INP 200 ms or less, at the 75th percentile.
-No number is claimed here: the claim is a measurement on the deployed page, recorded below with its
-date and URL once the site is deployed.
+No field number is claimed here: a claim is a measurement on a deployed page. The lab numbers at the
+end were taken on a local server and are recorded with the conditions they were measured under.
+
+"The static markup" below means the hand-cut HTML, SCSS and JavaScript the theme was built from. Where the
+theme follows it, the reason is that the design's look and motion were set there.
 
 ## Assets
 
@@ -21,37 +24,39 @@ date and URL once the site is deployed.
   `add_editor_style()`.
 - The split is accepted by measurement, not by the script: the computed style of every element and
   of its `::before` and `::after`, on all 23 pages and products at 1440, 768 and 390, was identical
-  before and after (69 of 69), and full-page renders were pixel-identical (69 of 69), on 2026-10-20.
-  The first build split only the outer `@media` level and moved the shop card's base rule after
-  its nested `@supports` grid rule, which broke the shop grid; the split now descends into nested
-  groups. A static pass over every moved rule and every later global rule with the same
+  before and after (69 of 69), and full-page renders were pixel-identical (69 of 69).
+  A split of the outer `@media` level alone moves the shop card's base rule after its nested
+  `@supports` grid rule and breaks the shop grid, so the split descends into nested groups.
+  A static pass over every moved rule and every later global rule with the same
   specificity, a shared subject class and a shared property found 11 pairs, all between the shop
   card and the home coffee row, which never render inside each other.
 - Both are versioned on the file's modification time (`prairie_ash_asset_version()`), so an edit is
   served at once. An omitted version would append the WordPress core version and serve the old file
-  until core updates. This is a house decision, not a documented WordPress one.
+  until core updates. Versioning on the modification time is this theme's choice, not a documented
+  WordPress recommendation.
 - The script is printed in the head with the `defer` strategy and no dependency, so it runs once the
-  document is parsed, as the markup's script at the end of its body does, and the theme prints no script
-  inside the body: a script inside the body or main pauses the parser, the browser shows the new page
-  mid-parse and aborts the cross-document view transition (measured on the markup, 2026-10-22). It uses
-  no jQuery.
+  document is parsed, as the static markup's script at the end of its body does, and the theme prints
+  no script inside the body: a script inside the body or main pauses the parser, the browser shows the
+  new page mid-parse and aborts the cross-document view transition (measured on the static markup). It
+  uses no jQuery.
 - The motion layer (GSAP 3.15 with ScrollTrigger, ScrollSmoother, Flip, MotionPath and CustomEase, and
   `src/js/files/motion.js` with the shared lettering, paint, motion-utils and form-ink modules) is part of
-  `main.js` and starts with the page, exactly as in the markup, whose accepted look sets the opening
+  `main.js` and starts with the page, exactly as in the static markup, whose look sets the opening
   scenes up before the first paint: each page's title is drawn faint from a flag the head sets after the
   stylesheet (`inc/motion.php`, `data-<page>="pre"`) and lettered on load. Each page's own module
   (hero, roastery, shop, product, visit, about, menu, wholesale, contact, signup, cart, checkout, order,
   shipping, privacy, accessibility) is a chunk of its own, fetched only where its `data-motion="<page>-*"`
-  regions render. The theme's earlier loader, which held the motion back until after the largest paint,
-  is gone (2026-11-02): with it, the opening lettering started late, after the faint title's own 5 s
-  fallback could already have finished it, and content already on screen jumped back to its start state.
-  The markup accepted the cost on the mobile LCP (mobile score 95 and above).
-- The stylesheet is built the way the markup builds it: the design's entry point is compiled expanded and
-  its media queries are grouped by `group-css-media-queries` 1.4.1, the package the markup's gulp task
-  uses, before it is minified. Grouping moves every `@media` block to its group and so decides which of
+  regions render. The motion is not held back until after the largest paint: held back, the opening
+  lettering starts late, after the faint title's own 5 s fallback may already have finished it, and
+  content already on screen jumps back to its start state. Starting with the page costs some mobile LCP,
+  as it does on the static markup.
+- The stylesheet is built the way the static markup builds it: the design's entry point is compiled
+  expanded and its media queries are grouped by `group-css-media-queries` 1.4.1, the package the static
+  markup's gulp task uses, before it is minified.
+  Grouping moves every `@media` block to its group and so decides which of
   two rules of the same specificity wins: on Visit at 390 the plate starts turned sideways only because
   of it. A static check of every pair of same-selector rules that set a common property (2,555 pairs)
-  against the markup's `dist/css/style.min.css` finds the same order in the theme. `tools/css-slim.mjs`
+  against the static markup's compiled stylesheet finds the same order in the theme. `tools/css-slim.mjs`
   then drops the `@supports not (clamp)` fallbacks `adaptiveValue` writes; its folding of the three pinned
   media blocks per fluid value into one rule is no longer applied, because after grouping the three
   blocks no longer sit together and folding them would move each value in the cascade. The split keeps
@@ -64,9 +69,9 @@ date and URL once the site is deployed.
   navigates.
 - Speculative loading is prefetch at moderate eagerness (hover or pointer down), through core's
   `wp_speculation_rules_configuration` filter (`inc/performance.php`): the next document is fetched
-  ahead, so the transition starts sooner. It was prerender until 2026-11-02; a prerendered page runs its
-  scripts while hidden, so its opening lettering would play before it is shown and the page would arrive
-  finished. Core still turns speculative loading off for a logged-in visitor and for plain permalinks.
+  ahead, so the transition starts sooner. It is not prerender: a prerendered page runs its scripts while
+  hidden, so its opening lettering would play before it is shown and the page would arrive finished.
+  Core still turns speculative loading off for a logged-in visitor and for plain permalinks.
   The cart, the checkout and the account pages are excluded through
   `wp_speculation_rules_href_exclude_paths`; core already excludes every URL with a query string, which
   covers the add-to-cart links.
@@ -89,21 +94,20 @@ date and URL once the site is deployed.
   binds on document ready and every WooCommerce script that depends on jQuery is deferred already.
   WordPress keeps a script blocking by itself when a dependent has no strategy or an inline script
   after it (`WP_Scripts::filter_eligible_strategies()`). The theme's bundle reads `window.jQuery` when it
-  needs it rather than when it loads, since on a form page it runs before jQuery. Proved on Home
-  (2026-11-03): no request for jQuery or `frm.min.js` until the signup form is touched, the design's
-  error summary on an empty submit, and the confirmation page after a valid one.
+  needs it rather than when it loads, since on a form page it runs before jQuery. Checked on Home: no
+  request for jQuery or `frm.min.js` until the signup form is touched, the design's error summary on an
+  empty submit, and the confirmation page after a valid one.
 - Formidable's own stylesheet is off ("Load form styling", none). Every form rule is the theme's.
 
 ## Fonts
 
-- All three faces are `font-display: swap`, as in the markup, and all three are preloaded in the head
-  through `wp_preload_resources` with `crossorigin` (a font is a CORS-mode fetch), before the
-  stylesheet, as the markup's head does. The motion layer measures the page again once the fonts are
-  in, so a cached visit and a fresh one end with the same choreography. The theme used `optional` until
-  2026-11-02; on a slow first visit that keeps a face out of the page for good, which the markup never
-  does.
+- All three faces are `font-display: swap`, as in the static markup, and all three are preloaded in the
+  head through `wp_preload_resources` with `crossorigin` (a font is a CORS-mode fetch), before the
+  stylesheet, as the static markup's head does. The motion layer measures the page again once the fonts
+  are in, so a cached visit and a fresh one end with the same choreography. `optional` is not used: on a
+  slow first visit it keeps a face out of the page for good.
 - The fonts are served from the theme. No font host, so no preconnect.
-- Licences, checked 2026-10-20. All three files are subsets (Latin; 220 code points for League
+- Licences. All three files are subsets (Latin; 220 code points for League
   Gothic, 203 for each Instrument Serif face) and keep the upstream names. SIL OFL 1.1 forbids a
   Reserved Font Name on a Modified Version ("No Modified Version of the Font Software may use the
   Reserved Font Name(s) unless explicit written permission is granted"), so the question is whether
@@ -185,8 +189,8 @@ date and URL once the site is deployed.
 - `wp media regenerate` on Windows: run through wp-cli the install's paths use forward slashes,
   which core's `path_is_absolute()` does not accept after a drive letter, so deleting an
   attachment from the command line leaves core's own JPEG sizes behind. Through the admin the
-  paths use backslashes and everything is deleted. This is core and the local path layout, not
-  the theme.
+  paths use backslashes and everything is deleted. This comes from core and the Windows path
+  layout, not from the theme.
 
 ## What the theme switches off
 
@@ -206,30 +210,35 @@ date and URL once the site is deployed.
 
 ## Measurements
 
-None yet: there is no deployed page. Lighthouse cannot produce INP, so that number comes from DevTools
-by hand or from field data.
+No deployed page has been measured yet. Lighthouse cannot produce INP, so that number has to come from
+DevTools by hand or from field data.
 
-Local lab only, 2026-10-20, Lighthouse 13.5.0, median of three runs, a local server, with the
-local gzip toggle on (production-like). Before the motion port: mobile Home 93, Shop 99, Huila Pink
-Bourbon 99, Roastery 99, Contact 99; Home's mobile LCP (3.15 s) was held back by the motion chunks, which
-started after `load` but before Home's first paint. After the port, with the motion chunks gated on the
-largest paint: mobile Home 99 (LCP 2.05 s), Shop 99, Huila Pink Bourbon 99, Roastery 100, Contact 99;
-desktop 100 on all five; Accessibility, Best Practices and SEO 100 on all ten. In the Home mobile trace
-`load` fired at 242 ms, the observed LCP at 262 ms and both motion chunks were requested at 282 ms.
+Lab numbers: a local PHP server with gzip text compression switched on to match a production host, the
+demo content, Lighthouse's mobile and desktop presets.
 
-Local lab, 2026-11-02, after the port of the markup's motion layer (motion loading with the page, as in
-the markup), Lighthouse 12.8.2 on Chromium 1243, a local server with the local gzip toggle on
-(the markup's own preview server sends brotli). The host was busy with other work during the runs, so
-the markup's Home was measured beside the theme's in the same minutes: markup Home mobile 67 to 68 in
-five runs (TBT 1.6 to 1.9 s), theme Home mobile 81 to 91, median 89 (TBT 170 to 430 ms, LCP 3.2 to
-3.3 s); markup Shop mobile 94 in five runs, theme Shop mobile 84 to 93, median 90, after WooCommerce's
-scripts and jQuery were left off the shop list. Single runs, mobile: Roastery 94, Huila Pink Bourbon 92,
-Visit 95, About 95, Menu 96, Contact 95, Wholesale 95, Privacy policy 99; desktop 99 to 100 on all ten;
-CLS 0 everywhere (Home desktop 0.001); Accessibility 100 except Home and the product page at 96 (the
-faint ghost text of the opening sign, accepted on the markup at the same contrast); Best Practices and
-SEO 100. The theme's mobile LCP is about 0.3 s later than the markup's, mostly WordPress's time to
-first byte (about 250 ms against 40 ms for a static file). Home loads jQuery and Formidable's script
-for its signup form, which the markup does not.
+Current build, Lighthouse 12.8.2 on Chromium 1243. The host was busy with other work during the runs, so
+the static markup's Home and Shop, served with brotli, were measured beside the theme in the same minutes.
+
+- Home, mobile: theme 81 to 91, median 89 (TBT 170 to 430 ms, LCP 3.2 to 3.3 s). Static markup 67 to 68
+  in five runs (TBT 1.6 to 1.9 s).
+- Shop, mobile: theme 84 to 93, median 90, with WooCommerce's scripts and jQuery left off the shop list.
+  Static markup 94 in five runs.
+- Single runs, mobile: Roastery 94, Huila Pink Bourbon 92, Visit 95, About 95, Menu 96, Contact 95,
+  Wholesale 95, Privacy policy 99.
+- Desktop 99 to 100 on all ten pages. CLS 0 everywhere (Home desktop 0.001).
+- Accessibility 100, except Home and the product page at 96 (the faint ghost text of the opening sign, at
+  the same contrast as in the static markup). Best Practices and SEO 100.
+- The theme's mobile LCP is about 0.3 s later than the static markup's, mostly WordPress's time to first
+  byte (about 250 ms against 40 ms for a static file).
+- These runs predate holding Formidable's script and jQuery until the first interaction with a form (see
+  Assets). Home then loaded both with the page.
+
+Earlier build, Lighthouse 13.5.0, median of three runs, with the motion layer held back until after the
+largest paint (no longer the case, see Assets): mobile Home 99 (LCP 2.05 s), Shop 99, Huila Pink Bourbon
+99, Roastery 100, Contact 99. Desktop 100 on all five. Accessibility, Best Practices and SEO 100 on all
+ten. In the Home mobile trace `load` fired at 242 ms, the observed LCP at 262 ms and both motion chunks
+were requested at 282 ms. With the motion requested after `load` but before Home's first paint, the same
+build measured mobile Home 93 (LCP 3.15 s), Shop 99, Huila Pink Bourbon 99, Roastery 99, Contact 99.
 
 | Date | URL | LCP | CLS | INP | LCP element |
 |---|---|---|---|---|---|
