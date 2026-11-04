@@ -291,6 +291,168 @@ function prairie_ash_is_image_copy( $path, $mime ) {
 }
 
 /**
+ * Switch the writing of copies off for the rest of the request, or ask
+ * whether it is off.
+ *
+ * The demo import writes copies in its own batches, one file at a time
+ * against a time budget. While they run, a metadata write only
+ * records the copies already on disk.
+ *
+ * @since 1.2.1
+ *
+ * @param bool|null $defer True or false to set, null to read.
+ * @return bool Whether writing is deferred.
+ */
+function prairie_ash_defer_image_formats( $defer = null ) {
+	static $deferred = false;
+
+	if ( null !== $defer ) {
+		$deferred = (bool) $defer;
+	}
+
+	return $deferred;
+}
+
+/**
+ * Collect a line for the import or repair log, or take the lines collected.
+ *
+ * @since 1.2.1
+ *
+ * @param string|null $line A line to add, or null to take every line so far.
+ * @return string[] The lines taken, or an empty array when a line was added.
+ */
+function prairie_ash_image_log( $line = null ) {
+	static $lines = array();
+
+	if ( null !== $line ) {
+		$lines[] = $line;
+		return array();
+	}
+
+	$taken = $lines;
+	$lines = array();
+
+	return $taken;
+}
+
+/**
+ * The copies that could not be written, as recorded.
+ *
+ * @since 1.2.1
+ *
+ * @return array Key of the copy to its record: attachment, file relative to
+ *               the uploads folder, reason, and the pass it failed in.
+ */
+function prairie_ash_image_failures() {
+	$failures = get_option( 'prairie_ash_image_failures', array() );
+
+	return is_array( $failures ) ? $failures : array();
+}
+
+/**
+ * Record a copy that could not be written, or clear the record of one that
+ * now has been.
+ *
+ * @since 1.2.1
+ *
+ * @param string     $key    Attachment ID, size name and MIME type.
+ * @param array|null $record The failure, or null to clear it.
+ * @return void
+ */
+function prairie_ash_set_image_failure( $key, $record ) {
+	$failures = prairie_ash_image_failures();
+
+	if ( null === $record ) {
+		if ( ! isset( $failures[ $key ] ) ) {
+			return;
+		}
+
+		unset( $failures[ $key ] );
+	} else {
+		$failures[ $key ] = $record;
+		prairie_ash_image_log( sprintf( 'Could not write %1$s: %2$s', $record['file'], $record['reason'] ) );
+	}
+
+	update_option( 'prairie_ash_image_failures', $failures, false );
+}
+
+/**
+ * The attachments whose copies a request ran out of time for.
+ *
+ * @since 1.2.1
+ *
+ * @return int[]
+ */
+function prairie_ash_image_pending() {
+	$pending = get_option( 'prairie_ash_image_pending', array() );
+
+	return is_array( $pending ) ? array_map( 'absint', $pending ) : array();
+}
+
+/**
+ * Mark an attachment as waiting for copies, or as having all of them.
+ *
+ * @since 1.2.1
+ *
+ * @param int  $attachment_id Attachment ID.
+ * @param bool $waiting       Whether copies are still to be written.
+ * @return void
+ */
+function prairie_ash_set_image_pending( $attachment_id, $waiting ) {
+	$pending = prairie_ash_image_pending();
+	$listed  = in_array( (int) $attachment_id, $pending, true );
+
+	if ( $waiting === $listed ) {
+		return;
+	}
+
+	$pending = $waiting ? array_merge( $pending, array( (int) $attachment_id ) ) : array_diff( $pending, array( (int) $attachment_id ) );
+
+	update_option( 'prairie_ash_image_pending', array_values( $pending ), false );
+}
+
+/**
+ * Roughly how many bytes of PHP memory one copy takes to write.
+ *
+ * GD holds the decoded full image at four bytes a pixel, plus the file and
+ * the decoder's buffers, and the resized image at four bytes a pixel.
+ * Measured with GD on the demo photographs: decoding peaks at 5 to 7 bytes a
+ * pixel of the full image, and in an admin request a 1280 pixel copy took
+ * 26 MB from a 2.4 million pixel photograph and 17 MB from a 1.2 million
+ * pixel one, counted in PHP's 2 MB blocks. The estimate takes 7 bytes a pixel
+ * for the full image, 5 for the resized one and 6 MB for the blocks and the
+ * rest, so it errs on the side of skipping.
+ *
+ * @since 1.2.1
+ *
+ * @param int $source_pixels Pixels of the full image.
+ * @param int $target_pixels Pixels of the copy, 0 when it is not resized.
+ * @return int Bytes.
+ */
+function prairie_ash_image_copy_memory( $source_pixels, $target_pixels ) {
+	return (int) ( $source_pixels * 7 + $target_pixels * 5 + 6 * MB_IN_BYTES );
+}
+
+/**
+ * Roughly how many seconds one copy takes to write.
+ *
+ * Measured with GD at the theme's quality settings on the demo photographs:
+ * AVIF took 1.3 to 2.1 seconds for 1.2 to 3.4 million pixels, WebP 0.1 to 0.2
+ * seconds. The estimate is set above both, since a shared host is slower.
+ *
+ * @since 1.2.1
+ *
+ * @param int    $pixels Pixels of the copy.
+ * @param string $mime   Target MIME type.
+ * @return float Seconds.
+ */
+function prairie_ash_image_copy_seconds( $pixels, $mime ) {
+	$megapixels = $pixels / 1000000;
+
+	return 'image/avif' === $mime ? 0.5 + 1.5 * $megapixels : 0.2 + 0.25 * $megapixels;
+}
+
+/**
  * The image editor a copy is written with.
  *
  * GD cannot write WebP or AVIF from a palette PNG: the save fails and leaves
@@ -334,6 +496,14 @@ function prairie_ash_image_copy_editor( $full, $truecolor ) {
 /**
  * Write one copy, or say why it was not written.
  *
+ * Before the encoder starts, the copy has to fit: in the memory PHP has left,
+ * and in the time the request has left. A copy that could never fit is
+ * reported and skipped. A copy that does not fit in what is left of this
+ * request waits for the next one, except as the first copy of a request, so
+ * every request writes at least one. The copy being written is noted in an
+ * option first: when the request dies inside the encoder, the next attempt
+ * finds the note and reports the copy instead of dying on it again.
+ *
  * A failed or empty output is deleted at once, so no empty file is ever on
  * disk to be taken for a copy.
  *
@@ -344,13 +514,92 @@ function prairie_ash_image_copy_editor( $full, $truecolor ) {
  * @param string $name          Size name, or full.
  * @param array  $target        Source path, width and height of the size.
  * @param string $mime          Target MIME type.
- * @return true|WP_Error True when written.
+ * @param string $pass          The import or repair run this belongs to, so a
+ *                              copy that failed is tried once per run.
+ * @return true|WP_Error True when written, a prairie_ash_image_later error
+ *                       when it waits for the next request, any other error
+ *                       when it failed.
  */
-function prairie_ash_write_image_copy( $attachment_id, $data, $name, $target, $mime ) {
+function prairie_ash_write_image_copy( $attachment_id, $data, $name, $target, $mime, $pass = '' ) {
+	static $started = false;
+	static $tried   = array();
+
 	list( $source, $width, $height ) = $target;
 
-	$full = prairie_ash_image_source( $data );
-	$copy = prairie_ash_format_file_name( $source, $mime );
+	$full     = prairie_ash_image_source( $data );
+	$copy     = prairie_ash_format_file_name( $source, $mime );
+	$key      = $attachment_id . ':' . $name . ':' . $mime;
+	$folder   = dirname( $data['file'] );
+	$relative = ( '.' === $folder ? '' : $folder . '/' ) . wp_basename( $copy );
+	$failures = prairie_ash_image_failures();
+	$fail     = static function ( $reason ) use ( $key, $attachment_id, $relative, $copy, $pass ) {
+		if ( file_exists( $copy ) ) {
+			wp_delete_file( $copy );
+		}
+
+		prairie_ash_set_image_failure(
+			$key,
+			array(
+				'attachment' => (int) $attachment_id,
+				'file'       => $relative,
+				'reason'     => $reason,
+				'pass'       => $pass,
+			)
+		);
+
+		return new WP_Error( 'prairie_ash_image_failed', $reason );
+	};
+
+	if ( isset( $failures[ $key ] ) && ( isset( $tried[ $key ] ) || ( '' !== $pass && $pass === $failures[ $key ]['pass'] ) ) ) {
+		return new WP_Error( 'prairie_ash_image_failed', $failures[ $key ]['reason'] );
+	}
+
+	$tried[ $key ] = true;
+
+	if ( get_option( 'prairie_ash_image_busy' ) === $key ) {
+		delete_option( 'prairie_ash_image_busy' );
+
+		return $fail( 'the request stopped while this copy was being written, most likely at the memory or time limit of the server.' );
+	}
+
+	$source_pixels = (int) $data['width'] * (int) $data['height'];
+	$target_pixels = $width ? $width * $height : $source_pixels;
+
+	wp_raise_memory_limit( 'image' );
+
+	$limit = wp_convert_hr_to_bytes( (string) ini_get( 'memory_limit' ) );
+	$need  = prairie_ash_image_copy_memory( $source_pixels, $width ? $target_pixels : 0 );
+	// Memory PHP freed and keeps cached is handed back when a new block needs it, so live usage is what counts.
+	$free = $limit - memory_get_usage();
+
+	if ( $limit > 0 && $need > $free ) {
+		return $fail(
+			sprintf(
+				'skipped, it needs about %1$d MB of memory and %2$d MB are free under the memory limit of %3$d MB.',
+				ceil( $need / MB_IN_BYTES ),
+				max( 0, floor( $free / MB_IN_BYTES ) ),
+				floor( $limit / MB_IN_BYTES )
+			)
+		);
+	}
+
+	$seconds = (int) ini_get( 'max_execution_time' );
+
+	if ( $seconds > 0 ) {
+		$estimate = prairie_ash_image_copy_seconds( $target_pixels, $mime );
+
+		if ( $estimate > $seconds * 0.6 ) {
+			return $fail( sprintf( 'skipped, it would take longer than the time limit of %d seconds allows.', $seconds ) );
+		}
+
+		if ( $started && timer_float() + max( $estimate * 3, $estimate + 5 ) > $seconds ) {
+			return new WP_Error( 'prairie_ash_image_later', 'No time left in this request.' );
+		}
+	}
+
+	$started = true;
+
+	update_option( 'prairie_ash_image_busy', $key, false );
 
 	/**
 	 * Filters the writing of one AVIF or WebP copy before the encoder runs.
@@ -384,13 +633,17 @@ function prairie_ash_write_image_copy( $attachment_id, $data, $name, $target, $m
 		unset( $editor );
 	}
 
-	if ( is_wp_error( $saved ) || ! prairie_ash_is_image_copy( $copy, $mime ) ) {
-		if ( file_exists( $copy ) ) {
-			wp_delete_file( $copy );
-		}
+	delete_option( 'prairie_ash_image_busy' );
 
-		return is_wp_error( $saved ) ? $saved : new WP_Error( 'prairie_ash_image_failed', 'The image editor wrote an empty or unreadable file.' );
+	if ( is_wp_error( $saved ) ) {
+		return $fail( 'the image editor reported: ' . $saved->get_error_message() );
 	}
+
+	if ( ! prairie_ash_is_image_copy( $copy, $mime ) ) {
+		return $fail( 'the image editor wrote an empty or unreadable file.' );
+	}
+
+	prairie_ash_set_image_failure( $key, null );
 
 	return true;
 }
@@ -401,15 +654,19 @@ function prairie_ash_write_image_copy( $attachment_id, $data, $name, $target, $m
  *
  * @since 1.2.1
  *
- * @param int   $attachment_id Attachment ID.
- * @param array $data          Attachment metadata.
- * @return void
+ * @param int    $attachment_id Attachment ID.
+ * @param array  $data          Attachment metadata.
+ * @param string $pass          The import or repair run, see
+ *                              prairie_ash_write_image_copy().
+ * @param float  $until         Time a batch has to stop by, or 0 for none.
+ * @return bool True when every copy was written or reported, false when the
+ *              request ran out of time and the rest waits.
  */
-function prairie_ash_write_image_copies( $attachment_id, $data ) {
+function prairie_ash_write_image_copies( $attachment_id, $data, $pass = '', $until = 0.0 ) {
 	$full = prairie_ash_image_source( $data );
 
 	if ( '' === $full ) {
-		return;
+		return true;
 	}
 
 	foreach ( prairie_ash_image_formats() as $mime ) {
@@ -421,12 +678,23 @@ function prairie_ash_write_image_copies( $attachment_id, $data ) {
 			$copy = prairie_ash_format_file_name( $target[0], $mime );
 
 			if ( prairie_ash_is_image_copy( $copy, $mime ) && filemtime( $copy ) >= filemtime( $target[0] ) ) {
+				prairie_ash_set_image_failure( $attachment_id . ':' . $name . ':' . $mime, null );
 				continue;
 			}
 
-			prairie_ash_write_image_copy( $attachment_id, $data, $name, $target, $mime );
+			if ( $until && microtime( true ) >= $until ) {
+				return false;
+			}
+
+			$written = prairie_ash_write_image_copy( $attachment_id, $data, $name, $target, $mime, $pass );
+
+			if ( is_wp_error( $written ) && 'prairie_ash_image_later' === $written->get_error_code() ) {
+				return false;
+			}
 		}
 	}
+
+	return true;
 }
 
 /**
@@ -493,11 +761,16 @@ function prairie_ash_record_image_formats( $data ) {
  * it is compressed once. A usable copy newer than its source is kept, so the
  * repeated writes core makes while it builds the sizes encode each copy once.
  *
+ * A copy that does not fit in what is left of the request marks the
+ * attachment as waiting for the next write. While the demo import runs,
+ * copies are written in its batches and this only records them.
+ *
  * Copies are recorded under a sources key beside each file, and
  * prairie_ash_delete_image_formats() removes them with the attachment.
  *
  * @since 1.0.0
- * @since 1.2.1 Writes only usable copies and records only what is on disk.
+ * @since 1.2.1 Writes only usable copies, records only what is on disk, and
+ *              defers what does not fit in the request.
  *
  * @param array $data          Attachment metadata.
  * @param int   $attachment_id Attachment ID.
@@ -508,11 +781,45 @@ function prairie_ash_add_image_formats( $data, $attachment_id ) {
 		return $data;
 	}
 
-	prairie_ash_write_image_copies( $attachment_id, $data );
+	if ( ! prairie_ash_defer_image_formats() ) {
+		prairie_ash_set_image_pending( $attachment_id, ! prairie_ash_write_image_copies( $attachment_id, $data ) );
+	}
 
 	return prairie_ash_record_image_formats( $data );
 }
 add_filter( 'wp_update_attachment_metadata', 'prairie_ash_add_image_formats', 10, 2 );
+
+/**
+ * Write the missing copies of one attachment and record them.
+ *
+ * Used by the demo import, which calls it once per attachment against a
+ * time budget and comes back to the same attachment when it returns false.
+ *
+ * @since 1.2.1
+ *
+ * @param int    $attachment_id Attachment ID.
+ * @param string $pass          The import or repair run.
+ * @param float  $until         Time the batch has to stop by, or 0 for none.
+ * @return bool True when the attachment is finished.
+ */
+function prairie_ash_complete_image_copies( $attachment_id, $pass, $until = 0.0 ) {
+	$data = wp_get_attachment_metadata( $attachment_id );
+
+	if ( '' === prairie_ash_image_source( $data ) ) {
+		prairie_ash_set_image_pending( $attachment_id, false );
+		return true;
+	}
+
+	$deferred = prairie_ash_defer_image_formats();
+	$done     = prairie_ash_write_image_copies( $attachment_id, $data, $pass, $until );
+
+	prairie_ash_defer_image_formats( true );
+	wp_update_attachment_metadata( $attachment_id, $data );
+	prairie_ash_defer_image_formats( $deferred );
+	prairie_ash_set_image_pending( $attachment_id, ! $done );
+
+	return $done;
+}
 
 /**
  * Delete the AVIF and WebP copies with their attachment.
@@ -523,7 +830,7 @@ add_filter( 'wp_update_attachment_metadata', 'prairie_ash_add_image_formats', 10
  * metadata.
  *
  * @since 1.0.0
- * @since 1.2.1 Deletes unrecorded copies as well.
+ * @since 1.2.1 Deletes unrecorded copies and the attachment's failure records.
  *
  * @param int $post_id Attachment ID.
  * @return void
@@ -557,6 +864,14 @@ function prairie_ash_delete_image_formats( $post_id ) {
 			wp_delete_file_from_directory( $file, $base );
 		}
 	}
+
+	foreach ( array_keys( prairie_ash_image_failures() ) as $key ) {
+		if ( str_starts_with( $key, (int) $post_id . ':' ) ) {
+			prairie_ash_set_image_failure( $key, null );
+		}
+	}
+
+	prairie_ash_set_image_pending( $post_id, false );
 }
 add_action( 'delete_attachment', 'prairie_ash_delete_image_formats' );
 

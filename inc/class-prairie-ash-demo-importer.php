@@ -99,8 +99,9 @@ class Prairie_Ash_Demo_Importer {
 	 * The steps, in the order they run.
 	 *
 	 * Media comes first because pages, products and settings point at it,
-	 * products and forms before pages because the sections point at both,
-	 * and the settings that point at pages and menus last.
+	 * then the AVIF and WebP copies of the images, products and forms before
+	 * pages because the sections point at both, and the settings that point
+	 * at pages and menus last.
 	 *
 	 * @since 1.2.0
 	 *
@@ -110,6 +111,7 @@ class Prairie_Ash_Demo_Importer {
 		return array(
 			'settings'   => __( 'Settings', 'prairie-ash' ),
 			'media'      => __( 'Media', 'prairie-ash' ),
+			'images'     => __( 'Image copies', 'prairie-ash' ),
 			'terms'      => __( 'Product attributes and categories', 'prairie-ash' ),
 			'products'   => __( 'Products', 'prairie-ash' ),
 			'forms'      => __( 'Forms', 'prairie-ash' ),
@@ -196,6 +198,13 @@ class Prairie_Ash_Demo_Importer {
 	 *
 	 * @since 1.2.0
 	 *
+	 * Where PHP has a time limit, the budget is at most half of it, so a
+	 * share ends well inside the limit on a host that allows 30 seconds.
+	 *
+	 * @since 1.2.0
+	 * @since 1.2.1 The budget is capped at half the time limit, and the image
+	 *              copies are written in their own step.
+	 *
 	 * @param int $budget Seconds this call may take, roughly. A step that is
 	 *                    started is finished, and media are imported one file
 	 *                    at a time, so a call can run over by one file.
@@ -208,18 +217,23 @@ class Prairie_Ash_Demo_Importer {
 			return $check;
 		}
 
-		$state = self::state();
-		$state = $state ? $state : $this->start();
-		$names = array_keys( self::steps() );
-		$until = microtime( true ) + max( 1, (int) $budget );
+		$state   = self::state();
+		$state   = $state ? $state : $this->start();
+		$names   = array_keys( self::steps() );
+		$seconds = (int) ini_get( 'max_execution_time' );
+		$budget  = $seconds > 0 ? min( (int) $budget, (int) floor( $seconds / 2 ) ) : (int) $budget;
+		$until   = microtime( true ) + max( 1, $budget );
 
 		wp_raise_memory_limit( 'admin' );
 		$this->quiet_mail();
+		prairie_ash_defer_image_formats( true );
 
 		while ( ! $state['done'] && microtime( true ) < $until ) {
 			$name   = $names[ $state['step'] ];
 			$method = 'step_' . $name;
 			$cursor = $this->$method( (int) $state['cursor'], $until );
+
+			$this->log = array_merge( $this->log, prairie_ash_image_log() );
 
 			if ( true === $cursor ) {
 				++$state['step'];
@@ -422,10 +436,10 @@ class Prairie_Ash_Demo_Importer {
 	 * Upload the demo images, one file per pass, so each request stays short.
 	 *
 	 * Each file goes through the same path as an upload in the media
-	 * library: WordPress writes the sizes the theme registers, and the theme
-	 * writes the AVIF and WebP copies beside them. The file lands in the
-	 * year and month folder it had on the demo site, so its address is the
-	 * same apart from the host.
+	 * library: WordPress writes the sizes the theme registers. The AVIF and
+	 * WebP copies wait for the next step, which writes them one at a time.
+	 * The file lands in the year and month folder it had on the demo site,
+	 * so its address is the same apart from the host.
 	 *
 	 * @since 1.2.0
 	 *
@@ -451,6 +465,50 @@ class Prairie_Ash_Demo_Importer {
 		}
 
 		return $cursor >= $count ? true : $cursor;
+	}
+
+	/**
+	 * Write the AVIF and WebP copies of the demo images, one copy at a time,
+	 * so each request stays inside a short time limit and a modest memory
+	 * limit.
+	 *
+	 * Every copy that is missing, empty or unreadable is written, so running
+	 * the import again also repairs the copies of an earlier run. A copy that
+	 * cannot be written is reported in the log and skipped, and the picture
+	 * falls back to the next format.
+	 *
+	 * @since 1.2.1
+	 *
+	 * @param int   $cursor Index of the next image.
+	 * @param float $until  Time the budget ends.
+	 * @return int|true Next index, or true when every image is done.
+	 */
+	private function step_images( $cursor, $until ) {
+		$media = $this->data()['media'];
+		$count = count( $media );
+		$pass  = (string) self::state()['started'];
+
+		while ( $cursor < $count ) {
+			if ( microtime( true ) >= $until ) {
+				return $cursor;
+			}
+
+			$id = $this->mapped_post( $media[ $cursor ]['id'], 'attachment' );
+
+			if ( $id && ! prairie_ash_complete_image_copies( $id, $pass, $until ) ) {
+				return $cursor;
+			}
+
+			++$cursor;
+		}
+
+		$failed = count( prairie_ash_image_failures() );
+
+		$this->log[] = $failed
+			? sprintf( '%d image copies could not be written.', $failed )
+			: 'Every image has its AVIF and WebP copies.';
+
+		return true;
 	}
 
 	/**
@@ -486,29 +544,18 @@ class Prairie_Ash_Demo_Importer {
 	 * Finish the sizes of an image an earlier run imported.
 	 *
 	 * An import broken off while WordPress was writing an image's sizes leaves
-	 * the image with some of them. Core writes the missing sizes, and saving
-	 * the metadata again lets the theme write any AVIF or WebP copy that is
-	 * missing; copies already on disk are kept.
+	 * the image with some of them, and core writes the missing ones. The
+	 * AVIF and WebP copies are the next step's work.
 	 *
 	 * @since 1.2.0
+	 * @since 1.2.1 Leaves the copies to the image copies step.
 	 *
 	 * @param int $id Attachment ID.
 	 * @return void
 	 */
 	private function complete_sizes( $id ) {
-		if ( ! wp_attachment_is_image( $id ) ) {
-			return;
-		}
-
-		if ( wp_get_missing_image_subsizes( $id ) ) {
+		if ( wp_attachment_is_image( $id ) && wp_get_missing_image_subsizes( $id ) ) {
 			wp_update_image_subsizes( $id );
-			return;
-		}
-
-		$meta = wp_get_attachment_metadata( $id );
-
-		if ( is_array( $meta ) ) {
-			wp_update_attachment_metadata( $id, $meta );
 		}
 	}
 
