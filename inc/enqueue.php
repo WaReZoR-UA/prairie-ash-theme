@@ -88,7 +88,7 @@ function prairie_ash_split_sheets() {
  *
  * @since 1.0.0
  *
- * @param string $template Template group: product, cart or checkout.
+ * @param string $template Template group: product, cart, checkout, or archive (index.php and 404.php).
  * @return bool
  */
 function prairie_ash_is_template( $template ) {
@@ -99,6 +99,8 @@ function prairie_ash_is_template( $template ) {
 			return function_exists( 'is_cart' ) && is_cart();
 		case 'checkout':
 			return function_exists( 'is_checkout' ) && is_checkout();
+		case 'archive':
+			return isset( $GLOBALS['template'] ) && in_array( basename( (string) $GLOBALS['template'] ), array( 'index.php', '404.php' ), true );
 	}
 
 	return false;
