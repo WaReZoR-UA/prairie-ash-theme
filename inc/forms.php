@@ -379,12 +379,21 @@ function prairie_ash_form_html( $form_id ) {
 /**
  * Offer the site's Formidable forms in a block's form select.
  *
+ * Only the form select of the theme's own blocks, found by its field key, so a
+ * field named form in any other group keeps its choices. The field group
+ * editor is left alone, so stored choices are never rewritten there.
+ *
  * @since 1.0.0
+ * @since 1.2.1 Hooked by field key, and skipped in the field group editor.
  *
  * @param array $field Field settings.
  * @return array
  */
 function prairie_ash_form_choices( $field ) {
+	if ( function_exists( 'acf_is_screen' ) && acf_is_screen( 'acf-field-group' ) ) {
+		return $field;
+	}
+
 	$field['choices'] = array();
 
 	if ( class_exists( 'FrmForm' ) ) {
@@ -395,4 +404,7 @@ function prairie_ash_form_choices( $field ) {
 
 	return $field;
 }
-add_filter( 'acf/load_field/name=form', 'prairie_ash_form_choices' );
+foreach ( array( 'signup', 'contact_message', 'wholesale_inquiry' ) as $prairie_ash_form_block ) {
+	add_filter( 'acf/load_field/key=field_pa_' . $prairie_ash_form_block . '_form', 'prairie_ash_form_choices' );
+}
+unset( $prairie_ash_form_block );
