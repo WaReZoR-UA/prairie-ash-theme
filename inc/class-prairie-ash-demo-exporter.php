@@ -1013,7 +1013,12 @@ class Prairie_Ash_Demo_Exporter {
 	 * example.com, so the data carries no address anybody could receive mail
 	 * at.
 	 *
+	 * A file name is not an address, even with an at sign in it: the part
+	 * after the at sign in a retina file name ends in a file extension such
+	 * as png rather than in a domain, and the name is left as it is.
+	 *
 	 * @since 1.2.0
+	 * @since 1.2.1 Leaves file names with an at sign alone.
 	 *
 	 * @param mixed $value Value.
 	 * @return mixed
@@ -1032,9 +1037,11 @@ class Prairie_Ash_Demo_Exporter {
 		}
 
 		return (string) preg_replace_callback(
-			'/([A-Za-z0-9._%+-]+)@([A-Za-z0-9.-]+\.[A-Za-z]{2,})/',
+			'/(?<![A-Za-z0-9._%+-])([A-Za-z0-9._%+-]+)@((?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,})(?![A-Za-z0-9-])/',
 			function ( $found ) {
-				if ( 'example.com' === strtolower( $found[2] ) ) {
+				$tld = strtolower( (string) substr( strrchr( $found[2], '.' ), 1 ) );
+
+				if ( 'example.com' === strtolower( $found[2] ) || in_array( $tld, array( 'png', 'jpg', 'jpeg', 'gif', 'webp', 'avif', 'svg', 'pdf', 'mp4', 'webm', 'mov', 'mp3', 'json', 'xml', 'txt', 'css', 'js', 'woff', 'woff2', 'zip' ), true ) ) {
 					return $found[0];
 				}
 
