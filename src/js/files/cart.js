@@ -210,7 +210,21 @@ export function cartMotion({ ctx, cleanups, alive, fontsReady, wide }) {
 	document.querySelectorAll('[data-motion="cart-counter"]').forEach((list) => counterIn(list, scene));
 	const sign = document.querySelector('[data-motion="cart-sign"]');
 	if (sign) signIn(sign, scene);
-	document.querySelectorAll('[data-motion="cart-receipt"]').forEach((totals) => receiptIn(totals, scene));
+	const printed = new WeakSet();
+	const receipts = () => document.querySelectorAll('[data-motion="cart-receipt"]').forEach((totals) => {
+		if (printed.has(totals)) return;
+		printed.add(totals);
+		receiptIn(totals, scene);
+	});
+	receipts();
+	// on the checkout WooCommerce replaces the order review, receipt and all, when the order changes: the new receipt
+	// is printed by the scroll in its turn, its rows on the screen already finished
+	const $ = window.jQuery;
+	if ($ && document.querySelector("form.woocommerce-checkout")) {
+		const reprint = () => alive() && ctx.add(receipts);
+		$(document.body).on("updated_checkout", reprint);
+		cleanups.push(() => $(document.body).off("updated_checkout", reprint));
+	}
 	const note = document.querySelector('[data-motion="cart-note"]');
 	if (note) noteIn(note, scene);
 }
