@@ -168,7 +168,8 @@ function prairie_ash_editor_sheets() {
 }
 
 /**
- * Data the theme bundle reads: endpoints and the wording its scripts print.
+ * Data the theme bundle reads: where its page chunks live, endpoints and the
+ * wording its scripts print.
  *
  * Wording printed by a script is read from the same settings as the markup, so
  * the client changes it in one place.
@@ -179,6 +180,7 @@ function prairie_ash_editor_sheets() {
  */
 function prairie_ash_script_data() {
 	$data = array(
+		'scriptBase'       => get_theme_file_uri( 'assets/js/' ),
 		'analyticsOffText' => prairie_ash_setting( 'analytics_off_text' ),
 		'pagesOpenLabel'   => prairie_ash_setting( 'pages_toggle_close_label' ),
 		'pagesClosedLabel' => prairie_ash_setting( 'pages_toggle_label' ),

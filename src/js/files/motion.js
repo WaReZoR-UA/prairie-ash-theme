@@ -33,7 +33,7 @@ import { Flip } from "gsap/Flip";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import { letterSign, splitLines } from "./lettering.js";
 import { rule, stamp, stampPivot, figure } from "./paint.js";
-import { layer, onScroll, swing, uncover, sheen, platesIn, tipUp, riseIn } from "./motion-utils.js";
+import { layer, onScroll, swing, uncover, sheen, platesIn, tipUp, riseIn, signLettered } from "./motion-utils.js";
 
 gsap.registerPlugin(ScrollSmoother, Flip, MotionPathPlugin);
 ScrollTrigger.config({ ignoreMobileResize: true });
@@ -295,85 +295,101 @@ function settle(base, parallax) {
 	return vars;
 }
 
+// A page's scenes come in their own chunk. When it cannot be fetched (a deploy replaced the hashed files under an
+// open tab) or its scene fails to build, the page is left as the stylesheet draws it: the head flag is handed
+// back at once, rather than the faint first paint waiting for the stylesheet's own fallback
+let chunkFailed = false;
+function pageChunk(load, start, ctx, alive) {
+	load.then((module) => alive() && ctx.add(() => start(module))).catch((error) => {
+		const flags = document.documentElement.dataset;
+		Object.keys(flags).forEach((flag) => {
+			if (flags[flag] === "pre" || flags[flag] === "letter") signLettered(flag);
+		});
+		if (chunkFailed) return;
+		chunkFailed = true;
+		console.warn("Motion: a page scene could not start.", error);
+	});
+}
+
 // Home hero: the sign repainted, the roastery alive behind the glass, the camera pushed in by the scroll
 // the scene is its own chunk, so it never weighs on the first paint
 function heroIn(hero, ctx, cleanups, alive) {
-	import(/* webpackChunkName: "hero" */ "./hero.js").then(({ heroScene }) => alive() && ctx.add(() => heroScene(hero, { ctx, cleanups, alive, fontsReady })));
+	pageChunk(import(/* webpackChunkName: "hero" */ "./hero.js"), ({ heroScene }) => heroScene(hero, { ctx, cleanups, alive, fontsReady }), ctx, alive);
 }
 
 // Roastery: its scenes are their own chunk too
 function roasteryIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "roastery" */ "./roastery.js").then(({ roasteryMotion }) => alive() && ctx.add(() => roasteryMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "roastery" */ "./roastery.js"), ({ roasteryMotion }) => roasteryMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Shop: the title label and the coffee shelf are their own chunk
 function shopIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "shop" */ "./shop.js").then(({ shopMotion }) => alive() && ctx.add(() => shopMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "shop" */ "./shop.js"), ({ shopMotion }) => shopMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Product: the summary, its boards and the origin photo are their own chunk
 function productIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "product" */ "./product.js").then(({ productMotion }) => alive() && ctx.add(() => productMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "product" */ "./product.js"), ({ productMotion }) => productMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Visit: the door plate, the hours board and the facts boards are their own chunk
 function visitIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "visit" */ "./visit.js").then(({ visitMotion }) => alive() && ctx.add(() => visitMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "visit" */ "./visit.js"), ({ visitMotion }) => visitMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // About: the sign on the dark wall and the people are their own chunk
 function aboutIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "about" */ "./about.js").then(({ aboutMotion }) => alive() && ctx.add(() => aboutMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "about" */ "./about.js"), ({ aboutMotion }) => aboutMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Menu: the bar board, the price boards, the pastry case and the notes are their own chunk
 function menuIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "menu" */ "./menu.js").then(({ menuMotion }) => alive() && ctx.add(() => menuMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "menu" */ "./menu.js"), ({ menuMotion }) => menuMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Wholesale: the trade sign, the account board, the inquiry ticket and the sent ticket are their own chunk
 function wholesaleIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "wholesale" */ "./wholesale.js").then(({ wholesaleMotion }) => alive() && ctx.add(() => wholesaleMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "wholesale" */ "./wholesale.js"), ({ wholesaleMotion }) => wholesaleMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Contact: its scenes are their own chunk too
 function contactIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "contact" */ "./contact.js").then(({ contactMotion }) => alive() && ctx.add(() => contactMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "contact" */ "./contact.js"), ({ contactMotion }) => contactMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Signup confirmation: its sign is its own chunk too
 function signupIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "signup" */ "./signup.js").then(({ signupMotion }) => alive() && ctx.add(() => signupMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "signup" */ "./signup.js"), ({ signupMotion }) => signupMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Cart: the bags on the counter, the receipt and the empty cart's note are their own chunk too
 function cartIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "cart" */ "./cart.js").then(({ cartMotion }) => alive() && ctx.add(() => cartMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "cart" */ "./cart.js"), ({ cartMotion }) => cartMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Checkout: the title sign and the order form in ink are their own chunk too
 function checkoutIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "checkout" */ "./checkout.js").then(({ checkoutMotion }) => alive() && ctx.add(() => checkoutMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "checkout" */ "./checkout.js"), ({ checkoutMotion }) => checkoutMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Order confirmation: the sign, the struck order number and the printed receipt are their own chunk too
 function orderIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "order" */ "./order.js").then(({ orderMotion }) => alive() && ctx.add(() => orderMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "order" */ "./order.js"), ({ orderMotion }) => orderMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Shipping, pickup and returns: the sign, the rate board and the notes are their own chunk too
 function shippingIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "shipping" */ "./shipping.js").then(({ shippingMotion }) => alive() && ctx.add(() => shippingMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "shipping" */ "./shipping.js"), ({ shippingMotion }) => shippingMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Privacy policy: the sign, the contents and the parts are their own chunk too
 function privacyIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "privacy" */ "./privacy.js").then(({ privacyMotion }) => alive() && ctx.add(() => privacyMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "privacy" */ "./privacy.js"), ({ privacyMotion }) => privacyMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Accessibility statement: the sign, the contents and the parts are their own chunk too
 function accessibilityIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "accessibility" */ "./accessibility.js").then(({ accessibilityMotion }) => alive() && ctx.add(() => accessibilityMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "accessibility" */ "./accessibility.js"), ({ accessibilityMotion }) => accessibilityMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 function mediaIn(imgs, wide, cleanups) {
