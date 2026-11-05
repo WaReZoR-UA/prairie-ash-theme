@@ -501,7 +501,6 @@ function prairie_ash_set_image_failure( $key, $record ) {
  * The failures as lines for a screen or a terminal, file first.
  *
  * @since 1.2.1
- * @since 1.2.1 Takes the attachments to list.
  *
  * @param int[]|null $attachments Only the failures of these attachments, or
  *                                null for every failure on the site.
