@@ -198,12 +198,29 @@ if (checkout && $) {
 	});
 	$(document.body).on("updated_checkout", syncAddress);
 
-	// WooCommerce's errors arrive as a notice above the form; they move into the design's summary.
+	// WooCommerce's errors arrive as a notice above the form; they move into the design's summary. Its
+	// script wraps each field's item in a second link around the design's own, which the parser splits
+	// into an empty link before the real one, so an empty link is dropped. A failure that comes with no
+	// list (a timeout, a server error, a refused nonce, a gateway with nothing to say) carries only
+	// WooCommerce's own sentence: that sentence becomes the summary's item, so it is never lost.
 	$(document.body).on("checkout_error", () => {
 		const group = document.querySelector(".woocommerce-NoticeGroup-checkout");
 		if (!group || !box || !list) return;
+		const items = [...group.querySelectorAll(".error-summary__list > li")];
+		const text = items.length ? "" : group.textContent.replace(/\s+/g, " ").trim();
+		if (!items.length && !text) return;
 		list.innerHTML = "";
-		group.querySelectorAll(".error-summary__list > li").forEach((item) => list.append(item));
+		items.forEach((item) => {
+			item.querySelectorAll("a").forEach((link) => {
+				if (!link.textContent.trim()) link.remove();
+			});
+			list.append(item);
+		});
+		if (text) {
+			const item = document.createElement("li");
+			item.textContent = text;
+			list.append(item);
+		}
 		group.remove();
 		list.querySelectorAll("a[href^='#']").forEach((link) => {
 			link.addEventListener("click", (e) => {
