@@ -89,12 +89,22 @@ add_action( 'wp_enqueue_scripts', 'prairie_ash_dequeue_cart_script', 99 );
  * element rather than waiting for either. WordPress keeps a script blocking
  * by itself when a dependent has no loading strategy or carries an inline
  * script after it, so a plugin that needs jQuery at once still gets it at once.
+ * An inline script a payment method prints in its own markup is not a
+ * dependent WordPress knows of, so the cart, the checkout (with order pay and
+ * order received) and the account pages keep jQuery blocking.
  *
  * @since 1.0.0
+ * @since 1.2.1 Not on the cart, the checkout and the account pages.
  *
  * @return void
  */
 function prairie_ash_defer_form_scripts() {
+	// A payment method may print an inline script that calls jQuery at once, inside its
+	// payment fields, so jQuery stays blocking wherever payment fields are printed.
+	if ( function_exists( 'is_checkout' ) && ( is_cart() || is_checkout() || is_account_page() ) ) {
+		return;
+	}
+
 	foreach ( array( 'jquery-core', 'jquery-migrate', 'formidable' ) as $handle ) {
 		if ( wp_script_is( $handle, 'registered' ) ) {
 			wp_script_add_data( $handle, 'strategy', 'defer' );
