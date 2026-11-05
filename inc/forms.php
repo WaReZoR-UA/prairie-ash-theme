@@ -251,24 +251,71 @@ function prairie_ash_frm_choice_html( $html, $field, $atts ) {
 add_filter( 'frm_replace_shortcodes', 'prairie_ash_frm_choice_html', 10, 3 );
 
 /**
+ * Remember whether the form Formidable is about to render is one of the design's.
+ *
+ * Formidable hands its final form filter the markup alone, so the form is
+ * noted here, just before its markup is built.
+ *
+ * @since 1.2.1
+ *
+ * @param object|null $form The form about to render, or null to only read.
+ * @return bool Whether the form last noted is one of the design's.
+ */
+function prairie_ash_frm_rendering_design_form( $form = null ) {
+	static $design = false;
+
+	if ( null !== $form ) {
+		$design = prairie_ash_is_design_form( $form );
+	}
+
+	return $design;
+}
+
+/**
+ * Note the form Formidable is about to render.
+ *
+ * @since 1.2.1
+ *
+ * @param object $form The form.
+ * @return void
+ */
+function prairie_ash_frm_note_form( $form ) {
+	prairie_ash_frm_rendering_design_form( is_object( $form ) ? $form : new stdClass() );
+}
+add_action( 'frm_pre_get_form', 'prairie_ash_frm_note_form' );
+
+/**
  * Fill the business placeholders in a form's own wording.
  *
  * A form's text, such as the sender line under the roast notes signup, can
  * write [name], [street], [address] or [website] where the values from Site
  * settings belong, the same placeholders the Shop wording takes, so the
- * business details are kept in one place.
+ * business details are kept in one place. Only the design's forms are filled,
+ * and never what a visitor typed: the value of every field and the text of
+ * every text area are left as they are.
  *
  * @since 1.0.0
+ * @since 1.2.1 Only the design's forms, and never a visitor's value.
  *
  * @param string $html The rendered form.
  * @return string
  */
 function prairie_ash_frm_placeholders( $html ) {
-	if ( ! is_string( $html ) || false === strpos( $html, '[' ) ) {
+	if ( ! is_string( $html ) || false === strpos( $html, '[' ) || ! prairie_ash_frm_rendering_design_form() ) {
 		return $html;
 	}
 
-	return strtr(
+	$kept = array();
+	$keep = static function ( $found ) use ( &$kept ) {
+		$token          = "\u{E001}" . count( $kept ) . "\u{E001}";
+		$kept[ $token ] = $found[0];
+		return $token;
+	};
+
+	$html = (string) preg_replace_callback( '/<textarea\b[^>]*>.*?<\/textarea>/is', $keep, $html );
+	$html = (string) preg_replace_callback( '/\svalue=("[^"]*"|\'[^\']*\')/i', $keep, $html );
+
+	$html = strtr(
 		$html,
 		array(
 			'[name]'    => esc_html( (string) prairie_ash_setting( 'business_name' ) ),
@@ -277,6 +324,8 @@ function prairie_ash_frm_placeholders( $html ) {
 			'[website]' => esc_html( (string) prairie_ash_setting( 'website_label' ) ),
 		)
 	);
+
+	return strtr( $html, $kept );
 }
 add_filter( 'frm_filter_final_form', 'prairie_ash_frm_placeholders' );
 
