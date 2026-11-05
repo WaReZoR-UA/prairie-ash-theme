@@ -1095,12 +1095,33 @@ function sectionsIn(main, wide, cleanups, alive) {
 	const shape = sectionsShape(main);
 	build(sectionsPlan(shape, wide));
 	cleanups.push(() => current.revert());
-	fontsReady.then(() => {
-		if (!alive()) return;
+	const replan = () => {
+		if (!alive()) return false;
 		const plan = sectionsPlan(shape, wide);
-		if (plan.key === current.key) return;
+		if (plan.key === current.key) return false;
 		current.revert();
 		build(plan);
+		return true;
+	};
+	fontsReady.then(replan);
+	// the window's size decides which blocks move and which bands stack, so a new size is planned again: a new
+	// width always, a new height on a wide screen, where the stacks are (a phone's toolbar changes its height
+	// with every scroll and plans nothing new there)
+	let size = [window.innerWidth, window.innerHeight];
+	let wait = null;
+	const onResize = () => {
+		window.clearTimeout(wait);
+		wait = window.setTimeout(() => {
+			const now = [window.innerWidth, window.innerHeight];
+			const moved = now[0] !== size[0] || (wide && now[1] !== size[1]);
+			size = now;
+			if (moved && replan()) ScrollTrigger.refresh();
+		}, 250);
+	};
+	window.addEventListener("resize", onResize);
+	cleanups.push(() => {
+		window.clearTimeout(wait);
+		window.removeEventListener("resize", onResize);
 	});
 }
 
