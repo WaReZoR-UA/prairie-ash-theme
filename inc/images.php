@@ -474,20 +474,32 @@ function prairie_ash_image_copy_seconds( $pixels, $mime ) {
 /**
  * The image editor a copy is written with.
  *
+ * The editor is chosen for the format it has to write as well as the one it
+ * reads. Without the output format, core takes the first editor that reads
+ * the source, and an Imagick build without AVIF or WebP then saves the copy
+ * as a JPEG under another name instead of failing.
+ *
  * GD cannot write WebP or AVIF from a palette PNG: the save fails and leaves
  * an empty file. A copy that is resized is already true colour, because the
  * resize draws into a new true colour image, so only a full-size copy needs
- * the conversion, and the theme's own GD editor provides it.
+ * the conversion, and the theme's own GD editor provides it when GD is the
+ * editor chosen.
  *
  * @since 1.2.1
  *
  * @param string $full      Absolute path of the full image.
  * @param bool   $truecolor Whether to convert a palette image to true colour.
+ * @param string $mime      MIME type the copy is written in.
  * @return WP_Image_Editor|WP_Error
  */
-function prairie_ash_image_copy_editor( $full, $truecolor ) {
+function prairie_ash_image_copy_editor( $full, $truecolor, $mime ) {
+	$args = array(
+		'mime_type'        => wp_check_filetype( $full )['type'],
+		'output_mime_type' => $mime,
+	);
+
 	if ( ! $truecolor ) {
-		return wp_get_image_editor( $full );
+		return wp_get_image_editor( $full, $args );
 	}
 
 	$swap = static function ( $editors ) {
@@ -502,7 +514,7 @@ function prairie_ash_image_copy_editor( $full, $truecolor ) {
 	};
 
 	add_filter( 'wp_image_editors', $swap );
-	$editor = wp_get_image_editor( $full );
+	$editor = wp_get_image_editor( $full, $args );
 	remove_filter( 'wp_image_editors', $swap );
 
 	if ( ! is_wp_error( $editor ) && $editor instanceof Prairie_Ash_Image_Editor_GD ) {
@@ -510,6 +522,44 @@ function prairie_ash_image_copy_editor( $full, $truecolor ) {
 	}
 
 	return $editor;
+}
+
+/**
+ * Delete a file an image editor saved in another format than the one asked
+ * for, and name that format.
+ *
+ * An editor that cannot write the format asked for falls back to its default
+ * and saves under the matching extension, beside the copy's own name. That
+ * file is never a copy and nothing else would ever remove it.
+ *
+ * @since 1.2.1
+ *
+ * @param mixed  $saved What the editor's save returned.
+ * @param string $copy  Absolute path the copy was asked for at.
+ * @param string $mime  MIME type the copy was asked for in.
+ * @return string The MIME type the editor wrote instead, or an empty string
+ *                when it wrote what was asked.
+ */
+function prairie_ash_image_stray_output( $saved, $copy, $mime ) {
+	if ( ! is_array( $saved ) || empty( $saved['path'] ) ) {
+		return '';
+	}
+
+	$path    = wp_normalize_path( $saved['path'] );
+	$asked   = wp_normalize_path( $copy );
+	$written = isset( $saved['mime-type'] ) ? (string) $saved['mime-type'] : $mime;
+
+	if ( $asked === $path && $written === $mime ) {
+		return '';
+	}
+
+	$stem = wp_normalize_path( dirname( $copy ) ) . '/' . pathinfo( $copy, PATHINFO_FILENAME ) . '.';
+
+	if ( $asked !== $path && str_starts_with( $path, $stem ) && is_file( $path ) ) {
+		wp_delete_file( $path );
+	}
+
+	return $written;
 }
 
 /**
@@ -638,7 +688,7 @@ function prairie_ash_write_image_copy( $attachment_id, $data, $name, $target, $m
 	$saved = apply_filters( 'prairie_ash_pre_write_image_copy', null, $copy, $mime, $attachment_id, $name );
 
 	if ( null === $saved ) {
-		$editor = prairie_ash_image_copy_editor( $full, ! $width );
+		$editor = prairie_ash_image_copy_editor( $full, ! $width, $mime );
 		$saved  = $editor;
 
 		if ( ! is_wp_error( $editor ) && $width ) {
@@ -656,6 +706,12 @@ function prairie_ash_write_image_copy( $attachment_id, $data, $name, $target, $m
 
 	if ( is_wp_error( $saved ) ) {
 		return $fail( 'the image editor reported: ' . $saved->get_error_message() );
+	}
+
+	$stray = prairie_ash_image_stray_output( $saved, $copy, $mime );
+
+	if ( '' !== $stray ) {
+		return $fail( sprintf( 'the image editor on this server wrote %1$s instead of %2$s.', $stray, 'image/avif' === $mime ? 'AVIF' : 'WebP' ) );
 	}
 
 	if ( ! prairie_ash_is_image_copy( $copy, $mime ) ) {
