@@ -37,6 +37,12 @@ while ( have_posts() ) :
 	if ( '' === $prairie_ash_origin ) {
 		$prairie_ash_origin = $prairie_ash_coffee['origin'];
 	}
+	// The design's summary replaces woocommerce_single_product_summary, where WooCommerce
+	// collects the Product structured data it prints in the footer, so it is collected here
+	// unless something took it off that hook.
+	if ( isset( WC()->structured_data ) && has_action( 'woocommerce_single_product_summary', array( WC()->structured_data, 'generate_product_data' ) ) ) {
+		WC()->structured_data->generate_product_data( $prairie_ash_product );
+	}
 	?>
 		<main class="page" id="main" tabindex="-1" data-motion-scope data-motion-scrub>
 			<?php do_action( 'woocommerce_before_single_product' ); ?>
