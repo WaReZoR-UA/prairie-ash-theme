@@ -36,12 +36,12 @@ $title_id = prairie_ash_heading_id( 'visit-access-title', $f['heading'] );
 			<div class="visit-access__media">
 				<?php if ( $f['image_entrance'] ) : ?>
 					<div class="visit-access__photo visit-access__photo--entrance media-ibg">
-						<?php prairie_ash_image( $f['image_entrance'], prairie_ash_slot_sizes( 'visit-access__photo' ), $f['heading'] ); ?>
+						<?php prairie_ash_image( $f['image_entrance'], prairie_ash_slot_sizes( 'visit-access__photo' ), $f['heading'], $f['image_entrance_decorative'] ); ?>
 					</div>
 				<?php endif; ?>
 				<?php if ( $f['image_inside'] ) : ?>
 					<div class="visit-access__photo visit-access__photo--inside media-ibg">
-						<?php prairie_ash_image( $f['image_inside'], prairie_ash_slot_sizes( 'visit-access__photo' ), $f['heading'] ); ?>
+						<?php prairie_ash_image( $f['image_inside'], prairie_ash_slot_sizes( 'visit-access__photo' ), $f['image_entrance'] ? '' : $f['heading'], $f['image_inside_decorative'] ); ?>
 					</div>
 				<?php endif; ?>
 			</div>

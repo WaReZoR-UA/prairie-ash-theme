@@ -93,7 +93,7 @@ $title_id = prairie_ash_heading_id( 'roastery-title', $f['heading'] );
 				<figure class="roastery__team">
 					<?php if ( $f['team_image'] ) : ?>
 						<div class="roastery__team-media media-ibg">
-							<?php prairie_ash_image( $f['team_image'], prairie_ash_slot_sizes( 'roastery__team-media' ), $f['team_caption'] ); ?>
+							<?php prairie_ash_image( $f['team_image'], prairie_ash_slot_sizes( 'roastery__team-media' ), '', $f['team_image_decorative'] ); // The figcaption names the photo, so it is not repeated as the alt text. ?>
 						</div>
 					<?php endif; ?>
 					<?php if ( $f['team_caption'] ) : ?>
