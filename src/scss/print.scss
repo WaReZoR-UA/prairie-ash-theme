@@ -1,0 +1,84 @@
+@use "shared" as *;
+
+// Printing. Browsers leave background colours out of a print by default, so the cream text of a wall band
+// (the order confirmation, every page title) would print cream on white. Everything prints black on white,
+// the decorative motion layers stay off the paper, and whatever the motion still holds back for the scroll
+// prints finished in its place.
+@media print {
+	*,
+	*::before,
+	*::after {
+		color: #000 !important;
+		background-color: transparent !important;
+		text-shadow: none !important;
+	}
+	html,
+	body {
+		background: #fff !important;
+	}
+	// The smooth scroll holds the page in a fixed frame one window high, which would print one window only
+	body {
+		height: auto !important;
+	}
+	.smooth-wrapper {
+		position: static !important;
+		height: auto !important;
+		overflow: visible !important;
+	}
+	body *:not(.visually-hidden):not(.screen-reader-text) {
+		opacity: 1 !important;
+		transform: none !important;
+		clip-path: none !important;
+		mask-image: none !important;
+		filter: none !important;
+	}
+	// Screen-only parts and the motion layers drawn over the page, never content. One rule per class, so
+	// the stylesheet split keeps each one with the sheet of its own class.
+	$screen-only: skip,
+		page-list,
+		scroll-stripe,
+		analytics-notice,
+		motion-brush,
+		motion-sheen,
+		motion-steam,
+		motion-shade,
+		motion-route,
+		hero__layer,
+		hero__rule,
+		hero__caption-ink,
+		hero__echo,
+		lettering__tip,
+		roast-lamp,
+		roast-room,
+		shop-light,
+		shop-count-copy,
+		product-edge,
+		product-rule,
+		product-frame,
+		product-stamp,
+		product-mist,
+		cart-counter,
+		cart-tear,
+		checkout-guide,
+		checkout-strike,
+		menu-rule,
+		visit-rule,
+		contact-rule,
+		contact-strike,
+		contact-cancel,
+		shipping-rule,
+		shipping-strike,
+		wholesale-rule,
+		wholesale-ruling,
+		privacy-rule,
+		accessibility-rule;
+	@each $name in $screen-only {
+		.#{$name} {
+			display: none !important;
+		}
+	}
+	// Links keep their underline, so a printed link still reads as one
+	a {
+		text-decoration-color: currentColor !important;
+	}
+}

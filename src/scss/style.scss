@@ -71,5 +71,6 @@
 @use "privacy-motion";
 @use "accessibility-motion";
 
-// Windows contrast themes, after every page so the rules win at equal specificity
+// Windows contrast themes and printing, after every page so they win at equal specificity
 @use "forced-colors";
+@use "print";
