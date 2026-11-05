@@ -13,15 +13,47 @@ more details.
 
 Bundled components under their own licences, not the GPL:
 
-- GSAP 3.15.0 and its plugins, compiled into assets/js/: the GSAP Standard
-  License, free of charge and not a GPL licence,
-  https://gsap.com/standard-license. Its notices are kept in
-  assets/js/main.js.LICENSE.txt.
+- GSAP 3.15.0 and its plugins (CustomEase, Flip, Observer, ScrollSmoother,
+  ScrollToPlugin, ScrollTrigger and SplitText), compiled into
+  assets/js/main.js: the GSAP Standard License,
+  https://gsap.com/standard-license. Their notices are kept in
+  assets/js/main.js.LICENSE.txt, and their source is the gsap package
+  named in package.json. See the additional permission below.
 - The League Gothic and Instrument Serif fonts in assets/fonts/: the SIL
   Open Font License 1.1, with the licence texts beside the font files
   (OFL-LeagueGothic.txt, OFL-InstrumentSerif.txt).
 
 The demo photographs are described under Credits and licences in README.md.
+
+GSAP is a separate component
+
+GSAP and its plugins are not part of this program and are not licensed
+under the GNU General Public License. They remain under the GSAP Standard
+License, and every use, modification and redistribution of them is
+subject to that licence alone, including the uses it prohibits. The GPL
+grants no rights in GSAP, and nothing in this file changes the licence of
+GSAP. The build compiles GSAP and the theme's own scripts into one file,
+assets/js/main.js, which therefore holds code under two licences: the
+theme's own code under the GPL, and GSAP under its own licence.
+
+Additional permission
+
+As an additional permission under the GNU General Public License, the
+copyright holders of this program give permission to combine this program
+with GSAP 3 and its plugins, and to convey the combined work, including as
+one compiled file such as assets/js/main.js, without the GSAP portion of
+that work being licensed under the GNU General Public License, provided
+that the GSAP portion is conveyed under the terms of the GSAP Standard
+License and the GSAP notices are kept with it. Whoever modifies this
+program may extend this permission to the modified version, but is not
+obliged to do so. A version that does not extend it removes this
+paragraph.
+
+This theme is published as a portfolio demonstration and is not intended
+for the WordPress.org theme directory, whose review rules require
+everything in the theme archive to be under the GPL or a GPL-compatible
+licence. A distribution through that directory would need GSAP replaced
+first.
 
 The full text of the GNU General Public License, version 2, follows.
 
