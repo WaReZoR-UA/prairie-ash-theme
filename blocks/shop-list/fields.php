@@ -32,12 +32,28 @@ return array(
 			'count_all',
 			'Count line, all coffees',
 			array(
-				'default'      => '[count] coffees and a tasting set',
-				'instructions' => '[count] is replaced by the number of coffees shown, written as a word.',
+				'default'      => '[count] coffees[others]',
+				'instructions' => '[count] is replaced by the number of coffees shown, written as a word. [others] is replaced by the other products shown, such as " and a tasting set", or by nothing when there are none.',
 			),
 		),
-		array( 'text', 'count_filter', 'Count line, filter brewing', array( 'default' => '[count] coffees for filter brewing and a tasting set' ) ),
-		array( 'text', 'count_espresso', 'Count line, espresso', array( 'default' => '[count] coffees for espresso and a tasting set' ) ),
+		array(
+			'text',
+			'count_filter',
+			'Count line, filter brewing',
+			array(
+				'default'      => '[count] coffees for filter brewing[others]',
+				'instructions' => 'Counts only what the filter shows. [count] and [others] work as in the line above.',
+			),
+		),
+		array(
+			'text',
+			'count_espresso',
+			'Count line, espresso',
+			array(
+				'default'      => '[count] coffees for espresso[others]',
+				'instructions' => 'Counts only what the filter shows. [count] and [others] work as in the line above.',
+			),
+		),
 		array( 'tab', 'tab_next', 'Next roast tile' ),
 		array( 'text', 'next_label', 'Small title', array( 'instructions' => 'The tile after the last coffee. It is left out when the heading is empty.' ) ),
 		array( 'text', 'next_heading', 'Heading' ),
