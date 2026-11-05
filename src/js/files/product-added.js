@@ -3,7 +3,8 @@ The confirmation on a coffee's page once WooCommerce has really added it, outsid
 under reduced motion too. wp/shop.js reads the words out and dispatches "pa:added" on the form; the motion layer
 (product.js) takes the event and strikes the stamp; when nothing takes it, the stamp is laid on still for a moment.
 
-addedWords(count, name)          the status read out and the stamp's text, from the wording in Site settings
+addedWords(count, name)          the status read out and the stamp's text, from the Shop wording ([count] the number of
+                                 bags, [coffee] the coffee), the design's wording where a field is empty
 stampMark(form, text)            the stamp "Added, N bags" placed on the price line, or across the button when the
                                  price is off the screen; returns { mark, host, restore }
 */
@@ -13,9 +14,9 @@ const fill = (text, values) => Object.entries(values).reduce((out, [key, value])
 
 export function addedWords(count, name) {
 	const one = count === 1;
-	const status = one ? words.addedStatusOne || "Added 1 bag of [name] to the cart" : words.addedStatusMany || "Added [count] bags of [name] to the cart";
+	const status = one ? words.addedStatusOne || "Added 1 bag of [coffee] to the cart" : words.addedStatusMany || "Added [count] bags of [coffee] to the cart";
 	const stamp = one ? words.addedStampOne || "Added, 1 bag" : words.addedStampMany || "Added, [count] bags";
-	const values = { count: String(count), name: name || "" };
+	const values = { count: String(count), coffee: name || "" };
 	return { status: fill(status, values), stamp: fill(stamp, values) };
 }
 

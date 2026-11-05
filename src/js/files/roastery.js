@@ -135,7 +135,12 @@ function titleScene(sign, { ctx, cleanups, alive, fontsReady }) {
 // The roast ----------------------------------------------------------------------------------------
 
 const BEAN = ["#7d8b4f", "#a7a35a", "#c9a14a", "#a8662f", "#7a4122", "#4e2a17"];
-const STAGES = [[0, "Charge"], [0.6, "Turning point"], [2, "Drying"], [5, "Yellowing"], [7, "Browning"], [9.17, "First crack"], [10, "Development"], [11.6, "Drop"]];
+// the minute each stage of the roast begins; the names from Site settings (inc/enqueue.php), one line per stage, the
+// design's own while the field does not hold all eight
+const STAGE_AT = [0, 0.6, 2, 5, 7, 9.17, 10, 11.6];
+const STAGE_NAMES = ["Charge", "Turning point", "Drying", "Yellowing", "Browning", "First crack", "Development", "Drop"];
+const stageNames = String((window.prairieAsh || {}).roastStages || "").split(/\r?\n/).map((name) => name.trim()).filter(Boolean);
+const STAGES = STAGE_AT.map((at, i) => [at, stageNames.length === STAGE_AT.length ? stageNames[i] : STAGE_NAMES[i]]);
 const CRACK = 9.17;
 let clipSeq = 0;
 

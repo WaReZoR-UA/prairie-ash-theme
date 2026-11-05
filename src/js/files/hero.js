@@ -736,12 +736,16 @@ export function heroScene(hero, { ctx, cleanups, alive, fontsReady }) {
 		button.hidden = true;
 		button.type = "button";
 		button.className = "hero__still";
+		// the wording from Site settings (inc/enqueue.php), the design's where a field is empty
+		const words = window.prairieAsh || {};
+		const pause = words.stillPauseLabel || "Pause the roastery";
+		const play = words.stillPlayLabel || "Play the roastery";
 		button.setAttribute("aria-pressed", "false");
-		button.textContent = "Pause the roastery";
+		button.textContent = pause;
 		button.addEventListener("click", () => {
 			userPaused = !userPaused;
 			button.setAttribute("aria-pressed", String(userPaused));
-			button.textContent = userPaused ? "Play the roastery" : "Pause the roastery";
+			button.textContent = userPaused ? play : pause;
 			run();
 		});
 		host.append(button);

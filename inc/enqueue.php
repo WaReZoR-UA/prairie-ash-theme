@@ -189,13 +189,20 @@ function prairie_ash_script_data() {
 		'todayClosed'      => prairie_ash_setting( 'today_closed' ),
 		'todayTomorrow'    => prairie_ash_setting( 'today_tomorrow' ),
 		'timeZone'         => wp_timezone_string(),
+		'stillPauseLabel'  => prairie_ash_setting( 'motion_pause_label' ),
+		'stillPlayLabel'   => prairie_ash_setting( 'motion_play_label' ),
+		'roastStages'      => prairie_ash_setting( 'roast_stage_names' ),
 	);
 
 	if ( function_exists( 'WC' ) ) {
-		$data['wcAjax']      = WC_AJAX::get_endpoint( '%%endpoint%%' );
-		$data['cartUrl']     = wc_get_cart_url();
-		$data['addingLabel'] = prairie_ash_wording( 'card_adding_label' );
-		$data['addedLabel']  = prairie_ash_wording( 'card_added_label' );
+		$data['wcAjax']          = WC_AJAX::get_endpoint( '%%endpoint%%' );
+		$data['cartUrl']         = wc_get_cart_url();
+		$data['addingLabel']     = prairie_ash_wording( 'card_adding_label' );
+		$data['addedLabel']      = prairie_ash_wording( 'card_added_label' );
+		$data['addedStatusOne']  = prairie_ash_wording( 'added_status_one' );
+		$data['addedStatusMany'] = prairie_ash_wording( 'added_status_many' );
+		$data['addedStampOne']   = prairie_ash_wording( 'added_stamp_one' );
+		$data['addedStampMany']  = prairie_ash_wording( 'added_stamp_many' );
 	}
 
 	return $data;
