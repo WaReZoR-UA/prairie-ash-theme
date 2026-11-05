@@ -49,11 +49,3 @@ export function slimCss(css) {
 	return out;
 }
 
-// adaptiveValue then writes each fluid value as three blocks: pinned above the desktop anchor, a
-// clamp() between the anchors, pinned below the mobile anchor. The clamp() already holds both pins,
-// so the three collapse into one unconditional rule in the same place in the cascade.
-const TRIPLE = /@media\(min-width: ([\d.]+)em\)\{([^{}]+)\{([^{}]*)\}\}@media\(min-width: ([\d.]+)em\)and \(max-width: \1em\)\{\2\{([^{}]*clamp\([^{}]*)\}\}@media\(max-width: \4em\)\{\2\{([^{}]*)\}\}/g;
-const props = (body) => body.split(";").map((d) => d.split(":")[0].trim()).filter(Boolean).join(",");
-export function collapseFluid(css) {
-	return css.replace(TRIPLE, (all, hi, sel, top, lo, mid, bottom) => (props(top) === props(mid) && props(mid) === props(bottom) ? `${sel}{${mid}}` : all));
-}
