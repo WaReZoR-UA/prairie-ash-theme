@@ -9,6 +9,10 @@ defined( 'ABSPATH' ) || exit;
 
 $f       = prairie_ash_fields( 'coffees' );
 $feature = ( $f['feature'] && function_exists( 'wc_get_product' ) ) ? wc_get_product( $f['feature'] ) : null;
+// A drafted, private or trashed coffee leaves the sign, exactly as it leaves the board below.
+if ( $feature && 'publish' !== $feature->get_status() ) {
+	$feature = null;
+}
 $coffees = array();
 foreach ( (array) $f['coffees'] as $coffee_id ) {
 	$product = function_exists( 'wc_get_product' ) ? wc_get_product( $coffee_id ) : null;
