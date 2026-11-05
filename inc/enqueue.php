@@ -213,9 +213,9 @@ function prairie_ash_script_data() {
  *
  * Wp_preload_resources prints link rel="preload". A font is a CORS-mode fetch
  * even from the same origin, so crossorigin is set or the preload is wasted.
- * The faces are font-display: optional, so a face that has not arrived by the
- * first paint is never swapped in on that page; the italic is preloaded with
- * the other two so it is there wherever the page paints it.
+ * The faces are font-display: swap, so the preloads let them arrive before
+ * the first paint wherever they can; the italic is preloaded with the other
+ * two so it is there wherever the page paints it.
  *
  * @since 1.0.0
  *
