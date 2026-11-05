@@ -65,7 +65,16 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 const SCRUB_PAGE = !!document.querySelector("[data-motion-scrub]");
 
 const REDUCED = "(prefers-reduced-motion: reduce)";
-const fontsReady = Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise((resolve) => setTimeout(resolve, 1500))]);
+// The motion measures the type once the web fonts are in, or after a second and a half at most. Faces that arrive
+// later than that (font-display: swap) set the type again, so the layer is then rebuilt on them, see the end.
+const fontsIn = document.fonts ? document.fonts.ready : Promise.resolve();
+let fontsLanded = false;
+let fontsLate = false;
+fontsIn.then(() => (fontsLanded = true));
+const fontsReady = Promise.race([fontsIn, new Promise((resolve) => setTimeout(() => {
+	fontsLate = !fontsLanded;
+	resolve();
+}, 1500))]);
 
 const TOTALS = ".lv__row--due .lv__value, .lv__row--paid .lv__value, .checkout-title__total-value";
 const STAMPS = '[data-motion="price"], .roastery__fact';
@@ -1224,7 +1233,22 @@ let smoother = null;
 buildRoutes();
 
 const mm = gsap.matchMedia();
-afterPress(() => mm.add({ motion: "(prefers-reduced-motion: no-preference)", wide: "(min-width: 62em)", fine: "(pointer: fine)" }, (ctx) => {
+const CONDITIONS = { motion: "(prefers-reduced-motion: no-preference)", wide: "(min-width: 62em)", fine: "(pointer: fine)" };
+let motionAdded = false;
+afterPress(() => {
+	motionAdded = true;
+	mm.add(CONDITIONS, motionLayer);
+});
+// Faces that came after the wait: every act still running is ended in its finished state, and the layer is built
+// again on the real type, so no clip, mask or split line stays cut to the fallback face. Signs already lettered
+// stay lettered, since their head flags read "live" by then.
+fontsIn.then(() => {
+	if (!fontsLate || !motionAdded) return;
+	mm.revert();
+	mm.add(CONDITIONS, motionLayer);
+});
+
+function motionLayer(ctx) {
 	const { motion, wide, fine } = ctx.conditions;
 	if (!motion) return undefined;
 	const cleanups = [];
@@ -1295,7 +1319,7 @@ afterPress(() => mm.add({ motion: "(prefers-reduced-motion: no-preference)", wid
 		smoother = null;
 		cleanups.reverse().forEach((fn) => fn());
 	};
-}));
+}
 
 // In-page links glide to their target, then hand it focus
 function focusTarget(target) {
