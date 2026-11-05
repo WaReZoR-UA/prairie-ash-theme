@@ -188,6 +188,7 @@ function prairie_ash_script_data() {
 		'todayOpen'        => prairie_ash_setting( 'today_open' ),
 		'todayClosed'      => prairie_ash_setting( 'today_closed' ),
 		'todayTomorrow'    => prairie_ash_setting( 'today_tomorrow' ),
+		'timeZone'         => wp_timezone_string(),
 	);
 
 	if ( function_exists( 'WC' ) ) {
