@@ -148,7 +148,9 @@ function prairie_ash_section_attrs( $block, $is_preview, $classes = array(), $ex
  *
  * Serialisation of every support is skipped in block.json, so nothing reaches
  * the page unless it is built here. Only preset values can be chosen in this
- * theme, so every value resolves to a design custom property.
+ * theme, so every value resolves to a design custom property. The text colour
+ * lands on the section root, where the running text inherits it, and a
+ * background image takes core's defaults of cover, centred when contained.
  *
  * @since 1.0.0
  *
@@ -166,7 +168,17 @@ function prairie_ash_support_styles( $block ) {
 		$input['dimensions'] = array( 'minHeight' => $style['dimensions']['minHeight'] );
 	}
 	if ( ! empty( $style['background'] ) && is_array( $style['background'] ) ) {
-		$input['background'] = $style['background'];
+		$background = $style['background'];
+		// Core's own defaults, which skipped serialisation never runs: cover, and centred when contained.
+		if ( ! empty( $background['backgroundImage'] ) ) {
+			if ( empty( $background['backgroundSize'] ) ) {
+				$background['backgroundSize'] = 'cover';
+			}
+			if ( 'contain' === $background['backgroundSize'] && empty( $background['backgroundPosition'] ) ) {
+				$background['backgroundPosition'] = '50% 50%';
+			}
+		}
+		$input['background'] = $background;
 	}
 
 	$css = '';
@@ -256,6 +268,9 @@ function prairie_ash_el_css( $block, $key ) {
 	}
 
 	$chosen  = $block['paStyle'][ $key ];
+	if ( ! empty( $block['textColor'] ) ) {
+		$css .= 'color:var(--wp--preset--color--' . sanitize_key( $block['textColor'] ) . ');';
+	}
 	$presets = prairie_ash_presets();
 	$css     = '';
 
