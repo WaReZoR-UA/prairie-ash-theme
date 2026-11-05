@@ -94,6 +94,7 @@ for (const [slug, def] of Object.entries(blocks)) {
 	for (const [capability, reason] of leftOut) table += `| ${slug} | ${capability} | ${DECIDED} | ${reason} |\n`;
 }
 
-const head = fs.readFileSync(path.join(root, 'tools/control-surface-head.md'), 'utf8');
+// Read with LF only, so a checkout with CRLF endings cannot mix the two in the generated file.
+const head = fs.readFileSync(path.join(root, 'tools/control-surface-head.md'), 'utf8').replace(/\r\n/g, '\n');
 fs.writeFileSync(path.join(root, 'CONTROL-SURFACE.md'), head + table);
 console.log('manifests', Object.keys(blocks).length);
