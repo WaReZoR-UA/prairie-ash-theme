@@ -27,6 +27,8 @@ do_action( 'woocommerce_before_cart' );
 			<h1 class="cart-items__heading" id="cart-title"><?php echo esc_html( prairie_ash_wording( 'cart_heading' ) ); ?></h1>
 		</div>
 		<form class="cart-table woocommerce-cart-form" action="<?php echo esc_url( wc_get_cart_url() ); ?>" method="post" data-cart-form>
+			<?php // The first submit button is the form's default, so Enter in a quantity updates the cart rather than pressing a line's remove button. ?>
+			<button class="visually-hidden" type="submit" name="update_cart" value="1" tabindex="-1" aria-hidden="true"><?php echo esc_html( prairie_ash_wording( 'update_cart' ) ); ?></button>
 			<div class="cart-table__head" aria-hidden="true">
 				<span class="cart-table__col cart-table__col--coffee"><?php echo esc_html( prairie_ash_wording( 'col_coffee' ) ); ?></span>
 				<span class="cart-table__col cart-table__col--each"><?php echo esc_html( prairie_ash_wording( 'col_each' ) ); ?></span>

@@ -59,6 +59,27 @@ function prairie_ash_dequeue_shop_scripts() {
 add_action( 'wp_enqueue_scripts', 'prairie_ash_dequeue_shop_scripts', 99 );
 
 /**
+ * Leave WooCommerce's cart script off the cart.
+ *
+ * The script drives WooCommerce's own cart markup, which the design's cart
+ * replaces, see woocommerce/cart/cart.php. It still answers Enter in a
+ * quantity of any form classed as a cart form: it cancels the key and then
+ * finds none of its own markup to update, so Enter did nothing. Without it,
+ * Enter submits the cart form through its first button, which updates the
+ * cart, and the theme's own script updates a changed quantity as before.
+ *
+ * @since 1.2.1
+ *
+ * @return void
+ */
+function prairie_ash_dequeue_cart_script() {
+	if ( function_exists( 'is_cart' ) && is_cart() ) {
+		wp_dequeue_script( 'wc-cart' );
+	}
+}
+add_action( 'wp_enqueue_scripts', 'prairie_ash_dequeue_cart_script', 99 );
+
+/**
  * Defer jQuery and Formidable's script on the pages that load them.
  *
  * Formidable enqueues jQuery and its own script only on a page that prints a
