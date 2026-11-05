@@ -836,7 +836,7 @@ class Prairie_Ash_Demo_Importer {
 			$this->map['term'][ (int) $term['id'] ] = (int) $result['term_id'];
 
 			foreach ( $term['meta'] as $key => $value ) {
-				update_term_meta( $result['term_id'], $key, wp_slash( $value ) );
+				update_term_meta( $result['term_id'], $key, wp_slash( $this->resolve( $value ) ) );
 			}
 		}
 
