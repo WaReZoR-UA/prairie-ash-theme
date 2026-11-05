@@ -732,8 +732,6 @@ export function heroScene(hero, { ctx, cleanups, alive, fontsReady }) {
 	if (host) {
 		const button = document.createElement("button");
 		still = button;
-		// shown once the scene runs
-		button.hidden = true;
 		button.type = "button";
 		button.className = "hero__still";
 		// the wording from Site settings (inc/enqueue.php), the design's where a field is empty
@@ -822,7 +820,12 @@ export function heroScene(hero, { ctx, cleanups, alive, fontsReady }) {
 				warned = true;
 			}
 		}
-		if (still) still.hidden = !scene;
+		// the control stands in the layout from the start, as the scene is expected; it leaves, and the triggers
+		// are measured again, only when no scene could be built
+		if (still && still.hidden === !!scene) {
+			still.hidden = !scene;
+			ScrollTrigger.refresh();
+		}
 		applyScroll();
 		run();
 		return scene;
