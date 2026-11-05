@@ -849,7 +849,15 @@ class Prairie_Ash_Demo_Importer {
 	 * The forms, through Formidable's own XML import, which finds a form by
 	 * its key and updates it rather than adding a second one.
 	 *
+	 * The data is written to a temporary file the request itself created, so
+	 * it is written directly rather than through the filesystem method a host
+	 * may set up for FTP. The forms' old actions are removed only after the
+	 * import succeeded, so a failed import leaves every form with the actions
+	 * it had.
+	 *
 	 * @since 1.2.0
+	 * @since 1.2.1 Checks the temporary file, and removes the old actions only
+	 *              after a successful import.
 	 *
 	 * @return true
 	 */
@@ -866,28 +874,42 @@ class Prairie_Ash_Demo_Importer {
 			FrmAppController::install();
 		}
 
-		$xml = (string) file_get_contents( get_template_directory() . '/demo/forms.xml' );
-		$tmp = wp_tempnam( 'prairie-ash-forms.xml' );
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+
+		$direct = new WP_Filesystem_Direct( null );
+		$xml    = (string) $this->resolve( (string) $direct->get_contents( $file ) );
+		$tmp    = wp_tempnam( 'prairie-ash-forms.xml' );
 
 		if ( ! $tmp ) {
 			$this->log[] = 'The forms could not be prepared for import.';
 			return true;
 		}
 
-		global $wp_filesystem;
-		require_once ABSPATH . 'wp-admin/includes/file.php';
+		// The mode core gives a file it writes, set here because WP_Filesystem() is not called.
+		$mode = ( fileperms( ABSPATH . 'index.php' ) & 0777 ) | 0644;
 
-		if ( WP_Filesystem() ) {
-			$wp_filesystem->put_contents( $tmp, $this->resolve( $xml ) );
+		if ( '' === $xml || ! $direct->put_contents( $tmp, $xml, $mode ) || strlen( $xml ) !== (int) wp_filesize( $tmp ) ) {
+			wp_delete_file( $tmp );
+			$this->log[] = 'The forms could not be prepared for import: the temporary file could not be written.';
+			return true;
 		}
 
-		$this->delete_form_actions();
+		$old    = $this->form_action_ids();
 		$result = FrmXMLHelper::import_xml( $tmp );
 		wp_delete_file( $tmp );
 
-		if ( is_wp_error( $result ) ) {
-			$this->log[] = 'The forms could not be imported: ' . $result->get_error_message();
+		if ( is_wp_error( $result ) || ! empty( $result['error'] ) ) {
+			$this->log[] = 'The forms could not be imported, and they keep the actions they had: ' . ( is_wp_error( $result ) ? $result->get_error_message() : $result['error'] );
 			return true;
+		}
+
+		// An action the import updated in place keeps its ID, and stays.
+		$kept = array_map( 'intval', array_values( is_array( $result['posts'] ?? null ) ? $result['posts'] : array() ) );
+
+		foreach ( array_diff( $old, $kept ) as $action_id ) {
+			wp_delete_post( $action_id, true );
 		}
 
 		foreach ( $this->data()['forms'] as $form ) {
@@ -904,17 +926,20 @@ class Prairie_Ash_Demo_Importer {
 	}
 
 	/**
-	 * Remove the actions of the demo forms before they are imported again.
+	 * The actions the demo forms have on this site now.
 	 *
 	 * Formidable's import updates a form found by its key, but adds its
 	 * actions again, so a second import would leave each form with two
-	 * redirects. The XML carries every action the form has.
+	 * redirects. The XML carries every action the form has, so the ones that
+	 * were there before are removed once the import has succeeded.
 	 *
-	 * @since 1.2.0
+	 * @since 1.2.1
 	 *
-	 * @return void
+	 * @return int[] Action post IDs.
 	 */
-	private function delete_form_actions() {
+	private function form_action_ids() {
+		$ids = array();
+
 		foreach ( $this->data()['forms'] as $form ) {
 			$id = (int) FrmForm::get_id_by_key( $form['key'] );
 
@@ -923,9 +948,11 @@ class Prairie_Ash_Demo_Importer {
 			}
 
 			foreach ( FrmFormAction::get_action_for_form( $id, 'all' ) as $action ) {
-				wp_delete_post( $action->ID, true );
+				$ids[] = (int) $action->ID;
 			}
 		}
+
+		return $ids;
 	}
 
 	/**
