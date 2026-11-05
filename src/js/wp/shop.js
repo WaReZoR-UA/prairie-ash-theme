@@ -35,6 +35,8 @@ document.addEventListener("click", async (event) => {
 		const response = await fetch(data.wcAjax.replace("%%endpoint%%", "add_to_cart"), { method: "POST", body, credentials: "same-origin" });
 		const result = await response.json();
 		if (result.error && result.product_url) {
+			// the page may come back from the back/forward cache, so the button is left ready
+			button.removeAttribute("aria-busy");
 			window.location.href = result.product_url;
 			return;
 		}
@@ -55,6 +57,11 @@ document.addEventListener("click", async (event) => {
 		return;
 	}
 	button.removeAttribute("aria-busy");
+});
+
+// A page restored from the back/forward cache keeps the state it was left in: no button stays busy.
+window.addEventListener("pageshow", (event) => {
+	if (event.persisted) document.querySelectorAll('[data-card-add][aria-busy="true"], form.product-summary__form[aria-busy="true"]').forEach((el) => el.removeAttribute("aria-busy"));
 });
 
 // Product page: Add to cart stays on the page, as the design stamps the added coffee on the price line and
