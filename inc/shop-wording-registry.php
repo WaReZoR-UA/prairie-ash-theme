@@ -70,6 +70,7 @@ function prairie_ash_wording_registry() {
 			'total_to_pay'        => array( 'Total row', 'Total to pay' ),
 			'go_to_checkout'      => array( 'Checkout button', 'Go to checkout' ),
 			'keep_shopping'       => array( 'Link back to the shop', 'Keep shopping' ),
+			'discount_row'        => array( 'Coupon discount row, also on the checkout and the receipt', 'Discount, code [code]', 'text', '[code] is the coupon code.' ),
 		),
 		'Empty cart'     => array(
 			'empty_eyebrow' => array( 'Small title', 'Nothing in the cart yet' ),
@@ -144,6 +145,11 @@ function prairie_ash_wording_registry() {
 			'receipt_title'        => array( 'Receipt heading', 'Your order' ),
 			'total_paid'           => array( 'Total row', 'Total paid' ),
 			'payment_line'         => array( 'Payment line', 'Paid with [method] on [date].', 'text', '[method] the payment method, [date] the day of the order.' ),
+			'payment_line_unpaid'  => array( 'Payment line, order not paid yet', 'To be paid by [method]. The instructions are below.', 'text', 'For a bank transfer, a cheque or cash on delivery. [method] the payment method.' ),
+			'failed_title'         => array( 'Heading, payment failed', 'The payment for order [number] did not go through', 'text', '[number] is the order number.' ),
+			'failed_note'          => array( 'Note, payment failed', 'Your bank or card issuer declined the payment, so the order has not been placed. Try the payment again, with the same card or another one.', 'textarea' ),
+			'failed_pay'           => array( 'Button, pay again', 'Try the payment again' ),
+			'failed_account'       => array( 'Link to the account, payment failed', 'Go to your account' ),
 		),
 	);
 }

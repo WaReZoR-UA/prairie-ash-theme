@@ -686,3 +686,43 @@ function prairie_ash_remove_cart_line() {
 	exit;
 }
 add_action( 'wp_loaded', 'prairie_ash_remove_cart_line', 15 );
+
+/**
+ * A discount as the design writes a price, with a minus sign.
+ *
+ * @since 1.2.1
+ *
+ * @param float|string $amount Discount, positive or negative.
+ * @return string For example "-$10.00".
+ */
+function prairie_ash_discount_text( $amount ) {
+	return prairie_ash_price_text( -1 * abs( (float) $amount ) );
+}
+
+/**
+ * The rows between the subtotal and the shipping of a cart: coupons and fees.
+ *
+ * Without them the rows of the summary do not add up to the total. Amounts are
+ * before tax, as the subtotal is, and the tax row carries the rest.
+ *
+ * @since 1.2.1
+ *
+ * @param WC_Cart $cart The cart.
+ * @return array<int, array{0: string, 1: string}> Label and value of each row.
+ */
+function prairie_ash_cart_adjustment_rows( $cart ) {
+	$rows = array();
+
+	foreach ( array_keys( $cart->get_coupons() ) as $code ) {
+		$rows[] = array(
+			prairie_ash_wording_with( 'discount_row', array( 'code' => wc_strtoupper( (string) $code ) ) ),
+			prairie_ash_discount_text( $cart->get_coupon_discount_amount( (string) $code, true ) ),
+		);
+	}
+
+	foreach ( $cart->get_fees() as $fee ) {
+		$rows[] = array( (string) $fee->name, prairie_ash_price_text( $fee->total ) );
+	}
+
+	return $rows;
+}

@@ -73,6 +73,9 @@ do_action( 'woocommerce_before_cart' );
 		<div class="cart-summary__totals" data-motion="cart-receipt">
 			<dl class="lv lv--total">
 				<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( 'subtotal_before_tax' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_price_text( $prairie_ash_cart->get_subtotal() ) ); ?></dd></div>
+				<?php foreach ( prairie_ash_cart_adjustment_rows( $prairie_ash_cart ) as $prairie_ash_row ) : ?>
+					<div class="lv__row"><dt class="lv__label"><?php echo esc_html( $prairie_ash_row[0] ); ?></dt><dd class="lv__value"><?php echo esc_html( $prairie_ash_row[1] ); ?></dd></div>
+				<?php endforeach; ?>
 				<?php if ( $prairie_ash_cart->needs_shipping() ) : ?>
 					<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( 'cart_shipping_label' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_shipping_value() ); ?></dd></div>
 				<?php endif; ?>
