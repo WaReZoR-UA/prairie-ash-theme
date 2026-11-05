@@ -391,14 +391,14 @@ function shippingIn(ctx, cleanups, alive, wide) {
 	pageChunk(import(/* webpackChunkName: "shipping" */ "./shipping.js"), ({ shippingMotion }) => shippingMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
-// Privacy policy: the sign, the contents and the parts are their own chunk too
+// Privacy policy: the sign, the contents and the parts are one chunk with the accessibility statement (legal.js)
 function privacyIn(ctx, cleanups, alive, wide) {
-	pageChunk(import(/* webpackChunkName: "privacy" */ "./privacy.js"), ({ privacyMotion }) => privacyMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
+	pageChunk(import(/* webpackChunkName: "legal" */ "./legal.js"), ({ legalMotion }) => legalMotion({ ctx, cleanups, alive, fontsReady, wide }, { flag: "privacy", guide: "privacy-rule" }), ctx, alive);
 }
 
-// Accessibility statement: the sign, the contents and the parts are their own chunk too
+// Accessibility statement: the same reading-page chunk, its closing dated note written by the pen
 function accessibilityIn(ctx, cleanups, alive, wide) {
-	pageChunk(import(/* webpackChunkName: "accessibility" */ "./accessibility.js"), ({ accessibilityMotion }) => accessibilityMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
+	pageChunk(import(/* webpackChunkName: "legal" */ "./legal.js"), ({ legalMotion }) => legalMotion({ ctx, cleanups, alive, fontsReady, wide }, { flag: "accessibility", guide: "accessibility-rule", lastWritten: true }), ctx, alive);
 }
 
 function mediaIn(imgs, wide, cleanups) {
