@@ -1,7 +1,8 @@
 // Splits the compiled stylesheet into a global sheet and sheets that load only where they can match.
 //
-// Units are the blocks (blocks/<name>/) and three WooCommerce template groups (single-product,
-// cart, checkout). A BEM root class belongs to the set of units whose files print it, or to the
+// Units are the blocks (blocks/<name>/), three WooCommerce template groups (single-product,
+// cart, checkout) and the archive group (index.php and 404.php: search results, archives, the
+// missing page). A BEM root class belongs to the set of units whose files print it, or to the
 // global sheet when any other theme file prints it as well. A rule leaves the global sheet when
 // each of its selectors names at least one class with a unit set, because the selector can then
 // only match on a page where one of those units renders. Classes inside :not(), :is(), :where()
@@ -30,6 +31,7 @@ function unitOf(rel) {
 	if (/^woocommerce\/single-product(\.php|\/)/.test(rel)) return 'template:product';
 	if (/^woocommerce\/cart\//.test(rel)) return 'template:cart';
 	if (/^woocommerce\/checkout\//.test(rel)) return 'template:checkout';
+	if (/^(index|404)\.php$/.test(rel)) return 'template:archive';
 	return null;
 }
 
