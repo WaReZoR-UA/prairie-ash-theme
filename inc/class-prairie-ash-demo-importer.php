@@ -1369,11 +1369,18 @@ class Prairie_Ash_Demo_Importer {
 
 			$created = array();
 			foreach ( $items as $item ) {
+				$object_id = (int) $this->resolve( $item['object_id'] );
+
+				if ( in_array( $item['type'], array( 'post_type', 'taxonomy' ), true ) && ! $object_id ) {
+					$this->log[] = sprintf( 'The menu item %1$s points at nothing on this site and was left out.', $item['title'] );
+					continue;
+				}
+
 				$args = array(
 					'menu-item-title'       => $item['title'],
 					'menu-item-type'        => $item['type'],
 					'menu-item-object'      => $item['object'],
-					'menu-item-object-id'   => (int) $this->resolve( $item['object_id'] ),
+					'menu-item-object-id'   => $object_id,
 					'menu-item-url'         => $this->resolve( $item['url'] ),
 					'menu-item-parent-id'   => (int) ( $created[ $item['parent'] ] ?? 0 ),
 					'menu-item-position'    => (int) $item['order'],

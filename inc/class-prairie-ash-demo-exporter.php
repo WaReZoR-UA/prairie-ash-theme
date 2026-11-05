@@ -11,8 +11,8 @@
  * References between records are written as tokens, so the importer can point
  * them at the IDs the records receive on the new site:
  * {{post:ID}} for a page, a product or an attachment, {{form:ID}} for a form,
- * {{term:ID}} for a menu, and {{home}} or {{home_json}} for the site address,
- * plain or with escaped slashes.
+ * {{term:ID}} for a menu or a term, and {{home}} or {{home_json}} for the site
+ * address, plain or with escaped slashes.
  *
  * @package PrairieAsh
  */
@@ -789,7 +789,7 @@ class Prairie_Ash_Demo_Exporter {
 					'title'       => $item->post_title,
 					'type'        => $item->type,
 					'object'      => $item->object,
-					'object_id'   => 'post_type' === $item->type ? $this->post_token( $item->object_id ) : (string) $item->object_id,
+					'object_id'   => $this->menu_object_token( $item ),
 					'url'         => 'custom' === $item->type ? $item->url : '',
 					'parent'      => (int) $item->menu_item_parent,
 					'order'       => $item->menu_order,
@@ -811,6 +811,43 @@ class Prairie_Ash_Demo_Exporter {
 		}
 
 		return $out;
+	}
+
+	/**
+	 * The object a menu item points at, as a token the importer resolves.
+	 *
+	 * A page or a product is a post token, a category or another term a term
+	 * token, so the item points at the record it became on the new site. A
+	 * term of a taxonomy the export does not carry cannot be found there, and
+	 * a note says so.
+	 *
+	 * @since 1.2.1
+	 *
+	 * @param WP_Post $item Menu item.
+	 * @return string
+	 */
+	private function menu_object_token( $item ) {
+		if ( 'post_type' === $item->type ) {
+			return $this->post_token( $item->object_id );
+		}
+
+		if ( 'taxonomy' !== $item->type ) {
+			return (string) $item->object_id;
+		}
+
+		$exported = array( 'product_cat', 'product_tag' );
+
+		if ( function_exists( 'wc_get_attribute_taxonomies' ) ) {
+			foreach ( wc_get_attribute_taxonomies() as $attribute ) {
+				$exported[] = wc_attribute_taxonomy_name( $attribute->attribute_name );
+			}
+		}
+
+		if ( ! in_array( $item->object, $exported, true ) ) {
+			$this->notes[] = sprintf( 'The menu item %1$s points at a term of %2$s, which the export does not carry; it is left out on import.', $item->title, $item->object );
+		}
+
+		return '{{term:' . (int) $item->object_id . '}}';
 	}
 
 	/**
