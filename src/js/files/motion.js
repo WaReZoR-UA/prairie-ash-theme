@@ -1270,7 +1270,7 @@ document.addEventListener("click", (e) => {
 	const link = e.target.closest("a[href*='#']");
 	if (!link) return;
 	const url = new URL(link.href, location.href);
-	if (url.pathname !== location.pathname || url.search !== location.search || url.hash.length < 2) return;
+	if (url.origin !== location.origin || url.pathname !== location.pathname || url.search !== location.search || url.hash.length < 2) return;
 	const target = document.getElementById(decodeURIComponent(url.hash.slice(1)));
 	if (!target) return;
 	e.preventDefault();
