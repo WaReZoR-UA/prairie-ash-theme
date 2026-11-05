@@ -129,6 +129,8 @@ function prairie_ash_wording_registry() {
 			'privacy_link'        => array( 'Privacy link', 'Read the privacy policy' ),
 			'place_order'         => array( 'Place order button', 'Place order and pay [total]', 'text', '[total] is the total to pay.' ),
 			'back_to_cart'        => array( 'Link back to the cart', 'Back to cart' ),
+			'error_terms'         => array( 'Error, terms and conditions', 'Accept the terms and conditions to place the order', 'text', 'Shown only when a terms and conditions page is set under WooCommerce, Settings, Advanced. The box itself reads the text set there.' ),
+			'create_account'      => array( 'Create an account box', 'Create an account for my next order', 'text', 'Shown only when WooCommerce lets a guest create an account at checkout.' ),
 		),
 		'Order received' => array(
 			'received_eyebrow'     => array( 'Small title', 'Order placed [date]', 'text', '[date] is the day of the order.' ),
