@@ -3,6 +3,7 @@
 // without JavaScript.
 import { formValidate } from "../files/forms/forms.js";
 import { buildErrorSummary } from "../files/script.js";
+import { addedWords, stillStamp } from "../files/product-added.js";
 
 const data = window.prairieAsh || {};
 const $ = window.jQuery;
@@ -56,13 +57,23 @@ document.addEventListener("click", async (event) => {
 	button.removeAttribute("aria-busy");
 });
 
-// Product page: Add to cart stays on the page, as the design stamps the press on the price line and
+// Product page: Add to cart stays on the page, as the design stamps the added coffee on the price line and
 // announces it. The form is posted to its own address, which runs WooCommerce's add-to-cart handler
 // exactly as the plain post does, and the header cart links are taken from the page that comes back.
-// An error, or a failed request, posts the form for real, so WooCommerce shows its notice.
+// An error, or a failed request, posts the form for real, so WooCommerce shows its notice. Only a clean
+// answer is confirmed: the words are read out here, and the stamp is struck by the motion layer when it
+// takes the "pa:added" event, or laid on still when it does not (reduced motion, or its chunk not in yet).
 const productForm = document.querySelector("form.product-summary__form");
 if (productForm) {
 	let plain = false;
+	const added = (body) => {
+		const count = Math.max(1, parseInt(body.get("quantity"), 10) || 1);
+		const name = document.querySelector('[data-motion="product-sign"] h1');
+		const words = addedWords(count, name ? name.textContent.trim() : "");
+		announce(name ? words.status : data.addedLabel || "");
+		const event = new CustomEvent("pa:added", { cancelable: true, detail: { count, stamp: words.stamp } });
+		if (productForm.dispatchEvent(event)) stillStamp(productForm, words.stamp);
+	};
 	productForm.addEventListener("submit", async (event) => {
 		const button = event.submitter;
 		if (plain || !button || button.name !== "add-to-cart" || !window.fetch || !window.DOMParser) return;
@@ -74,9 +85,9 @@ if (productForm) {
 			productForm.removeAttribute("aria-busy");
 			productForm.requestSubmit(button);
 		};
+		const body = new FormData(productForm);
+		body.set(button.name, button.value);
 		try {
-			const body = new FormData(productForm);
-			body.set(button.name, button.value);
 			const response = await fetch(productForm.action, { method: "POST", body, credentials: "same-origin" });
 			if (!response.ok) return postForReal();
 			const page = new DOMParser().parseFromString(await response.text(), "text/html");
@@ -89,6 +100,7 @@ if (productForm) {
 			return postForReal();
 		}
 		productForm.removeAttribute("aria-busy");
+		added(body);
 	});
 }
 
