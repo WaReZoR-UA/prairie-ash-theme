@@ -69,6 +69,14 @@ export function formFieldsInit(options = { viewPass: false, autoHeight: false })
 		}
 	}
 }
+// A field's description list gains or loses one id, keeping the hint ids it already had
+let errorSeq = 0;
+function describedBy(field, id, add) {
+	const ids = (field.getAttribute('aria-describedby') || '').split(/\s+/).filter((x) => x && x !== id);
+	if (add) ids.push(id);
+	if (ids.length) field.setAttribute('aria-describedby', ids.join(' '));
+	else field.removeAttribute('aria-describedby');
+}
 // Валідація форм
 export let formValidate = {
 	getErrors(form) {
@@ -86,7 +94,7 @@ export let formValidate = {
 	validateInput(formRequiredItem) {
 		let error = 0;
 		if (formRequiredItem.dataset.required === "email") {
-			formRequiredItem.value = formRequiredItem.value.replace(" ", "");
+			formRequiredItem.value = formRequiredItem.value.trim();
 			if (this.emailTest(formRequiredItem)) {
 				this.addError(formRequiredItem);
 				error++;
@@ -109,18 +117,30 @@ export let formValidate = {
 	addError(formRequiredItem) {
 		formRequiredItem.classList.add('_form-error');
 		formRequiredItem.parentElement.classList.add('_form-error');
-		let inputError = formRequiredItem.parentElement.querySelector('.form__error');
-		if (inputError) formRequiredItem.parentElement.removeChild(inputError);
+		this.removeMessage(formRequiredItem);
+		formRequiredItem.setAttribute('aria-invalid', 'true');
 		if (formRequiredItem.dataset.error) {
-			formRequiredItem.parentElement.insertAdjacentHTML('beforeend', `<div class="form__error">${formRequiredItem.dataset.error}</div>`);
+			// the message is text, never markup, and it describes the field it belongs to
+			const message = document.createElement('div');
+			message.className = 'form__error';
+			if (!formRequiredItem.id && !formRequiredItem.dataset.errorId) formRequiredItem.dataset.errorId = `form-field-${++errorSeq}`;
+			message.id = `${formRequiredItem.id || formRequiredItem.dataset.errorId}-error`;
+			message.textContent = formRequiredItem.dataset.error;
+			formRequiredItem.parentElement.append(message);
+			describedBy(formRequiredItem, message.id, true);
 		}
 	},
 	removeError(formRequiredItem) {
 		formRequiredItem.classList.remove('_form-error');
 		formRequiredItem.parentElement.classList.remove('_form-error');
-		if (formRequiredItem.parentElement.querySelector('.form__error')) {
-			formRequiredItem.parentElement.removeChild(formRequiredItem.parentElement.querySelector('.form__error'));
-		}
+		formRequiredItem.removeAttribute('aria-invalid');
+		this.removeMessage(formRequiredItem);
+	},
+	removeMessage(formRequiredItem) {
+		formRequiredItem.parentElement.querySelectorAll('.form__error').forEach((message) => {
+			if (message.id) describedBy(formRequiredItem, message.id, false);
+			message.remove();
+		});
 	},
 	formClean(form) {
 		form.reset();
@@ -151,7 +171,8 @@ export let formValidate = {
 		}, 0);
 	},
 	emailTest(formRequiredItem) {
-		return !/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,8})+$/.test(formRequiredItem.value);
+		// a light check of the shape only: one @, no spaces, a dot in the domain. The server has the last word.
+		return !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formRequiredItem.value);
 	}
 }
 /* Відправлення форм */
