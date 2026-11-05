@@ -111,21 +111,62 @@ if (productForm) {
 	});
 }
 
-// Cart: a changed quantity updates the cart at once, through WooCommerce's own update handler.
+// Cart: a changed quantity updates the cart at once, through WooCommerce's own update handler. Steps
+// clicked on the spinner are gathered for half a second; a visitor who leaves within it does not lose them:
+// Go to checkout sends the update with WooCommerce's own "proceed", which goes on to the checkout, and any
+// other way off the page sends it on its way first.
 const cartForm = document.querySelector("[data-cart-form]");
 if (cartForm) {
 	let timer = null;
+	const flag = (name) => {
+		const input = document.createElement("input");
+		input.type = "hidden";
+		input.name = name;
+		input.value = "1";
+		cartForm.append(input);
+	};
+	const update = (proceed = false) => {
+		window.clearTimeout(timer);
+		timer = null;
+		flag("update_cart");
+		if (proceed) flag("proceed");
+		cartForm.submit();
+	};
 	cartForm.addEventListener("change", (event) => {
 		if (!event.target.matches("[data-cart-quantity]")) return;
 		window.clearTimeout(timer);
-		timer = window.setTimeout(() => {
-			const flag = document.createElement("input");
-			flag.type = "hidden";
-			flag.name = "update_cart";
-			flag.value = "1";
-			cartForm.append(flag);
-			cartForm.submit();
-		}, 500);
+		timer = window.setTimeout(() => update(), 500);
+	});
+	// a submit of the form itself (Enter, a remove button) carries the quantities with it
+	cartForm.addEventListener("submit", () => {
+		window.clearTimeout(timer);
+		timer = null;
+	});
+	const checkoutLink = document.querySelector(".cart-summary__actions a.button");
+	document.addEventListener("click", (event) => {
+		if (!timer || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+		const link = event.target.closest("a[href]");
+		if (!link || (link.target && link.target !== "_self")) return;
+		const url = new URL(link.href, location.href);
+		// a link within this page leaves nothing behind
+		if (url.origin === location.origin && url.pathname === location.pathname && url.search === location.search && url.hash) return;
+		event.preventDefault();
+		if (link === checkoutLink) update(true);
+		else {
+			const body = new FormData(cartForm);
+			body.set("update_cart", "1");
+			window.clearTimeout(timer);
+			timer = null;
+			fetch(cartForm.action, { method: "POST", body, credentials: "same-origin", keepalive: true }).finally(() => (window.location.href = link.href));
+		}
+	}, true);
+	window.addEventListener("pagehide", () => {
+		if (!timer) return;
+		const body = new FormData(cartForm);
+		body.set("update_cart", "1");
+		window.clearTimeout(timer);
+		timer = null;
+		navigator.sendBeacon(cartForm.action, body);
 	});
 }
 
