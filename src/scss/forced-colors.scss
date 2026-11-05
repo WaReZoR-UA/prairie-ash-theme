@@ -1,0 +1,62 @@
+@use "shared" as *;
+
+// Windows contrast themes (forced colours). The browser then replaces every colour with the system palette
+// and drops box shadows, and the design draws its focus fill, its field and checkbox strokes, the outline
+// button frame and the current-page bar with exactly those. Each one is drawn again here as an outline in a
+// system colour, which takes no room, so nothing moves. The 2 px rest stroke and the 4 px active stroke of
+// the design are kept. Only this mode reads these rules.
+@media (forced-colors: active) {
+	// Focus, wherever it lands: Highlight, the system's own focus colour. The design's focus rules set no
+	// outline on purpose, so this one has to outrank them.
+	:focus-visible,
+	.checkbox__input:focus-visible + .checkbox__label,
+	.options__input:focus-visible + .options__label {
+		outline: toRem(3) solid Highlight !important;
+		outline-offset: toRem(2) !important;
+	}
+
+	// Strokes: fields, checkbox boxes, choice buttons, every button (the filled ones lose their fill) and the error panel
+	.input,
+	.checkbox__label::before,
+	.options__label,
+	.button {
+		outline: toRem(2) solid CanvasText;
+		outline-offset: toRem(-2);
+	}
+	.input:active,
+	.input._form-error,
+	.checkbox__input._form-error + .checkbox__label::before,
+	.error-summary.error-summary--panel {
+		outline: toRem(4) solid CanvasText;
+		outline-offset: toRem(-4);
+	}
+	.input:focus-visible,
+	.input._form-focus {
+		outline: toRem(4) solid Highlight !important;
+		outline-offset: toRem(-4) !important;
+	}
+
+	// Checked: the box and the choice fill with Highlight, as native controls do in this mode. The fill the
+	// product form wipes in under a choice gives way to it.
+	.checkbox__input:checked + .checkbox__label::before {
+		forced-color-adjust: none;
+		background-color: Highlight !important;
+	}
+	.options__input:checked + .options__label {
+		forced-color-adjust: none;
+		background-color: Highlight !important;
+		color: HighlightText !important;
+		&::after {
+			display: none;
+		}
+	}
+
+	// Current page: the 4 px bar becomes the link's own underline, drawn in full
+	.nav-link[aria-current="page"],
+	.nav-link--current {
+		&::after {
+			transform: scaleX(1);
+			border-top-width: toRem(4);
+		}
+	}
+}

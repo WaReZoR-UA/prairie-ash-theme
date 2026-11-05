@@ -70,3 +70,6 @@
 @use "shipping-motion";
 @use "privacy-motion";
 @use "accessibility-motion";
+
+// Windows contrast themes, after every page so the rules win at equal specificity
+@use "forced-colors";
