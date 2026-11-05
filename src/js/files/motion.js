@@ -1175,6 +1175,27 @@ function stackIn({ s, next }, cleanups) {
 		.fromTo(shade, { opacity: 0 }, { opacity: 0.55, duration: 1 }, 0);
 }
 
+// Keyboard focus never lands on a control still drawn faint by the scroll: Tab brings a control in at the bottom
+// edge of the window, where its entrance has barely begun, so the scroll-driven entrance that fades the focused
+// element, or the block holding it, is finished at once and left finished
+function focusFinishes(cleanups) {
+	const fades = (tween) => !!tween.vars && ("opacity" in tween.vars || "autoAlpha" in tween.vars);
+	const onFocus = (e) => {
+		const el = e.target;
+		if (!(el instanceof Element)) return;
+		ScrollTrigger.getAll().forEach((t) => {
+			const anim = t.animation;
+			if (!anim || !t.vars.scrub || anim.progress() === 1) return;
+			const tweens = anim.getChildren ? anim.getChildren(true, true, false) : [anim];
+			if (!tweens.some((tw) => fades(tw) && tw.targets().some((x) => x instanceof Element && x.contains(el)))) return;
+			t.kill(false, true);
+			anim.progress(1);
+		});
+	};
+	document.addEventListener("focusin", onFocus);
+	cleanups.push(() => document.removeEventListener("focusin", onFocus));
+}
+
 // ScrollSmoother on a wide screen with a fine pointer; touch keeps native scrolling
 function smoothIn(cleanups) {
 	const content = document.querySelector(".wrapper");
@@ -1296,6 +1317,7 @@ function motionLayer(ctx) {
 	leavesIn(scopes.flatMap((scope) => collectLeaves(scope, owned)).filter((el) => !insideScene(el) && !el.matches(TOTALS)), ctx, cleanups, alive, wide);
 	wordmarksIn(inScopes('[data-motion="wordmark"]'), cleanups, fine && wide);
 	progressIn(ctx, cleanups, alive);
+	focusFinishes(cleanups);
 
 	// measure again with the final fonts and splits
 	fontsReady.then(() => {
