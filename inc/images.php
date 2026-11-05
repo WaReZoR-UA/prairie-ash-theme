@@ -336,17 +336,132 @@ function prairie_ash_image_log( $line = null ) {
 }
 
 /**
+ * Read an option from the database rather than from what this request
+ * cached of it.
+ *
+ * Several requests can change the image records at the same time: an
+ * upload, the import, the repair. A value cached at the start of a request
+ * may already be out of date when it is changed and written back.
+ *
+ * @since 1.2.1
+ *
+ * @param string $option   Option name.
+ * @param mixed  $fallback Value when the option does not exist.
+ * @return mixed
+ */
+function prairie_ash_image_fresh_option( $option, $fallback = false ) {
+	wp_cache_delete( $option, 'options' );
+
+	$missing = wp_cache_get( 'notoptions', 'options' );
+
+	if ( is_array( $missing ) && isset( $missing[ $option ] ) ) {
+		unset( $missing[ $option ] );
+		wp_cache_set( 'notoptions', $missing, 'options' );
+	}
+
+	return get_option( $option, $fallback );
+}
+
+/**
+ * Take or give back one of the theme's image locks.
+ *
+ * Core's own upgrader lock: an INSERT IGNORE of an option, which only one
+ * request can win, unlike add_option(), which checks and then writes. A lock
+ * older than its timeout belongs to a request that died, and is taken over.
+ *
+ * @since 1.2.1
+ *
+ * @param string $name    Lock name.
+ * @param bool   $take    True to take the lock, false to give it back.
+ * @param int    $timeout Seconds after which a lock is taken over.
+ * @param float  $wait    Seconds to keep trying, 0 for one try.
+ * @return bool Whether the lock was taken, or given back.
+ */
+function prairie_ash_image_lock( $name, $take, $timeout = 30, $wait = 0.0 ) {
+	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+
+	if ( ! $take ) {
+		return WP_Upgrader::release_lock( $name );
+	}
+
+	$until = microtime( true ) + $wait;
+
+	do {
+		if ( WP_Upgrader::create_lock( $name, $timeout ) ) {
+			return true;
+		}
+
+		if ( $wait > 0 ) {
+			usleep( 50000 );
+		}
+	} while ( microtime( true ) < $until );
+
+	return false;
+}
+
+/**
+ * Change one of the image record options without losing a change another
+ * request made at the same time.
+ *
+ * The option is read fresh and written back while a short lock is held. When
+ * the lock cannot be had within a few seconds, the change is written anyway,
+ * which at worst loses a record that the next run writes again.
+ *
+ * @since 1.2.1
+ *
+ * @param string   $option Option name.
+ * @param callable $change Receives the array stored and returns the new one.
+ * @return void
+ */
+function prairie_ash_change_image_records( $option, $change ) {
+	$locked  = prairie_ash_image_lock( 'prairie_ash_image_records', true, 30, 3.0 );
+	$records = prairie_ash_image_fresh_option( $option, array() );
+	$records = is_array( $records ) ? $records : array();
+	$changed = call_user_func( $change, $records );
+
+	if ( $changed !== $records ) {
+		update_option( $option, $changed, false );
+	}
+
+	if ( $locked ) {
+		prairie_ash_image_lock( 'prairie_ash_image_records', false );
+	}
+}
+
+/**
  * The copies that could not be written, as recorded.
  *
  * @since 1.2.1
  *
  * @return array Key of the copy to its record: attachment, file relative to
- *               the uploads folder, reason, and the pass it failed in.
+ *               the uploads folder, reason, the kind of failure, and the pass
+ *               it failed in.
  */
 function prairie_ash_image_failures() {
 	$failures = get_option( 'prairie_ash_image_failures', array() );
 
 	return is_array( $failures ) ? $failures : array();
+}
+
+/**
+ * The kind of a failure record.
+ *
+ * Crash is a copy that stopped the request writing it. Memory and time are
+ * copies skipped because they would not fit the server's limits. Editor,
+ * format and empty are copies the image editor failed to write. A record
+ * written by version 1.2.0 carries no kind and is read from its reason.
+ *
+ * @since 1.2.1
+ *
+ * @param array $record Failure record.
+ * @return string
+ */
+function prairie_ash_image_failure_type( $record ) {
+	if ( ! empty( $record['type'] ) ) {
+		return (string) $record['type'];
+	}
+
+	return str_starts_with( (string) ( $record['reason'] ?? '' ), 'the request stopped' ) ? 'crash' : 'editor';
 }
 
 /**
@@ -360,39 +475,111 @@ function prairie_ash_image_failures() {
  * @return void
  */
 function prairie_ash_set_image_failure( $key, $record ) {
-	$failures = prairie_ash_image_failures();
-
-	if ( null === $record ) {
-		if ( ! isset( $failures[ $key ] ) ) {
-			return;
-		}
-
-		unset( $failures[ $key ] );
-	} else {
-		$failures[ $key ] = $record;
-		prairie_ash_image_log( sprintf( 'Could not write %1$s: %2$s', $record['file'], $record['reason'] ) );
+	if ( null === $record && ! isset( prairie_ash_image_failures()[ $key ] ) ) {
+		return;
 	}
 
-	update_option( 'prairie_ash_image_failures', $failures, false );
+	prairie_ash_change_image_records(
+		'prairie_ash_image_failures',
+		static function ( $failures ) use ( $key, $record ) {
+			if ( null === $record ) {
+				unset( $failures[ $key ] );
+			} else {
+				$failures[ $key ] = $record;
+			}
+
+			return $failures;
+		}
+	);
+
+	if ( null !== $record ) {
+		prairie_ash_image_log( sprintf( 'Could not write %1$s: %2$s', $record['file'], $record['reason'] ) );
+	}
 }
 
 /**
  * The failures as lines for a screen or a terminal, file first.
  *
  * @since 1.2.1
+ * @since 1.2.1 Takes the attachments to list.
  *
+ * @param int[]|null $attachments Only the failures of these attachments, or
+ *                                null for every failure on the site.
  * @return string[]
  */
-function prairie_ash_image_failure_lines() {
+function prairie_ash_image_failure_lines( $attachments = null ) {
 	$lines = array();
 
 	foreach ( prairie_ash_image_failures() as $record ) {
+		if ( null !== $attachments && ! in_array( (int) ( $record['attachment'] ?? 0 ), $attachments, true ) ) {
+			continue;
+		}
+
 		$lines[] = $record['file'] . ': ' . $record['reason'];
 	}
 
 	sort( $lines );
 
 	return $lines;
+}
+
+/**
+ * Drop the failure records that no longer describe a copy the theme would
+ * write.
+ *
+ * A record outlives its reason when the size it names was removed from the
+ * metadata, when the source file is gone, when the image is no longer a JPEG
+ * or a PNG, or when the server no longer writes that format. Runs when an
+ * import or a repair starts, so the screen, the import and the command line
+ * stop reporting copies nobody can repair. Waiting marks of attachments that
+ * no longer get copies go the same way.
+ *
+ * @since 1.2.1
+ *
+ * @return void
+ */
+function prairie_ash_prune_image_records() {
+	$is_target = static function ( $attachment_id, $name, $mime ) {
+		$data = wp_get_attachment_metadata( $attachment_id );
+		$full = prairie_ash_image_source( $data );
+
+		if ( '' === $full || ! in_array( $mime, prairie_ash_image_formats(), true ) ) {
+			return false;
+		}
+
+		$targets = prairie_ash_image_targets( $data, $full );
+
+		return isset( $targets[ $name ] ) && file_exists( $targets[ $name ][0] );
+	};
+
+	prairie_ash_change_image_records(
+		'prairie_ash_image_failures',
+		static function ( $failures ) use ( $is_target ) {
+			foreach ( array_keys( $failures ) as $key ) {
+				$parts = explode( ':', (string) $key, 3 );
+
+				if ( 3 !== count( $parts ) || ! $is_target( (int) $parts[0], $parts[1], $parts[2] ) ) {
+					unset( $failures[ $key ] );
+				}
+			}
+
+			return $failures;
+		}
+	);
+
+	prairie_ash_change_image_records(
+		'prairie_ash_image_pending',
+		static function ( $pending ) {
+			return array_values(
+				array_filter(
+					array_map( 'absint', $pending ),
+					static function ( $attachment_id ) {
+						return '' !== prairie_ash_image_source( wp_get_attachment_metadata( $attachment_id ) );
+					}
+				)
+			);
+		}
+	);
 }
 
 /**
@@ -418,16 +605,263 @@ function prairie_ash_image_pending() {
  * @return void
  */
 function prairie_ash_set_image_pending( $attachment_id, $waiting ) {
-	$pending = prairie_ash_image_pending();
-	$listed  = in_array( (int) $attachment_id, $pending, true );
+	$attachment_id = (int) $attachment_id;
 
-	if ( $waiting === $listed ) {
+	if ( in_array( $attachment_id, prairie_ash_image_pending(), true ) === $waiting ) {
 		return;
 	}
 
-	$pending = $waiting ? array_merge( $pending, array( (int) $attachment_id ) ) : array_diff( $pending, array( (int) $attachment_id ) );
+	prairie_ash_change_image_records(
+		'prairie_ash_image_pending',
+		static function ( $pending ) use ( $attachment_id, $waiting ) {
+			$pending = array_diff( array_map( 'absint', $pending ), array( $attachment_id ) );
 
-	update_option( 'prairie_ash_image_pending', array_values( $pending ), false );
+			if ( $waiting ) {
+				$pending[] = $attachment_id;
+			}
+
+			return array_values( $pending );
+		}
+	);
+}
+
+/**
+ * A token for this request, so its notes can be told from another's.
+ *
+ * @since 1.2.1
+ *
+ * @return string
+ */
+function prairie_ash_image_request_token() {
+	static $token = '';
+
+	if ( '' === $token ) {
+		$token = wp_generate_uuid4();
+	}
+
+	return $token;
+}
+
+/**
+ * Start an import share or a repair share, or end one.
+ *
+ * Only one share of either runs at a time on a site, whichever screen, tab or
+ * terminal started it, because two of them would write the same copies at
+ * once. The lock is given back when the share ends, also when it ends at a
+ * fatal error, and a lock left by a request the server killed outright is
+ * taken over after two minutes.
+ *
+ * @since 1.2.1
+ *
+ * @param bool $begin True to start a share, false to end it.
+ * @return true|WP_Error True, or an error when another share is running.
+ */
+function prairie_ash_image_run( $begin ) {
+	if ( ! $begin ) {
+		if ( prairie_ash_image_holds_run() ) {
+			prairie_ash_image_lock( 'prairie_ash_image_run', false );
+			prairie_ash_image_holds_run( false );
+		}
+
+		return true;
+	}
+
+	if ( prairie_ash_image_holds_run() ) {
+		return true;
+	}
+
+	if ( ! prairie_ash_image_lock( 'prairie_ash_image_run', true, 2 * MINUTE_IN_SECONDS ) ) {
+		return new WP_Error(
+			'prairie_ash_image_running',
+			__( 'Another import or image copy repair is running on this site, or one stopped less than two minutes ago. Wait a little and press the button again.', 'prairie-ash' )
+		);
+	}
+
+	prairie_ash_image_holds_run( true );
+	prairie_ash_image_watch_shutdown();
+
+	// The single marker of version 1.2.0, which any request could overwrite.
+	if ( false !== get_option( 'prairie_ash_image_busy' ) ) {
+		delete_option( 'prairie_ash_image_busy' );
+	}
+
+	return true;
+}
+
+/**
+ * Whether this request holds the import and repair lock.
+ *
+ * @since 1.2.1
+ *
+ * @param bool|null $holds True or false to set, null to read.
+ * @return bool
+ */
+function prairie_ash_image_holds_run( $holds = null ) {
+	static $held = false;
+
+	if ( null !== $holds ) {
+		$held = (bool) $holds;
+	}
+
+	return $held;
+}
+
+/**
+ * Whether the share running in this request has to stop now and answer.
+ *
+ * Set when the share found a copy that stopped an earlier request. The
+ * share then ends at once and answers, so a screen that counts the requests
+ * that never answered sees progress after each such copy rather than a run
+ * of failures it gives up on.
+ *
+ * @since 1.2.1
+ *
+ * @param bool|null $stop True to stop, null to read.
+ * @return bool
+ */
+function prairie_ash_image_share_stopped( $stop = null ) {
+	static $stopped = false;
+
+	if ( null !== $stop ) {
+		$stopped = (bool) $stop;
+	}
+
+	return $stopped;
+}
+
+/**
+ * Whether the previous share died while it wrote a copy, which the share
+ * starting now reports instead of doing anything else. Reading it clears it.
+ *
+ * @since 1.2.1
+ *
+ * @return bool
+ */
+function prairie_ash_image_take_crash_note() {
+	if ( ! prairie_ash_image_fresh_option( 'prairie_ash_image_crash_note' ) ) {
+		return false;
+	}
+
+	delete_option( 'prairie_ash_image_crash_note' );
+
+	return true;
+}
+
+/**
+ * The option that marks a copy as being written.
+ *
+ * One option per copy, so two requests writing different copies never touch
+ * each other's mark.
+ *
+ * @since 1.2.1
+ *
+ * @param string $key Attachment ID, size name and MIME type.
+ * @return string
+ */
+function prairie_ash_image_marker_option( $key ) {
+	return 'prairie_ash_image_busy_' . md5( $key );
+}
+
+/**
+ * The copy this request is writing right now, for the shutdown check.
+ *
+ * @since 1.2.1
+ *
+ * @param array|false|null $write The copy as it starts, false when it is
+ *                                finished, null to read.
+ * @return array|null
+ */
+function prairie_ash_image_current_write( $write = null ) {
+	static $current = null;
+
+	if ( false === $write ) {
+		$current = null;
+	} elseif ( null !== $write ) {
+		$current = $write;
+	}
+
+	return $current;
+}
+
+/**
+ * Watch for the end of the request once, to catch a copy it dies on.
+ *
+ * @since 1.2.1
+ *
+ * @return void
+ */
+function prairie_ash_image_watch_shutdown() {
+	static $watching = false;
+
+	if ( ! $watching ) {
+		$watching = true;
+		register_shutdown_function( 'prairie_ash_image_shutdown' );
+	}
+}
+
+/**
+ * Report the copy a request died on, and give its lock back.
+ *
+ * PHP runs shutdown functions after a fatal error, the memory and the time
+ * limit included, so the request that dies records its own copy as failed,
+ * deletes what the encoder left of it, and leaves a note so the next share
+ * answers at once. A request the server kills outright runs nothing, and its
+ * mark on the copy is found by the next request that reaches that copy.
+ *
+ * @since 1.2.1
+ *
+ * @return void
+ */
+function prairie_ash_image_shutdown() {
+	$write = prairie_ash_image_current_write();
+
+	if ( $write ) {
+		$limit = wp_convert_hr_to_bytes( (string) ini_get( 'memory_limit' ) );
+
+		if ( $limit > 0 ) {
+			// What the encoder took is still held, and the records need a little room of their own.
+			add_filter(
+				'prairie_ash_shutdown_memory_limit',
+				static function () use ( $limit ) {
+					return (string) ( $limit + 64 * MB_IN_BYTES );
+				}
+			);
+			wp_raise_memory_limit( 'prairie_ash_shutdown' );
+		}
+
+		$error  = error_get_last();
+		$reason = 'the request stopped while this copy was being written, most likely at the memory or time limit of the server.';
+
+		if ( $error && str_contains( (string) $error['message'], 'Allowed memory size' ) ) {
+			$reason = sprintf( 'the request ran out of memory while this copy was being written, at the memory limit of %d MB.', floor( $limit / MB_IN_BYTES ) );
+		} elseif ( $error && str_contains( (string) $error['message'], 'Maximum execution time' ) ) {
+			$reason = sprintf( 'the request ran out of time while this copy was being written, at the time limit of %d seconds.', (int) ini_get( 'max_execution_time' ) );
+		}
+
+		prairie_ash_image_current_write( false );
+		delete_option( prairie_ash_image_marker_option( $write['key'] ) );
+
+		if ( file_exists( $write['copy'] ) ) {
+			wp_delete_file( $write['copy'] );
+		}
+
+		prairie_ash_set_image_failure(
+			$write['key'],
+			array(
+				'attachment' => (int) $write['attachment'],
+				'file'       => $write['file'],
+				'reason'     => $reason,
+				'type'       => 'crash',
+				'pass'       => $write['pass'],
+			)
+		);
+
+		if ( prairie_ash_image_holds_run() ) {
+			update_option( 'prairie_ash_image_crash_note', time(), false );
+		}
+	}
+
+	prairie_ash_image_run( false );
 }
 
 /**
@@ -563,15 +997,51 @@ function prairie_ash_image_stray_output( $saved, $copy, $mime ) {
 }
 
 /**
+ * Whether a copy on disk is usable and at least as new as its source.
+ *
+ * The one test both the writer and the count use, so the screen never says
+ * every copy is there while the repair would write one again.
+ *
+ * @since 1.2.1
+ *
+ * @param string $copy   Absolute path of the copy.
+ * @param string $source Absolute path of the file it is made from.
+ * @param string $mime   MIME type the copy has to be.
+ * @return bool
+ */
+function prairie_ash_image_copy_is_current( $copy, $source, $mime ) {
+	return prairie_ash_is_image_copy( $copy, $mime ) && filemtime( $copy ) >= filemtime( $source );
+}
+
+/**
+ * Whether another request is writing a copy right now.
+ *
+ * @since 1.2.1
+ *
+ * @param string $key Attachment ID, size name and MIME type.
+ * @return bool
+ */
+function prairie_ash_image_copy_in_progress( $key ) {
+	$mark = prairie_ash_image_fresh_option( prairie_ash_image_marker_option( $key ) );
+
+	return is_array( $mark ) && ( $mark['token'] ?? '' ) !== prairie_ash_image_request_token() && time() <= (int) ( $mark['until'] ?? 0 );
+}
+
+/**
  * Write one copy, or say why it was not written.
  *
- * Before the encoder starts, the copy has to fit: in the memory PHP has left,
- * and in the time the request has left. A copy that could never fit is
- * reported and skipped. A copy that does not fit in what is left of this
- * request waits for the next one, except as the first copy of a request, so
- * every request writes at least one. The copy being written is noted in an
- * option first: when the request dies inside the encoder, the next attempt
- * finds the note and reports the copy instead of dying on it again.
+ * Before the encoder starts, the copy has to fit: in the memory and in the
+ * time the request has. A copy that could never fit under the server's
+ * limits is reported and skipped. A copy that does not fit in what is left of
+ * this request waits for the next one, except as the first copy of an import
+ * or repair share, which would otherwise wait for ever.
+ *
+ * The copy being written is marked in an option of its own first. When the
+ * request dies inside the encoder, its shutdown check reports the copy; when
+ * the server kills it outright, the next request to reach the copy finds the
+ * mark and reports it. A copy that stopped a request is not tried again on
+ * an ordinary metadata write, only by an import or a repair, so an image
+ * edit never dies on it a second time.
  *
  * A failed or empty output is deleted at once, so no empty file is ever on
  * disk to be taken for a copy.
@@ -584,10 +1054,12 @@ function prairie_ash_image_stray_output( $saved, $copy, $mime ) {
  * @param array  $target        Source path, width and height of the size.
  * @param string $mime          Target MIME type.
  * @param string $pass          The import or repair run this belongs to, so a
- *                              copy that failed is tried once per run.
- * @return true|WP_Error True when written, a prairie_ash_image_later error
- *                       when it waits for the next request, any other error
- *                       when it failed.
+ *                              copy that failed is tried once per run, or an
+ *                              empty string outside a run.
+ * @return true|WP_Error True when written; a prairie_ash_image_later error
+ *                       when it waits for the next request; a
+ *                       prairie_ash_image_busy error when another request is
+ *                       writing it; any other error when it failed.
  */
 function prairie_ash_write_image_copy( $attachment_id, $data, $name, $target, $mime, $pass = '' ) {
 	static $started = false;
@@ -600,8 +1072,9 @@ function prairie_ash_write_image_copy( $attachment_id, $data, $name, $target, $m
 	$key      = $attachment_id . ':' . $name . ':' . $mime;
 	$folder   = dirname( $data['file'] );
 	$relative = ( '.' === $folder ? '' : $folder . '/' ) . wp_basename( $copy );
-	$failures = prairie_ash_image_failures();
-	$fail     = static function ( $reason ) use ( $key, $attachment_id, $relative, $copy, $pass ) {
+	$record   = prairie_ash_image_failures()[ $key ] ?? null;
+	$marker   = prairie_ash_image_marker_option( $key );
+	$fail     = static function ( $type, $reason ) use ( $key, $attachment_id, $relative, $copy, $pass ) {
 		if ( file_exists( $copy ) ) {
 			wp_delete_file( $copy );
 		}
@@ -612,6 +1085,7 @@ function prairie_ash_write_image_copy( $attachment_id, $data, $name, $target, $m
 				'attachment' => (int) $attachment_id,
 				'file'       => $relative,
 				'reason'     => $reason,
+				'type'       => $type,
 				'pass'       => $pass,
 			)
 		);
@@ -619,17 +1093,30 @@ function prairie_ash_write_image_copy( $attachment_id, $data, $name, $target, $m
 		return new WP_Error( 'prairie_ash_image_failed', $reason );
 	};
 
-	if ( isset( $failures[ $key ] ) && ( isset( $tried[ $key ] ) || ( '' !== $pass && $pass === $failures[ $key ]['pass'] ) ) ) {
-		return new WP_Error( 'prairie_ash_image_failed', $failures[ $key ]['reason'] );
+	if ( $record && ( isset( $tried[ $key ] ) || ( '' === $pass && 'crash' === prairie_ash_image_failure_type( $record ) ) || ( '' !== $pass && $pass === $record['pass'] ) ) ) {
+		return new WP_Error( 'prairie_ash_image_failed', $record['reason'] );
+	}
+
+	$mark = prairie_ash_image_fresh_option( $marker );
+
+	if ( is_array( $mark ) && ( $mark['token'] ?? '' ) !== prairie_ash_image_request_token() ) {
+		// A share holds the run lock alone, so another share's mark can only be left by a request that died.
+		$dead = time() > (int) ( $mark['until'] ?? 0 ) || ( ! empty( $mark['run'] ) && prairie_ash_image_holds_run() );
+
+		if ( ! $dead ) {
+			return new WP_Error( 'prairie_ash_image_busy', 'Another request is writing this copy.' );
+		}
+
+		delete_option( $marker );
+
+		if ( prairie_ash_image_holds_run() ) {
+			prairie_ash_image_share_stopped( true );
+		}
+
+		return $fail( 'crash', 'the request stopped while this copy was being written, most likely at the memory or time limit of the server.' );
 	}
 
 	$tried[ $key ] = true;
-
-	if ( get_option( 'prairie_ash_image_busy' ) === $key ) {
-		delete_option( 'prairie_ash_image_busy' );
-
-		return $fail( 'the request stopped while this copy was being written, most likely at the memory or time limit of the server.' );
-	}
 
 	$source_pixels = (int) $data['width'] * (int) $data['height'];
 	$target_pixels = $width ? $width * $height : $source_pixels;
@@ -641,8 +1128,25 @@ function prairie_ash_write_image_copy( $attachment_id, $data, $name, $target, $m
 	// Memory PHP freed and keeps cached is handed back when a new block needs it, so live usage is what counts.
 	$free = $limit - memory_get_usage();
 
-	if ( $limit > 0 && $need > $free ) {
+	if ( $limit > 0 && $need > $limit ) {
 		return $fail(
+			'memory',
+			sprintf(
+				'skipped, it needs about %1$d MB of memory, more than the memory limit of %2$d MB.',
+				ceil( $need / MB_IN_BYTES ),
+				floor( $limit / MB_IN_BYTES )
+			)
+		);
+	}
+
+	if ( $limit > 0 && $need > $free ) {
+		// An upload holds the decoded original while core makes its sizes, so a later request has more room.
+		if ( $started || '' === $pass ) {
+			return new WP_Error( 'prairie_ash_image_later', 'Not enough memory left in this request.' );
+		}
+
+		return $fail(
+			'memory',
 			sprintf(
 				'skipped, it needs about %1$d MB of memory and %2$d MB are free under the memory limit of %3$d MB.',
 				ceil( $need / MB_IN_BYTES ),
@@ -658,7 +1162,7 @@ function prairie_ash_write_image_copy( $attachment_id, $data, $name, $target, $m
 		$estimate = prairie_ash_image_copy_seconds( $target_pixels, $mime );
 
 		if ( $estimate > $seconds * 0.6 ) {
-			return $fail( sprintf( 'skipped, it would take longer than the time limit of %d seconds allows.', $seconds ) );
+			return $fail( 'time', sprintf( 'skipped, it would take longer than the time limit of %d seconds allows.', $seconds ) );
 		}
 
 		if ( $started && timer_float() + max( $estimate * 3, $estimate + 5 ) > $seconds ) {
@@ -668,7 +1172,25 @@ function prairie_ash_write_image_copy( $attachment_id, $data, $name, $target, $m
 
 	$started = true;
 
-	update_option( 'prairie_ash_image_busy', $key, false );
+	update_option(
+		$marker,
+		array(
+			'token' => prairie_ash_image_request_token(),
+			'until' => time() + ( $seconds > 0 ? $seconds + 30 : 5 * MINUTE_IN_SECONDS ),
+			'run'   => prairie_ash_image_holds_run(),
+		),
+		false
+	);
+	prairie_ash_image_current_write(
+		array(
+			'key'        => $key,
+			'attachment' => (int) $attachment_id,
+			'file'       => $relative,
+			'copy'       => $copy,
+			'pass'       => $pass,
+		)
+	);
+	prairie_ash_image_watch_shutdown();
 
 	/**
 	 * Filters the writing of one AVIF or WebP copy before the encoder runs.
@@ -702,20 +1224,21 @@ function prairie_ash_write_image_copy( $attachment_id, $data, $name, $target, $m
 		unset( $editor );
 	}
 
-	delete_option( 'prairie_ash_image_busy' );
+	prairie_ash_image_current_write( false );
+	delete_option( $marker );
 
 	if ( is_wp_error( $saved ) ) {
-		return $fail( 'the image editor reported: ' . $saved->get_error_message() );
+		return $fail( 'editor', 'the image editor reported: ' . $saved->get_error_message() );
 	}
 
 	$stray = prairie_ash_image_stray_output( $saved, $copy, $mime );
 
 	if ( '' !== $stray ) {
-		return $fail( sprintf( 'the image editor on this server wrote %1$s instead of %2$s.', $stray, 'image/avif' === $mime ? 'AVIF' : 'WebP' ) );
+		return $fail( 'format', sprintf( 'the image editor on this server wrote %1$s instead of %2$s.', $stray, 'image/avif' === $mime ? 'AVIF' : 'WebP' ) );
 	}
 
 	if ( ! prairie_ash_is_image_copy( $copy, $mime ) ) {
-		return $fail( 'the image editor wrote an empty or unreadable file.' );
+		return $fail( 'empty', 'the image editor wrote an empty or unreadable file.' );
 	}
 
 	prairie_ash_set_image_failure( $key, null );
@@ -735,10 +1258,12 @@ function prairie_ash_write_image_copy( $attachment_id, $data, $name, $target, $m
  *                              prairie_ash_write_image_copy().
  * @param float  $until         Time a batch has to stop by, or 0 for none.
  * @return bool True when every copy was written or reported, false when the
- *              request ran out of time and the rest waits.
+ *              request ran out of time, a copy is being written by another
+ *              request, or the share has to stop, and the rest waits.
  */
 function prairie_ash_write_image_copies( $attachment_id, $data, $pass = '', $until = 0.0 ) {
 	$full = prairie_ash_image_source( $data );
+	$done = true;
 
 	if ( '' === $full ) {
 		return true;
@@ -746,18 +1271,21 @@ function prairie_ash_write_image_copies( $attachment_id, $data, $pass = '', $unt
 
 	foreach ( prairie_ash_image_formats() as $mime ) {
 		foreach ( prairie_ash_image_targets( $data, $full ) as $name => $target ) {
+			$key = $attachment_id . ':' . $name . ':' . $mime;
+
 			if ( ! file_exists( $target[0] ) ) {
+				prairie_ash_set_image_failure( $key, null );
 				continue;
 			}
 
 			$copy = prairie_ash_format_file_name( $target[0], $mime );
 
-			if ( prairie_ash_is_image_copy( $copy, $mime ) && filemtime( $copy ) >= filemtime( $target[0] ) ) {
-				prairie_ash_set_image_failure( $attachment_id . ':' . $name . ':' . $mime, null );
+			if ( prairie_ash_image_copy_is_current( $copy, $target[0], $mime ) ) {
+				prairie_ash_set_image_failure( $key, null );
 				continue;
 			}
 
-			if ( $until && microtime( true ) >= $until ) {
+			if ( prairie_ash_image_share_stopped() || ( $until && microtime( true ) >= $until ) ) {
 				return false;
 			}
 
@@ -766,10 +1294,14 @@ function prairie_ash_write_image_copies( $attachment_id, $data, $pass = '', $unt
 			if ( is_wp_error( $written ) && 'prairie_ash_image_later' === $written->get_error_code() ) {
 				return false;
 			}
+
+			if ( is_wp_error( $written ) && 'prairie_ash_image_busy' === $written->get_error_code() ) {
+				$done = false;
+			}
 		}
 	}
 
-	return true;
+	return $done && ! prairie_ash_image_share_stopped();
 }
 
 /**
@@ -779,14 +1311,16 @@ function prairie_ash_write_image_copies( $attachment_id, $data, $pass = '', $unt
  * A copy is recorded under a sources key beside its file only when it is a
  * usable image of its format. A record of a missing or empty copy is
  * dropped, and an empty or unreadable file is deleted, so the picture never
- * offers a browser a source it cannot show.
+ * offers a browser a source it cannot show. A file another request is
+ * writing right now is left alone.
  *
  * @since 1.2.1
  *
- * @param array $data Attachment metadata.
+ * @param array $data          Attachment metadata.
+ * @param int   $attachment_id Attachment ID, 0 when unknown.
  * @return array
  */
-function prairie_ash_record_image_formats( $data ) {
+function prairie_ash_record_image_formats( $data, $attachment_id = 0 ) {
 	$full = prairie_ash_image_source( $data );
 
 	if ( '' === $full ) {
@@ -805,7 +1339,7 @@ function prairie_ash_record_image_formats( $data ) {
 					'file'     => wp_basename( $copy ),
 					'filesize' => (int) wp_filesize( $copy ),
 				);
-			} elseif ( file_exists( $copy ) ) {
+			} elseif ( file_exists( $copy ) && ! prairie_ash_image_copy_in_progress( $attachment_id . ':' . $name . ':' . $mime ) ) {
 				wp_delete_file( $copy );
 			}
 		}
@@ -862,7 +1396,7 @@ function prairie_ash_add_image_formats( $data, $attachment_id ) {
 		prairie_ash_set_image_pending( $attachment_id, ! prairie_ash_write_image_copies( $attachment_id, $data ) );
 	}
 
-	return prairie_ash_record_image_formats( $data );
+	return prairie_ash_record_image_formats( $data, (int) $attachment_id );
 }
 add_filter( 'wp_update_attachment_metadata', 'prairie_ash_add_image_formats', 10, 2 );
 
@@ -902,25 +1436,35 @@ function prairie_ash_complete_image_copies( $attachment_id, $pass, $until = 0.0 
 /**
  * Every JPEG and PNG attachment, in the order the repair walks them.
  *
+ * Read once per request, so a share that counts and repairs asks the
+ * database once.
+ *
  * @since 1.2.1
  *
+ * @param bool $refresh Whether to read the list again.
  * @return int[] Attachment IDs, lowest first.
  */
-function prairie_ash_image_attachments() {
-	return array_map(
-		'absint',
-		get_posts(
-			array(
-				'post_type'      => 'attachment',
-				'post_status'    => 'inherit',
-				'post_mime_type' => array( 'image/jpeg', 'image/png' ),
-				'posts_per_page' => -1,
-				'orderby'        => 'ID',
-				'order'          => 'ASC',
-				'fields'         => 'ids',
+function prairie_ash_image_attachments( $refresh = false ) {
+	static $ids = null;
+
+	if ( null === $ids || $refresh ) {
+		$ids = array_map(
+			'absint',
+			get_posts(
+				array(
+					'post_type'      => 'attachment',
+					'post_status'    => 'inherit',
+					'post_mime_type' => array( 'image/jpeg', 'image/png' ),
+					'posts_per_page' => -1,
+					'orderby'        => 'ID',
+					'order'          => 'ASC',
+					'fields'         => 'ids',
+				)
 			)
-		)
-	);
+		);
+	}
+
+	return $ids;
 }
 
 /**
@@ -947,7 +1491,7 @@ function prairie_ash_repair_image_copies( $after, $pass, $until = 0.0 ) {
 			continue;
 		}
 
-		if ( $until && microtime( true ) >= $until ) {
+		if ( prairie_ash_image_share_stopped() || ( $until && microtime( true ) >= $until ) ) {
 			return $after;
 		}
 
@@ -966,32 +1510,32 @@ function prairie_ash_repair_image_copies( $after, $pass, $until = 0.0 ) {
 }
 
 /**
- * How many copies are missing or empty right now, without writing any.
+ * How many copies of one attachment are missing, empty, unreadable or older
+ * than their source, leaving out the ones recorded as failed.
  *
  * @since 1.2.1
  *
+ * @param int   $attachment_id Attachment ID.
+ * @param array $failures      The failure records.
  * @return int
  */
-function prairie_ash_missing_image_copies() {
+function prairie_ash_image_missing_copies_of( $attachment_id, $failures ) {
+	$data    = wp_get_attachment_metadata( $attachment_id );
+	$full    = prairie_ash_image_source( $data );
 	$missing = 0;
 
-	foreach ( prairie_ash_image_attachments() as $attachment_id ) {
-		$data = wp_get_attachment_metadata( $attachment_id );
-		$full = prairie_ash_image_source( $data );
+	if ( '' === $full ) {
+		return 0;
+	}
 
-		if ( '' === $full ) {
-			continue;
-		}
+	foreach ( prairie_ash_image_formats() as $mime ) {
+		foreach ( prairie_ash_image_targets( $data, $full ) as $name => $target ) {
+			if ( isset( $failures[ $attachment_id . ':' . $name . ':' . $mime ] ) || ! file_exists( $target[0] ) ) {
+				continue;
+			}
 
-		foreach ( prairie_ash_image_formats() as $mime ) {
-			foreach ( prairie_ash_image_targets( $data, $full ) as $target ) {
-				$copy = prairie_ash_format_file_name( $target[0], $mime );
-
-				clearstatcache( true, $copy );
-
-				if ( file_exists( $target[0] ) && ( ! is_file( $copy ) || wp_filesize( $copy ) < 1 ) ) {
-					++$missing;
-				}
+			if ( ! prairie_ash_image_copy_is_current( prairie_ash_format_file_name( $target[0], $mime ), $target[0], $mime ) ) {
+				++$missing;
 			}
 		}
 	}
@@ -1000,15 +1544,125 @@ function prairie_ash_missing_image_copies() {
 }
 
 /**
+ * Count the copies that are missing, as many images as fit in a time budget.
+ *
+ * The count is kept in an option with the place it reached, so a library of
+ * any size is counted in shares, and the Demo content screen shows the last
+ * count instead of reading every file on every visit. The repair sets it to
+ * none when it finishes, because a finished repair leaves no copy missing
+ * that is not listed as failed.
+ *
+ * @since 1.2.1
+ *
+ * @param bool  $carry_on Whether to carry on a count that is part way.
+ * @param float $until    Time to stop by, or 0 for none.
+ * @return array The count: missing, the last attachment counted, whether it
+ *               is done, and when it finished.
+ */
+function prairie_ash_count_image_copies( $carry_on, $until = 0.0 ) {
+	$state = get_option( 'prairie_ash_image_copies_count' );
+
+	if ( ! $carry_on || ! is_array( $state ) || ! empty( $state['done'] ) ) {
+		$state = array(
+			'missing' => 0,
+			'cursor'  => 0,
+			'done'    => false,
+			'time'    => 0,
+		);
+	}
+
+	$failures = prairie_ash_image_failures();
+	$ids      = array_values(
+		array_filter(
+			prairie_ash_image_attachments(),
+			static function ( $attachment_id ) use ( $state ) {
+				return $attachment_id > $state['cursor'];
+			}
+		)
+	);
+
+	foreach ( array_chunk( $ids, 100 ) as $chunk ) {
+		// One query for the posts and one for their metadata, rather than two per image.
+		_prime_post_caches( $chunk, false, true );
+
+		foreach ( $chunk as $attachment_id ) {
+			if ( $until && microtime( true ) >= $until ) {
+				update_option( 'prairie_ash_image_copies_count', $state, false );
+				return $state;
+			}
+
+			$state['missing'] += prairie_ash_image_missing_copies_of( $attachment_id, $failures );
+			$state['cursor']   = $attachment_id;
+		}
+
+		foreach ( $chunk as $attachment_id ) {
+			clean_post_cache( $attachment_id );
+		}
+	}
+
+	$state['done'] = true;
+	$state['time'] = time();
+
+	update_option( 'prairie_ash_image_copies_count', $state, false );
+
+	return $state;
+}
+
+/**
+ * The last finished count of missing copies, counted now when there is none
+ * yet and the library is small enough to count in a moment.
+ *
+ * @since 1.2.1
+ *
+ * @return array|null The count, or null when it is not known.
+ */
+function prairie_ash_image_copy_count() {
+	$state = get_option( 'prairie_ash_image_copies_count' );
+
+	if ( is_array( $state ) && ! empty( $state['done'] ) ) {
+		return $state;
+	}
+
+	if ( ! is_array( $state ) && count( prairie_ash_image_attachments() ) <= 300 ) {
+		return prairie_ash_count_image_copies( false );
+	}
+
+	return null;
+}
+
+/**
+ * Store a count of missing copies known without reading the files.
+ *
+ * @since 1.2.1
+ *
+ * @param int $missing Copies missing.
+ * @return void
+ */
+function prairie_ash_set_image_copy_count( $missing ) {
+	update_option(
+		'prairie_ash_image_copies_count',
+		array(
+			'missing' => (int) $missing,
+			'cursor'  => 0,
+			'done'    => true,
+			'time'    => time(),
+		),
+		false
+	);
+}
+
+/**
  * Delete the AVIF and WebP copies with their attachment.
  *
  * Core deletes the files its own metadata names and nothing under sources.
  * Every file at a copy's name is deleted, recorded or not, so an empty file
- * an encoder left behind goes as well. Runs before core removes the
- * metadata.
+ * an encoder left behind goes as well, and so do the copies of the sizes an
+ * image had before it was edited, which core keeps as backup sizes. Runs
+ * before core removes the metadata.
  *
  * @since 1.0.0
- * @since 1.2.1 Deletes unrecorded copies and the attachment's failure records.
+ * @since 1.2.1 Deletes unrecorded copies, the copies of backup sizes, and the
+ *              attachment's failure records.
  *
  * @param int $post_id Attachment ID.
  * @return void
@@ -1020,19 +1674,30 @@ function prairie_ash_delete_image_formats( $post_id ) {
 		return;
 	}
 
-	$base  = wp_get_upload_dir()['basedir'];
-	$full  = trailingslashit( $base ) . $meta['file'];
-	$dir   = trailingslashit( dirname( $full ) );
-	$files = array();
+	$base    = wp_get_upload_dir()['basedir'];
+	$full    = trailingslashit( $base ) . $meta['file'];
+	$dir     = trailingslashit( dirname( $full ) );
+	$sources = array();
+	$files   = array();
 
 	foreach ( prairie_ash_image_targets( $meta, $full ) as $target ) {
-		foreach ( array( 'image/avif', 'image/webp' ) as $mime ) {
-			$files[] = prairie_ash_format_file_name( $target[0], $mime );
+		$sources[] = $target[0];
+	}
+
+	foreach ( (array) get_post_meta( $post_id, '_wp_attachment_backup_sizes', true ) as $backup ) {
+		if ( is_array( $backup ) && ! empty( $backup['file'] ) ) {
+			$sources[] = $dir . wp_basename( $backup['file'] );
 		}
 	}
 
-	foreach ( array_merge( array( $meta['sources'] ?? array() ), array_column( (array) ( $meta['sizes'] ?? array() ), 'sources' ) ) as $sources ) {
-		foreach ( (array) $sources as $source ) {
+	foreach ( $sources as $source ) {
+		foreach ( array( 'image/avif', 'image/webp' ) as $mime ) {
+			$files[] = prairie_ash_format_file_name( $source, $mime );
+		}
+	}
+
+	foreach ( array_merge( array( $meta['sources'] ?? array() ), array_column( (array) ( $meta['sizes'] ?? array() ), 'sources' ) ) as $recorded ) {
+		foreach ( (array) $recorded as $source ) {
 			$files[] = $dir . $source['file'];
 		}
 	}

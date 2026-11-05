@@ -217,6 +217,12 @@ class Prairie_Ash_Demo_Importer {
 			return $check;
 		}
 
+		$running = prairie_ash_image_run( true );
+
+		if ( is_wp_error( $running ) ) {
+			return $running;
+		}
+
 		$state   = self::state();
 		$state   = $state ? $state : $this->start();
 		$names   = array_keys( self::steps() );
@@ -224,11 +230,18 @@ class Prairie_Ash_Demo_Importer {
 		$budget  = $seconds > 0 ? min( (int) $budget, (int) floor( $seconds / 2 ) ) : (int) $budget;
 		$until   = microtime( true ) + max( 1, $budget );
 
+		if ( prairie_ash_image_take_crash_note() ) {
+			$this->log[] = 'The previous request stopped while it wrote an image copy. The copy is listed under Image copies, and the import carries on.';
+			prairie_ash_image_run( false );
+
+			return $state;
+		}
+
 		wp_raise_memory_limit( 'admin' );
 		$this->quiet_mail();
 		prairie_ash_defer_image_formats( true );
 
-		while ( ! $state['done'] && microtime( true ) < $until ) {
+		while ( ! $state['done'] && microtime( true ) < $until && ! prairie_ash_image_share_stopped() ) {
 			$name   = $names[ $state['step'] ];
 			$method = 'step_' . $name;
 			$cursor = $this->$method( (int) $state['cursor'], $until );
@@ -251,7 +264,138 @@ class Prairie_Ash_Demo_Importer {
 			update_option( self::STATE_OPTION, $state, false );
 		}
 
+		prairie_ash_image_run( false );
+
 		return $state;
+	}
+
+	/**
+	 * The attachments on this site that came from the demo.
+	 *
+	 * @since 1.2.1
+	 *
+	 * @return int[] Attachment IDs.
+	 */
+	public function demo_attachment_ids() {
+		$ids = array();
+
+		foreach ( (array) ( $this->data()['media'] ?? array() ) as $item ) {
+			$id = $this->mapped_post( $item['id'], 'attachment' );
+
+			if ( $id ) {
+				$ids[] = $id;
+			}
+		}
+
+		return $ids;
+	}
+
+	/**
+	 * What on this site is not demo content and would be changed or hidden by
+	 * an import, so the import asks before it starts.
+	 *
+	 * A new site has none of it: only the sample post and pages WordPress and
+	 * WooCommerce create, which the import replaces. A site that already runs
+	 * a shop, or carries its own pages, gets its store settings, its payment
+	 * methods and its front page replaced, so the import names what it found
+	 * and waits for an explicit yes.
+	 *
+	 * @since 1.2.1
+	 *
+	 * @return string[] One sentence per kind of content found, none on a new
+	 *                  site or on a site an earlier import built.
+	 */
+	public function existing_content() {
+		$found    = array();
+		$mapped   = array_map( 'intval', array_values( $this->map['post'] ) );
+		$data     = $this->data();
+		$demo     = is_array( $data ) ? wp_list_pluck( $data['pages'], 'slug' ) : array();
+		$defaults = array( 'sample-page', 'privacy-policy', 'shop', 'cart', 'checkout', 'my-account', 'refund_returns' );
+		$statuses = array( 'publish', 'draft', 'pending', 'private', 'future' );
+
+		if ( function_exists( 'wc_get_orders' ) && wc_get_orders(
+			array(
+				'limit'  => 1,
+				'return' => 'ids',
+				'status' => array_keys( wc_get_order_statuses() ),
+			)
+		) ) {
+			$found[] = __( 'The store has orders.', 'prairie-ash' );
+		}
+
+		if ( post_type_exists( 'product' ) ) {
+			$products = array_diff(
+				array_map(
+					'intval',
+					get_posts(
+						array(
+							'post_type'        => 'product',
+							'post_status'      => $statuses,
+							'posts_per_page'   => -1,
+							'fields'           => 'ids',
+							'suppress_filters' => true,
+						)
+					)
+				),
+				$mapped
+			);
+
+			if ( $products ) {
+				/* translators: %d: number of products. */
+				$found[] = sprintf( _n( 'The store has %d product of its own.', 'The store has %d products of its own.', count( $products ), 'prairie-ash' ), count( $products ) );
+			}
+		}
+
+		$pages    = 0;
+		$replaced = array();
+
+		foreach ( get_posts(
+			array(
+				'post_type'        => 'page',
+				'post_status'      => $statuses,
+				'posts_per_page'   => -1,
+				'suppress_filters' => true,
+			)
+		) as $page ) {
+			if ( in_array( (int) $page->ID, $mapped, true ) || in_array( $page->post_name, $defaults, true ) ) {
+				continue;
+			}
+
+			// A page found under a demo page's address is the one the import writes the demo page into.
+			if ( in_array( $page->post_name, $demo, true ) ) {
+				$replaced[] = $page->post_title;
+			} else {
+				++$pages;
+			}
+		}
+
+		if ( $replaced ) {
+			/* translators: %s: page titles, separated by commas. */
+			$found[] = sprintf( __( 'These pages of its own carry the address of a demo page, and the import writes the demo page over each: %s.', 'prairie-ash' ), implode( ', ', $replaced ) );
+		}
+
+		if ( $pages ) {
+			/* translators: %d: number of pages. */
+			$found[] = sprintf( _n( 'The site has %d page of its own.', 'The site has %d pages of its own.', $pages, 'prairie-ash' ), $pages );
+		}
+
+		$counts = wp_count_posts( 'post' );
+		$posts  = 0;
+
+		foreach ( $statuses as $status ) {
+			$posts += (int) ( $counts->$status ?? 0 );
+		}
+
+		if ( $this->post_by_slug( 'hello-world', 'post' ) ) {
+			--$posts;
+		}
+
+		if ( $posts > 0 ) {
+			/* translators: %d: number of posts. */
+			$found[] = sprintf( _n( 'The site has %d post of its own.', 'The site has %d posts of its own.', $posts, 'prairie-ash' ), $posts );
+		}
+
+		return $found;
 	}
 
 	/**
@@ -488,8 +632,12 @@ class Prairie_Ash_Demo_Importer {
 		$count = count( $media );
 		$pass  = (string) self::state()['started'];
 
+		if ( 0 === $cursor ) {
+			prairie_ash_prune_image_records();
+		}
+
 		while ( $cursor < $count ) {
-			if ( microtime( true ) >= $until ) {
+			if ( microtime( true ) >= $until || prairie_ash_image_share_stopped() ) {
 				return $cursor;
 			}
 
@@ -502,11 +650,11 @@ class Prairie_Ash_Demo_Importer {
 			++$cursor;
 		}
 
-		$failed = count( prairie_ash_image_failures() );
+		$failed = count( prairie_ash_image_failure_lines( $this->demo_attachment_ids() ) );
 
 		$this->log[] = $failed
-			? sprintf( '%d image copies could not be written.', $failed )
-			: 'Every image has its AVIF and WebP copies.';
+			? sprintf( '%d image copies of the demo could not be written.', $failed )
+			: 'Every demo image has its AVIF and WebP copies.';
 
 		return true;
 	}
@@ -1243,9 +1391,19 @@ class Prairie_Ash_Demo_Importer {
 		$options = $this->data()['options'];
 
 		foreach ( Prairie_Ash_Demo_Exporter::page_options() as $name ) {
-			if ( array_key_exists( $name, $options ) ) {
-				update_option( $name, $this->resolve( $options[ $name ] ) );
+			if ( ! array_key_exists( $name, $options ) ) {
+				continue;
 			}
+
+			$value = $this->resolve( $options[ $name ] );
+
+			// A page the demo does not have leaves the site's own setting alone,
+			// such as the My account page WooCommerce created.
+			if ( '' === $value || '0' === $value ) {
+				continue;
+			}
+
+			update_option( $name, $value );
 		}
 
 		foreach ( (array) $this->resolve( $this->data()['theme'] ) as $name => $value ) {
@@ -1265,9 +1423,11 @@ class Prairie_Ash_Demo_Importer {
 	 *
 	 * Only records that the demo does not contain, still carrying the slug
 	 * WordPress or WooCommerce gave them, are touched, and the trash keeps
-	 * them for thirty days.
+	 * them for thirty days. WooCommerce's My account page is not sample
+	 * content: customers sign in and find their orders there, so it stays.
 	 *
 	 * @since 1.2.0
+	 * @since 1.2.1 Leaves the My account page alone.
 	 *
 	 * @return true
 	 */
@@ -1277,7 +1437,6 @@ class Prairie_Ash_Demo_Importer {
 			array( 'post', 'hello-world' ),
 			array( 'page', 'sample-page' ),
 			array( 'page', 'refund_returns' ),
-			array( 'page', 'my-account' ),
 		);
 
 		foreach ( $defaults as $default ) {
