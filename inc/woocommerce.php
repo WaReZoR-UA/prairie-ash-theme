@@ -321,11 +321,21 @@ function prairie_ash_resolve_posted_variation() {
 		return;
 	}
 
+	// Read only the product's own attributes, the way WooCommerce's handler does: a global
+	// attribute posts its term slug, a product's own attribute its option text, and a value
+	// that is not a string is not an option at all.
 	$attributes = array();
-	foreach ( wp_unslash( $_POST ) as $key => $value ) {
-		if ( 0 === strpos( (string) $key, 'attribute_' ) ) {
-			$attributes[ sanitize_title( $key ) ] = sanitize_title( $value );
+	foreach ( $product->get_attributes() as $attribute ) {
+		if ( ! $attribute->get_variation() ) {
+			continue;
 		}
+		$key = 'attribute_' . sanitize_title( $attribute->get_name() );
+		if ( ! isset( $_POST[ $key ] ) || ! is_scalar( $_POST[ $key ] ) ) {
+			continue;
+		}
+		$attributes[ $key ] = $attribute->is_taxonomy()
+			? sanitize_title( wp_unslash( (string) $_POST[ $key ] ) )
+			: html_entity_decode( sanitize_text_field( wp_unslash( (string) $_POST[ $key ] ) ), ENT_QUOTES, get_bloginfo( 'charset' ) );
 	}
 
 	$variation_id = ( new WC_Product_Data_Store_CPT() )->find_matching_product_variation( $product, $attributes );
