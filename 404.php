@@ -10,6 +10,15 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/*
+ * Wording comes from the site settings (inc/site-settings.php), with the
+ * wording below as the fallback while a setting is empty or not registered.
+ */
+$prairie_ash_text = static function ( $key, $fallback ) {
+	$value = function_exists( 'prairie_ash_setting' ) ? prairie_ash_setting( $key ) : '';
+	return is_string( $value ) && '' !== trim( $value ) ? $value : $fallback;
+};
+
 $prairie_ash_shop = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : '';
 
 get_header();
@@ -17,16 +26,16 @@ get_header();
 		<main class="page" id="main" tabindex="-1">
 			<section class="results-title band band--wall" aria-labelledby="results-title">
 				<div class="results-title__container">
-					<h1 class="results-title__heading" id="results-title"><?php esc_html_e( 'Page not found', 'prairie-ash' ); ?></h1>
+					<h1 class="results-title__heading" id="results-title"><?php echo esc_html( $prairie_ash_text( 'not_found_heading', __( 'Page not found', 'prairie-ash' ) ) ); ?></h1>
 				</div>
 			</section>
 			<section class="results-list band band--paper">
 				<div class="results-list__container">
-					<p class="results-list__empty"><?php esc_html_e( 'Nothing lives at this address. The page may have moved, or the address may be mistyped.', 'prairie-ash' ); ?></p>
+					<p class="results-list__empty"><?php echo esc_html( $prairie_ash_text( 'not_found_text', __( 'Nothing lives at this address. The page may have moved, or the address may be mistyped.', 'prairie-ash' ) ) ); ?></p>
 					<div class="results-list__links">
-						<a class="text-link text-link--on-paper" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'Back to the home page', 'prairie-ash' ); ?></a>
+						<a class="text-link text-link--on-paper" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php echo esc_html( $prairie_ash_text( 'home_link_label', __( 'Back to the home page', 'prairie-ash' ) ) ); ?></a>
 						<?php if ( $prairie_ash_shop && home_url( '/' ) !== $prairie_ash_shop ) : ?>
-							<a class="text-link text-link--on-paper" href="<?php echo esc_url( $prairie_ash_shop ); ?>"><?php esc_html_e( 'Browse the coffees', 'prairie-ash' ); ?></a>
+							<a class="text-link text-link--on-paper" href="<?php echo esc_url( $prairie_ash_shop ); ?>"><?php echo esc_html( $prairie_ash_text( 'shop_link_label', __( 'Browse the coffees', 'prairie-ash' ) ) ); ?></a>
 						<?php endif; ?>
 					</div>
 				</div>

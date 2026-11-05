@@ -12,15 +12,25 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/*
+ * Wording comes from the site settings (inc/site-settings.php), with the
+ * wording below as the fallback while a setting is empty or not registered.
+ */
+$prairie_ash_text = static function ( $key, $fallback ) {
+	$value = function_exists( 'prairie_ash_setting' ) ? prairie_ash_setting( $key ) : '';
+	return is_string( $value ) && '' !== trim( $value ) ? $value : $fallback;
+};
+
 if ( is_search() ) {
+	// A replacement rather than sprintf(), so a percent sign typed into the setting cannot break the page.
 	/* translators: %s: the words searched for. */
-	$prairie_ash_heading = sprintf( __( 'Search results for "%s"', 'prairie-ash' ), get_search_query( false ) );
+	$prairie_ash_heading = str_replace( '%s', get_search_query( false ), $prairie_ash_text( 'search_heading', __( 'Search results for "%s"', 'prairie-ash' ) ) );
 } elseif ( is_home() && ! is_front_page() && get_option( 'page_for_posts' ) ) {
 	$prairie_ash_heading = get_the_title( (int) get_option( 'page_for_posts' ) );
 } elseif ( is_archive() ) {
 	$prairie_ash_heading = wp_strip_all_tags( get_the_archive_title() );
 } else {
-	$prairie_ash_heading = __( 'Latest entries', 'prairie-ash' );
+	$prairie_ash_heading = $prairie_ash_text( 'entries_heading', __( 'Latest entries', 'prairie-ash' ) );
 }
 
 get_header();
@@ -60,15 +70,15 @@ get_header();
 						the_posts_pagination(
 							array(
 								'class'     => 'results-list__pages',
-								'prev_text' => __( 'Previous', 'prairie-ash' ),
-								'next_text' => __( 'Next', 'prairie-ash' ),
+								'prev_text' => esc_html( $prairie_ash_text( 'pages_previous', __( 'Previous', 'prairie-ash' ) ) ),
+								'next_text' => esc_html( $prairie_ash_text( 'pages_next', __( 'Next', 'prairie-ash' ) ) ),
 							)
 						);
 						?>
 					<?php else : ?>
-						<p class="results-list__empty"><?php echo esc_html( is_search() ? __( 'Nothing matches these words. Other words, or the menu above, may find it.', 'prairie-ash' ) : __( 'Nothing has been published here yet.', 'prairie-ash' ) ); ?></p>
+						<p class="results-list__empty"><?php echo esc_html( is_search() ? $prairie_ash_text( 'search_empty', __( 'Nothing matches these words. Other words, or the menu above, may find it.', 'prairie-ash' ) ) : $prairie_ash_text( 'entries_empty', __( 'Nothing has been published here yet.', 'prairie-ash' ) ) ); ?></p>
 						<div class="results-list__links">
-							<a class="text-link text-link--on-paper" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'Back to the home page', 'prairie-ash' ); ?></a>
+							<a class="text-link text-link--on-paper" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php echo esc_html( $prairie_ash_text( 'home_link_label', __( 'Back to the home page', 'prairie-ash' ) ) ); ?></a>
 						</div>
 					<?php endif; ?>
 				</div>
