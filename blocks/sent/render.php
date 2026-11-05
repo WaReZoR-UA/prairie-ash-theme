@@ -7,14 +7,15 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f     = prairie_ash_fields( 'sent' );
-$scene = prairie_ash_motion_scene( 'prairie-ash/sent', (string) $f['scene'] );
+$f        = prairie_ash_fields( 'sent' );
+$scene    = prairie_ash_motion_scene( 'prairie-ash/sent', (string) $f['scene'] );
+$title_id = prairie_ash_heading_id( 'sent-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'sent', 'band', 'band--wall' ) ); ?> aria-labelledby="sent-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'sent', 'band', 'band--wall' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="sent__container" data-motion="<?php echo esc_attr( $scene ); ?>-sent">
 		<div class="form-panel form-notice sent__panel" role="status" tabindex="-1" data-form-notice data-motion="sign">
 			<?php if ( $f['heading'] ) : ?>
-				<h1 class="form-panel__title" id="sent-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h1>
+				<h1 class="form-panel__title" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h1>
 			<?php endif; ?>
 			<?php if ( $f['body'] ) : ?>
 				<p class="form-panel__body"<?php prairie_ash_el( $block, 'body' ); ?>><?php echo esc_html( $f['body'] ); ?></p>

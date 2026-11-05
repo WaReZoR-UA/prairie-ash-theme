@@ -14,15 +14,20 @@ foreach ( $f['parts'] as $part ) {
 	if ( '' === trim( (string) $part['heading'] ) ) {
 		continue;
 	}
-	$part['anchor'] = sanitize_title( $part['anchor'] ? $part['anchor'] : $part['heading'] );
+	// A heading of punctuation alone has no slug, so the part takes its number; a repeated one takes the next free form.
+	$anchor         = sanitize_title( $part['anchor'] ? $part['anchor'] : $part['heading'] );
+	$part['anchor'] = prairie_ash_unique_id( '' === $anchor ? 'part-' . ( count( $parts ) + 1 ) : $anchor );
 	$parts[]        = $part;
 }
+$contents_id = $parts ? prairie_ash_heading_id( 'legal-contents-title', $f['contents_title'] ) : '';
 ?>
 <section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'legal' ), array( 'aria-label' => $f['label'] ) ); ?>>
 	<div class="legal__container">
 		<?php if ( $parts ) : ?>
-			<nav class="legal__contents" aria-labelledby="legal-contents-title" data-motion="<?php echo esc_attr( $scene . '-contents' ); ?>">
-				<h2 class="legal__contents-title" id="legal-contents-title"<?php prairie_ash_el( $block, 'contents' ); ?>><?php echo esc_html( $f['contents_title'] ); ?></h2>
+			<nav class="legal__contents"<?php prairie_ash_labelledby( $contents_id ); ?> data-motion="<?php echo esc_attr( $scene . '-contents' ); ?>">
+				<?php if ( $contents_id ) : ?>
+					<h2 class="legal__contents-title" id="<?php echo esc_attr( $contents_id ); ?>"<?php prairie_ash_el( $block, 'contents' ); ?>><?php echo esc_html( $f['contents_title'] ); ?></h2>
+				<?php endif; ?>
 				<ul class="legal__contents-list">
 					<?php foreach ( $parts as $part ) : ?>
 						<li><a class="text-link text-link--on-paper" href="<?php echo esc_url( '#' . $part['anchor'] ); ?>"><?php echo esc_html( $part['heading'] ); ?></a></li>

@@ -53,8 +53,9 @@ foreach ( array(
 		);
 	}
 }
+$title_id = prairie_ash_heading_id( 'hero-title', $heading );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'hero' ) ); ?> aria-labelledby="hero-title" data-motion="hero">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'hero' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?> data-motion="hero">
 	<?php
 	if ( $f['image'] ) {
 		// lcp-image: the hero photo paints the Largest Contentful Paint of the home page.
@@ -74,7 +75,7 @@ foreach ( array(
 			<div class="hero__sign" data-motion="sign">
 				<span class="pinstripe" aria-hidden="true" data-motion="stripe"></span>
 				<?php if ( $heading ) : ?>
-					<h1 class="hero__title" id="hero-title"<?php prairie_ash_el( $block, 'title' ); ?>>
+					<h1 class="hero__title" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'title' ); ?>>
 						<?php if ( $f['title_line_1'] ) : ?>
 							<span class="hero__title-line"><?php echo esc_html( $f['title_line_1'] ); ?></span>
 						<?php endif; ?>

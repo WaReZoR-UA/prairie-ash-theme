@@ -23,8 +23,9 @@ $ad_lines = array(
 	),
 );
 $has_ad   = implode( '', array_merge( ...array_map( 'array_values', $ad_lines ) ) ) !== '';
+$title_id = prairie_ash_heading_id( 'roastery-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'roastery' ) ); ?> aria-labelledby="roastery-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'roastery' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="roastery__container">
 		<div class="roastery__window" data-motion="scene">
 			<div class="roastery__text">
@@ -33,7 +34,7 @@ $has_ad   = implode( '', array_merge( ...array_map( 'array_values', $ad_lines ) 
 						<p class="roastery__label"<?php prairie_ash_el( $block, 'label' ); ?>><?php echo esc_html( $f['label'] ); ?></p>
 					<?php endif; ?>
 					<?php if ( $f['heading'] ) : ?>
-						<h2 class="roastery__title" id="roastery-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
+						<h2 class="roastery__title" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
 					<?php endif; ?>
 				</div>
 				<div class="roastery__text-bottom">

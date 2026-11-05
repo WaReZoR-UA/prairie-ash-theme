@@ -7,14 +7,15 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f = prairie_ash_fields( 'signup' );
+$f        = prairie_ash_fields( 'signup' );
+$title_id = prairie_ash_heading_id( 'signup-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'signup' ), array( 'id' => 'signup' ) ); ?> aria-labelledby="signup-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'signup' ), array( 'id' => 'signup' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="signup__container">
 		<div class="signup__intro">
 			<div class="signup__intro-top">
 				<?php if ( $f['heading'] ) : ?>
-					<h2 class="signup__title" id="signup-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
+					<h2 class="signup__title" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
 				<?php endif; ?>
 				<?php if ( $f['body'] ) : ?>
 					<p class="signup__body"<?php prairie_ash_el( $block, 'body' ); ?>><?php echo esc_html( $f['body'] ); ?></p>

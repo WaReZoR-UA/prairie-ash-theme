@@ -7,16 +7,17 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f = prairie_ash_fields( 'shipping-title' );
+$f        = prairie_ash_fields( 'shipping-title' );
+$title_id = prairie_ash_heading_id( 'shipping-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'shipping-title' ) ); ?> aria-labelledby="shipping-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'shipping-title' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="shipping-title__container" data-motion="shipping-sign">
 		<div class="shipping-title__text">
 			<?php if ( $f['eyebrow'] ) : ?>
 				<p class="eyebrow shipping-title__eyebrow"<?php prairie_ash_el( $block, 'eyebrow' ); ?>><?php echo esc_html( $f['eyebrow'] ); ?></p>
 			<?php endif; ?>
 			<?php if ( $f['heading'] ) : ?>
-				<h1 class="shipping-title__heading" id="shipping-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h1>
+				<h1 class="shipping-title__heading" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h1>
 			<?php endif; ?>
 			<?php if ( $f['intro'] ) : ?>
 				<p class="shipping-title__intro"<?php prairie_ash_el( $block, 'intro' ); ?>><?php echo esc_html( $f['intro'] ); ?></p>

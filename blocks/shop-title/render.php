@@ -7,9 +7,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f = prairie_ash_fields( 'shop-title' );
+$f        = prairie_ash_fields( 'shop-title' );
+$title_id = prairie_ash_heading_id( 'shop-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'shop-title' ) ); ?> aria-labelledby="shop-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'shop-title' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="shop-title__container" data-motion="shop-sign">
 		<?php if ( $f['image'] ) : ?>
 			<div class="shop-title__media media-ibg">
@@ -25,7 +26,7 @@ $f = prairie_ash_fields( 'shop-title' );
 				<p class="shop-title__eyebrow"<?php prairie_ash_el( $block, 'eyebrow' ); ?>><?php echo esc_html( $f['eyebrow'] ); ?></p>
 			<?php endif; ?>
 			<?php if ( $f['heading'] ) : ?>
-				<h1 class="shop-title__heading" id="shop-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h1>
+				<h1 class="shop-title__heading" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h1>
 			<?php endif; ?>
 			<span class="pinstripe pinstripe--brick" aria-hidden="true" data-motion="stripe"></span>
 			<?php if ( $f['intro'] ) : ?>

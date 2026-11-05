@@ -7,13 +7,14 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f = prairie_ash_fields( 'contact-details' );
+$f        = prairie_ash_fields( 'contact-details' );
+$title_id = prairie_ash_heading_id( 'contact-details-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'contact-details', 'band', 'band--deep' ) ); ?> aria-labelledby="contact-details-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'contact-details', 'band', 'band--deep' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="contact-details__container">
 		<div class="contact-details__intro">
 			<?php if ( $f['heading'] ) : ?>
-				<h2 class="contact-details__heading" id="contact-details-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
+				<h2 class="contact-details__heading" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
 			<?php endif; ?>
 			<?php if ( $f['body'] ) : ?>
 				<p class="contact-details__body"<?php prairie_ash_el( $block, 'body' ); ?>><?php echo esc_html( $f['body'] ); ?></p>

@@ -41,8 +41,9 @@ if ( $f['show_hours'] ) {
 	}
 	array_splice( $facts, min( 1, count( $facts ) ), 0, $hours );
 }
+$title_id = prairie_ash_heading_id( ( '' === $anchor ? 'shipping-part' : $anchor ) . '-heading', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'shipping-part', 'band', 'band--' . $band ) ); ?> aria-labelledby="<?php echo esc_attr( $anchor . '-heading' ); ?>">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'shipping-part', 'band', 'band--' . $band ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="shipping-part__container"<?php echo 'correction' === $motion ? ' data-motion="shipping-correction"' : ''; ?>>
 		<?php if ( $photo ) : ?>
 			<div class="shipping-part__media media-ibg" data-motion="shipping-photo">
@@ -51,7 +52,7 @@ if ( $f['show_hours'] ) {
 		<?php else : ?>
 			<div class="shipping-part__intro">
 				<?php if ( $f['heading'] ) : ?>
-					<h2 class="shipping-part__heading" id="<?php echo esc_attr( $anchor . '-heading' ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
+					<h2 class="shipping-part__heading" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
 				<?php endif; ?>
 				<?php if ( $f['body'] ) : ?>
 					<p class="shipping-part__body"<?php prairie_ash_el( $block, 'body' ); ?>><?php echo esc_html( $f['body'] ); ?></p>
@@ -62,7 +63,7 @@ if ( $f['show_hours'] ) {
 			<?php if ( $photo ) : ?>
 				<div class="shipping-part__lead">
 					<?php if ( $f['heading'] ) : ?>
-						<h2 class="shipping-part__heading" id="<?php echo esc_attr( $anchor . '-heading' ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
+						<h2 class="shipping-part__heading" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
 					<?php endif; ?>
 					<?php if ( $f['body'] ) : ?>
 						<p class="shipping-part__body"<?php prairie_ash_el( $block, 'body' ); ?>><?php echo esc_html( $f['body'] ); ?></p>

@@ -12,14 +12,15 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f       = prairie_ash_fields( 'visit-route' );
-$map_url = prairie_ash_setting( 'map_url' );
+$f        = prairie_ash_fields( 'visit-route' );
+$map_url  = prairie_ash_setting( 'map_url' );
+$title_id = prairie_ash_heading_id( 'visit-route-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'visit-route', 'band', 'band--paper' ), array( 'id' => 'getting-here' ) ); ?> aria-labelledby="visit-route-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'visit-route', 'band', 'band--paper' ), array( 'id' => 'getting-here' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="visit-route__container">
 		<div class="visit-route__text">
 			<?php if ( $f['heading'] ) : ?>
-				<h2 class="visit-route__heading" id="visit-route-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
+				<h2 class="visit-route__heading" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
 			<?php endif; ?>
 			<?php if ( $f['body'] ) : ?>
 				<p class="visit-route__body"<?php prairie_ash_el( $block, 'body' ); ?>><?php echo esc_html( $f['body'] ); ?></p>

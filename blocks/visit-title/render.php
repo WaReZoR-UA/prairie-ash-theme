@@ -7,9 +7,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f = prairie_ash_fields( 'visit-title' );
+$f        = prairie_ash_fields( 'visit-title' );
+$title_id = prairie_ash_heading_id( 'visit-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'visit-title', 'band', 'band--wall' ) ); ?> aria-labelledby="visit-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'visit-title', 'band', 'band--wall' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="visit-title__container" data-motion="visit-sign">
 		<?php if ( $f['image'] ) : ?>
 			<div class="visit-title__media media-ibg">
@@ -25,7 +26,7 @@ $f = prairie_ash_fields( 'visit-title' );
 				<p class="visit-title__eyebrow"<?php prairie_ash_el( $block, 'eyebrow' ); ?>><?php echo esc_html( $f['eyebrow'] ); ?></p>
 			<?php endif; ?>
 			<?php if ( $f['heading'] ) : ?>
-				<h1 class="visit-title__heading" id="visit-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h1>
+				<h1 class="visit-title__heading" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h1>
 			<?php endif; ?>
 			<?php if ( $f['intro'] ) : ?>
 				<p class="visit-title__intro"<?php prairie_ash_el( $block, 'intro' ); ?>><?php echo esc_html( $f['intro'] ); ?></p>

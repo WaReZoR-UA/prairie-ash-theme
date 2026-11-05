@@ -10,9 +10,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f = prairie_ash_fields( 'cupping' );
+$f        = prairie_ash_fields( 'cupping' );
+$title_id = prairie_ash_heading_id( 'cupping-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'cupping' ) ); ?> aria-labelledby="cupping-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'cupping' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="cupping__container">
 		<?php if ( $f['image'] ) : ?>
 			<div class="cupping__media media-ibg" data-motion-parallax>
@@ -39,7 +40,7 @@ $f = prairie_ash_fields( 'cupping' );
 				<p class="cupping__label"<?php prairie_ash_el( $block, 'label' ); ?>><?php echo esc_html( $f['label'] ); ?></p>
 			<?php endif; ?>
 			<?php if ( $f['heading'] ) : ?>
-				<h2 class="cupping__title" id="cupping-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
+				<h2 class="cupping__title" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
 			<?php endif; ?>
 			<?php if ( $f['date'] ) : ?>
 				<p class="cupping__date"<?php prairie_ash_el( $block, 'date' ); ?>><?php echo esc_html( $f['date'] ); ?></p>

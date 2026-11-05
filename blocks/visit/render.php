@@ -10,14 +10,15 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f       = prairie_ash_fields( 'visit' );
-$map_url = prairie_ash_setting( 'map_url' );
+$f        = prairie_ash_fields( 'visit' );
+$map_url  = prairie_ash_setting( 'map_url' );
+$title_id = prairie_ash_heading_id( 'visit-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'visit' ) ); ?> aria-labelledby="visit-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'visit' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="visit__container">
 		<div class="visit__text">
 			<?php if ( $f['heading'] ) : ?>
-				<h2 class="visit__title" id="visit-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
+				<h2 class="visit__title" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
 			<?php endif; ?>
 			<?php if ( $f['body'] ) : ?>
 				<p class="visit__body"<?php prairie_ash_el( $block, 'body' ); ?>><?php echo esc_html( $f['body'] ); ?></p>

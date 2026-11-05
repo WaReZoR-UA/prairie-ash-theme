@@ -7,9 +7,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f = prairie_ash_fields( 'roastery-roaster' );
+$f        = prairie_ash_fields( 'roastery-roaster' );
+$title_id = prairie_ash_heading_id( 'roastery-roaster-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'roastery-roaster', 'band', 'band--deep' ) ); ?> aria-labelledby="roastery-roaster-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'roastery-roaster', 'band', 'band--deep' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="roastery-roaster__container" data-motion="roast-scene">
 		<?php if ( $f['image'] ) : ?>
 			<div class="roastery-roaster__media media-ibg">
@@ -21,7 +22,7 @@ $f = prairie_ash_fields( 'roastery-roaster' );
 				<p class="roastery-roaster__label"<?php prairie_ash_el( $block, 'label' ); ?>><?php echo esc_html( $f['label'] ); ?></p>
 			<?php endif; ?>
 			<?php if ( $f['heading'] ) : ?>
-				<h2 class="roastery-roaster__heading" id="roastery-roaster-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
+				<h2 class="roastery-roaster__heading" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
 			<?php endif; ?>
 			<?php foreach ( prairie_ash_paragraphs( $f['body'] ) as $paragraph ) : ?>
 				<p class="roastery-roaster__body"<?php prairie_ash_el( $block, 'body' ); ?>><?php echo esc_html( $paragraph ); ?></p>
