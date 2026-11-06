@@ -26,6 +26,12 @@ $desktopUp: "(min-width: #{em(992)})";
 		position: relative;
 		overflow: clip;
 		aspect-ratio: 390 / 700;
+		// the width is set and the height comes from the ratio, not from the photo or the row: WebKit sized the box
+		// from the 390 px photo and left a band beside it
+		@media (max-width: $tablet) {
+			width: 100%;
+			align-self: start;
+		}
 		@media (min-width: 48em) {
 			aspect-ratio: 768 / 944;
 		}
