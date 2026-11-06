@@ -7,9 +7,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f = prairie_ash_fields( 'wholesale-title' );
+$f        = prairie_ash_fields( 'wholesale-title' );
+$title_id = prairie_ash_heading_id( 'wholesale-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'wholesale-title', 'band', 'band--wall' ) ); ?> aria-labelledby="wholesale-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'wholesale-title', 'band', 'band--wall' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="wholesale-title__container" data-motion="wholesale-sign">
 		<div class="wholesale-title__sign">
 			<span class="pinstripe" aria-hidden="true" data-motion="stripe"></span>
@@ -18,7 +19,7 @@ $f = prairie_ash_fields( 'wholesale-title' );
 					<p class="eyebrow"<?php prairie_ash_el( $block, 'eyebrow' ); ?>><?php echo esc_html( $f['eyebrow'] ); ?></p>
 				<?php endif; ?>
 				<?php if ( $f['heading'] ) : ?>
-					<h1 class="wholesale-title__heading" id="wholesale-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h1>
+					<h1 class="wholesale-title__heading" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h1>
 				<?php endif; ?>
 			</div>
 			<span class="pinstripe" aria-hidden="true" data-motion="stripe"></span>

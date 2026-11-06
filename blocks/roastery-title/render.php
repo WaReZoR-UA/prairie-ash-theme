@@ -7,9 +7,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f = prairie_ash_fields( 'roastery-title' );
+$f        = prairie_ash_fields( 'roastery-title' );
+$title_id = prairie_ash_heading_id( 'roastery-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'roastery-title', 'band', 'band--wall' ) ); ?> aria-labelledby="roastery-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'roastery-title', 'band', 'band--wall' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="roastery-title__container" data-motion="roast-sign">
 		<span class="pinstripe" aria-hidden="true" data-motion="stripe"></span>
 		<div class="roastery-title__text">
@@ -18,7 +19,7 @@ $f = prairie_ash_fields( 'roastery-title' );
 					<p class="roastery-title__eyebrow"<?php prairie_ash_el( $block, 'eyebrow' ); ?>><?php echo esc_html( $f['eyebrow'] ); ?></p>
 				<?php endif; ?>
 				<?php if ( $f['heading'] ) : ?>
-					<h1 class="roastery-title__heading" id="roastery-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h1>
+					<h1 class="roastery-title__heading" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h1>
 				<?php endif; ?>
 			</div>
 			<?php if ( $f['intro'] ) : ?>

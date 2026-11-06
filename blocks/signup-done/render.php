@@ -7,9 +7,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f = prairie_ash_fields( 'signup-done' );
+$f        = prairie_ash_fields( 'signup-done' );
+$title_id = prairie_ash_heading_id( 'signup-done-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'signup-done', 'band', 'band--wall' ) ); ?> aria-labelledby="signup-done-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'signup-done', 'band', 'band--wall' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="signup-done__container" data-motion="signup-sign">
 		<div class="signup-done__message">
 			<div class="signup-done__heading">
@@ -17,7 +18,7 @@ $f = prairie_ash_fields( 'signup-done' );
 					<p class="eyebrow signup-done__eyebrow"<?php prairie_ash_el( $block, 'eyebrow' ); ?>><?php echo esc_html( $f['eyebrow'] ); ?></p>
 				<?php endif; ?>
 				<?php if ( $f['heading'] ) : ?>
-					<h1 class="signup-done__title" id="signup-done-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h1>
+					<h1 class="signup-done__title" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h1>
 				<?php endif; ?>
 				<?php if ( $f['lead'] ) : ?>
 					<p class="signup-done__lead"<?php prairie_ash_el( $block, 'lead' ); ?>><?php echo esc_html( $f['lead'] ); ?></p>

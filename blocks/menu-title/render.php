@@ -7,9 +7,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f = prairie_ash_fields( 'menu-title' );
+$f        = prairie_ash_fields( 'menu-title' );
+$title_id = prairie_ash_heading_id( 'menu-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'menu-title', 'band', 'band--deep' ) ); ?> aria-labelledby="menu-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'menu-title', 'band', 'band--deep' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="menu-title__container">
 		<div class="menu-title__board" data-motion="menu-sign">
 			<span class="pinstripe" aria-hidden="true" data-motion="stripe"></span>
@@ -19,7 +20,7 @@ $f = prairie_ash_fields( 'menu-title' );
 						<p class="menu-title__eyebrow"<?php prairie_ash_el( $block, 'eyebrow' ); ?>><?php echo esc_html( $f['eyebrow'] ); ?></p>
 					<?php endif; ?>
 					<?php if ( $f['heading'] ) : ?>
-						<h1 class="menu-title__heading" id="menu-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h1>
+						<h1 class="menu-title__heading" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h1>
 					<?php endif; ?>
 					<?php if ( $f['intro'] ) : ?>
 						<p class="menu-title__intro"<?php prairie_ash_el( $block, 'intro' ); ?>><?php echo esc_html( $f['intro'] ); ?></p>

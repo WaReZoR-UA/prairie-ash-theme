@@ -7,13 +7,14 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f = prairie_ash_fields( 'menu' );
+$f        = prairie_ash_fields( 'menu' );
+$title_id = prairie_ash_heading_id( 'menu-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'menu' ) ); ?> aria-labelledby="menu-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'menu' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="menu__container">
 		<div class="menu__board">
 			<?php if ( $f['heading'] ) : ?>
-				<h2 class="menu__title" id="menu-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
+				<h2 class="menu__title" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
 			<?php endif; ?>
 			<?php if ( $f['items'] ) : ?>
 				<ul class="menu__items">

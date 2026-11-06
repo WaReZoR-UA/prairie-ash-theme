@@ -7,9 +7,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f = prairie_ash_fields( 'visit-access' );
+$f        = prairie_ash_fields( 'visit-access' );
+$title_id = prairie_ash_heading_id( 'visit-access-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'visit-access', 'band', 'band--wall' ) ); ?> aria-labelledby="visit-access-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'visit-access', 'band', 'band--wall' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="visit-access__container">
 		<div class="visit-access__row">
 			<div class="visit-access__text">
@@ -17,7 +18,7 @@ $f = prairie_ash_fields( 'visit-access' );
 					<p class="visit-access__label"<?php prairie_ash_el( $block, 'label' ); ?>><?php echo esc_html( $f['label'] ); ?></p>
 				<?php endif; ?>
 				<?php if ( $f['heading'] ) : ?>
-					<h2 class="visit-access__heading" id="visit-access-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
+					<h2 class="visit-access__heading" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
 				<?php endif; ?>
 				<?php if ( $f['body'] ) : ?>
 					<p class="visit-access__body"<?php prairie_ash_el( $block, 'body' ); ?>><?php echo esc_html( $f['body'] ); ?></p>
@@ -35,12 +36,12 @@ $f = prairie_ash_fields( 'visit-access' );
 			<div class="visit-access__media">
 				<?php if ( $f['image_entrance'] ) : ?>
 					<div class="visit-access__photo visit-access__photo--entrance media-ibg">
-						<?php prairie_ash_image( $f['image_entrance'], prairie_ash_slot_sizes( 'visit-access__photo' ), $f['heading'] ); ?>
+						<?php prairie_ash_image( $f['image_entrance'], prairie_ash_slot_sizes( 'visit-access__photo' ), $f['heading'], $f['image_entrance_decorative'] ); ?>
 					</div>
 				<?php endif; ?>
 				<?php if ( $f['image_inside'] ) : ?>
 					<div class="visit-access__photo visit-access__photo--inside media-ibg">
-						<?php prairie_ash_image( $f['image_inside'], prairie_ash_slot_sizes( 'visit-access__photo' ), $f['heading'] ); ?>
+						<?php prairie_ash_image( $f['image_inside'], prairie_ash_slot_sizes( 'visit-access__photo' ), $f['image_entrance'] ? '' : $f['heading'], $f['image_inside_decorative'] ); ?>
 					</div>
 				<?php endif; ?>
 			</div>

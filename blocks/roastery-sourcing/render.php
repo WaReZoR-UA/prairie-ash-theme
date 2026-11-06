@@ -7,16 +7,17 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f = prairie_ash_fields( 'roastery-sourcing' );
+$f        = prairie_ash_fields( 'roastery-sourcing' );
+$title_id = prairie_ash_heading_id( 'roastery-sourcing-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'roastery-sourcing', 'band', 'band--wall' ) ); ?> aria-labelledby="roastery-sourcing-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'roastery-sourcing', 'band', 'band--wall' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="roastery-sourcing__container">
 		<div class="roastery-sourcing__intro">
 			<?php if ( $f['label'] ) : ?>
 				<p class="roastery-sourcing__label"<?php prairie_ash_el( $block, 'label' ); ?>><?php echo esc_html( $f['label'] ); ?></p>
 			<?php endif; ?>
 			<?php if ( $f['heading'] ) : ?>
-				<h2 class="roastery-sourcing__heading" id="roastery-sourcing-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
+				<h2 class="roastery-sourcing__heading" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
 			<?php endif; ?>
 			<?php if ( $f['body'] ) : ?>
 				<p class="roastery-sourcing__body"<?php prairie_ash_el( $block, 'body' ); ?>><?php echo esc_html( $f['body'] ); ?></p>

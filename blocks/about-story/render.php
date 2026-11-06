@@ -7,9 +7,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f = prairie_ash_fields( 'about-story' );
+$f        = prairie_ash_fields( 'about-story' );
+$title_id = prairie_ash_heading_id( 'about-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'about-story', 'band', 'band--deep' ) ); ?> aria-labelledby="about-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'about-story', 'band', 'band--deep' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="about-story__container" data-motion="about-sign">
 		<span class="pinstripe" aria-hidden="true" data-motion="stripe"></span>
 		<div class="about-story__heading">
@@ -17,7 +18,7 @@ $f = prairie_ash_fields( 'about-story' );
 				<p class="about-story__eyebrow"<?php prairie_ash_el( $block, 'eyebrow' ); ?>><?php echo esc_html( $f['eyebrow'] ); ?></p>
 			<?php endif; ?>
 			<?php if ( $f['heading'] ) : ?>
-				<h1 class="about-story__title" id="about-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h1>
+				<h1 class="about-story__title" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h1>
 			<?php endif; ?>
 		</div>
 		<div class="about-story__row">

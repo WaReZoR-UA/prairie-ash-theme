@@ -122,12 +122,10 @@ function prairie_ash_section_attrs( $block, $is_preview, $classes = array(), $ex
 	$classes  = array_values( array_filter( array_map( 'strval', (array) $classes ) ) );
 
 	$attrs = array();
-	if ( ! empty( $block['anchor'] ) ) {
-		$attrs['id'] = $block['anchor'];
-	}
 	// The design's own id is the default; an anchor the client set wins over it.
-	if ( empty( $attrs['id'] ) && ! empty( $extra['id'] ) ) {
-		$attrs['id'] = $extra['id'];
+	$id = empty( $block['anchor'] ) ? ( empty( $extra['id'] ) ? '' : $extra['id'] ) : $block['anchor'];
+	if ( '' !== (string) $id ) {
+		$attrs['id'] = prairie_ash_unique_id( (string) $id );
 	}
 	if ( ! empty( $extra['aria-label'] ) ) {
 		$attrs['aria-label'] = $extra['aria-label'];
@@ -158,11 +156,93 @@ function prairie_ash_section_attrs( $block, $is_preview, $classes = array(), $ex
 }
 
 /**
+ * Claim an id for an element of a section, unique within one rendering of the content.
+ *
+ * The first element asking for an id gets it as it is, so the design's ids and
+ * the links that point at them stay as they were. A later element asking for
+ * the same id, such as a section placed twice or two sections whose headings
+ * share a name, gets the next free numbered form instead.
+ *
+ * @since 1.2.1
+ *
+ * @param string $base  The id the element would carry on its own.
+ * @param bool   $reset Forget every id claimed so far, for a new rendering.
+ * @return string The id to print, empty when resetting.
+ */
+function prairie_ash_unique_id( $base, $reset = false ) {
+	static $used = array();
+
+	if ( $reset ) {
+		$used = array();
+		return '';
+	}
+
+	$id     = $base;
+	$number = 2;
+	while ( isset( $used[ $id ] ) ) {
+		$id = $base . '-' . $number;
+		++$number;
+	}
+	$used[ $id ] = true;
+
+	return $id;
+}
+
+/**
+ * Start every rendering of a post's content with no id claimed.
+ *
+ * Runs before core parses the blocks, so content rendered twice in one
+ * request, once for a plugin and once for the page, prints the same ids both
+ * times.
+ *
+ * @since 1.2.1
+ *
+ * @param string $content The post content.
+ * @return string The same content.
+ */
+function prairie_ash_reset_unique_ids( $content ) {
+	prairie_ash_unique_id( '', true );
+
+	return $content;
+}
+add_filter( 'the_content', 'prairie_ash_reset_unique_ids', 8 );
+
+/**
+ * The id of a section heading, or an empty string when there is no heading.
+ *
+ * @since 1.2.1
+ *
+ * @param string $base    The id the design gives the heading.
+ * @param string $heading The heading text as the template tests it.
+ * @return string
+ */
+function prairie_ash_heading_id( $base, $heading ) {
+	// The same test the templates use to decide whether the heading is printed at all.
+	return $heading ? prairie_ash_unique_id( $base ) : '';
+}
+
+/**
+ * Print the aria-labelledby attribute of a section, only when its heading exists.
+ *
+ * @since 1.2.1
+ *
+ * @param string $id The heading id from prairie_ash_heading_id().
+ * @return void
+ */
+function prairie_ash_labelledby( $id ) {
+	if ( '' !== (string) $id ) {
+		echo ' aria-labelledby="' . esc_attr( $id ) . '"';
+	}
+}
+
+/**
  * Build the inline style of a section from its core supports.
  *
  * Serialisation of every support is skipped in block.json, so nothing reaches
  * the page unless it is built here. Only preset values can be chosen in this
- * theme, so every value resolves to a design custom property.
+ * theme, so every value resolves to a design custom property. The text colour
+ * lands on the section root, where the running text inherits it, and a
+ * background image takes core's defaults of cover, centred when contained.
  *
  * @since 1.0.0
  *
@@ -180,7 +260,17 @@ function prairie_ash_support_styles( $block ) {
 		$input['dimensions'] = array( 'minHeight' => $style['dimensions']['minHeight'] );
 	}
 	if ( ! empty( $style['background'] ) && is_array( $style['background'] ) ) {
-		$input['background'] = $style['background'];
+		$background = $style['background'];
+		// Core's own defaults, which skipped serialisation never runs: cover, and centred when contained.
+		if ( ! empty( $background['backgroundImage'] ) ) {
+			if ( empty( $background['backgroundSize'] ) ) {
+				$background['backgroundSize'] = 'cover';
+			}
+			if ( 'contain' === $background['backgroundSize'] && empty( $background['backgroundPosition'] ) ) {
+				$background['backgroundPosition'] = '50% 50%';
+			}
+		}
+		$input['background'] = $background;
 	}
 
 	$css = '';
@@ -191,6 +281,9 @@ function prairie_ash_support_styles( $block ) {
 
 	if ( ! empty( $block['backgroundColor'] ) ) {
 		$css .= 'background-color:var(--wp--preset--color--' . sanitize_key( $block['backgroundColor'] ) . ');';
+	}
+	if ( ! empty( $block['textColor'] ) ) {
+		$css .= 'color:var(--wp--preset--color--' . sanitize_key( $block['textColor'] ) . ');';
 	}
 
 	return $css;

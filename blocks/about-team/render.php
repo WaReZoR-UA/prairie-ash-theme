@@ -10,12 +10,13 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f = prairie_ash_fields( 'about-team' );
+$f        = prairie_ash_fields( 'about-team' );
+$title_id = prairie_ash_heading_id( 'about-team-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'about-team', 'band', 'band--wall' ) ); ?> aria-labelledby="about-team-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'about-team', 'band', 'band--wall' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="about-team__container">
 		<?php if ( $f['heading'] ) : ?>
-			<h2 class="about-team__heading" id="about-team-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
+			<h2 class="about-team__heading" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
 		<?php endif; ?>
 		<?php if ( $f['people'] ) : ?>
 			<div class="about-team__people">

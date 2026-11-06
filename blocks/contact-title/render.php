@@ -7,16 +7,17 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f = prairie_ash_fields( 'contact-title' );
+$f        = prairie_ash_fields( 'contact-title' );
+$title_id = prairie_ash_heading_id( 'contact-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'contact-title' ) ); ?> aria-labelledby="contact-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'contact-title' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="contact-title__container" data-motion="contact-sign">
 		<div class="contact-title__text">
 			<?php if ( $f['eyebrow'] ) : ?>
 				<p class="eyebrow contact-title__eyebrow"<?php prairie_ash_el( $block, 'eyebrow' ); ?>><?php echo esc_html( $f['eyebrow'] ); ?></p>
 			<?php endif; ?>
 			<?php if ( $f['heading'] ) : ?>
-				<h1 class="contact-title__heading" id="contact-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h1>
+				<h1 class="contact-title__heading" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h1>
 			<?php endif; ?>
 			<?php if ( $f['intro'] ) : ?>
 				<p class="contact-title__intro"<?php prairie_ash_el( $block, 'intro' ); ?>><?php echo esc_html( $f['intro'] ); ?></p>

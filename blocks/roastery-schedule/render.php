@@ -7,16 +7,17 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f = prairie_ash_fields( 'roastery-schedule' );
+$f        = prairie_ash_fields( 'roastery-schedule' );
+$title_id = prairie_ash_heading_id( 'roastery-schedule-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'roastery-schedule', 'band', 'band--paper' ) ); ?> aria-labelledby="roastery-schedule-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'roastery-schedule', 'band', 'band--paper' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="roastery-schedule__container">
 		<div class="roastery-schedule__text">
 			<?php if ( $f['label'] ) : ?>
 				<p class="roastery-schedule__label"<?php prairie_ash_el( $block, 'label' ); ?>><?php echo esc_html( $f['label'] ); ?></p>
 			<?php endif; ?>
 			<?php if ( $f['heading'] ) : ?>
-				<h2 class="roastery-schedule__heading" id="roastery-schedule-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
+				<h2 class="roastery-schedule__heading" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
 			<?php endif; ?>
 			<?php if ( $f['body'] ) : ?>
 				<p class="roastery-schedule__body"<?php prairie_ash_el( $block, 'body' ); ?>><?php echo esc_html( $f['body'] ); ?></p>

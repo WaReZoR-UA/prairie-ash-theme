@@ -7,13 +7,14 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f = prairie_ash_fields( 'wholesale-inquiry' );
+$f        = prairie_ash_fields( 'wholesale-inquiry' );
+$title_id = prairie_ash_heading_id( 'wholesale-offer-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'wholesale-inquiry', 'band', 'band--wall' ), array( 'id' => 'inquiry-form' ) ); ?> aria-labelledby="wholesale-offer-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'wholesale-inquiry', 'band', 'band--wall' ), array( 'id' => 'inquiry-form' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="wholesale-inquiry__container">
 		<div class="wholesale-inquiry__offer">
 			<?php if ( $f['heading'] ) : ?>
-				<h2 class="wholesale-inquiry__heading" id="wholesale-offer-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
+				<h2 class="wholesale-inquiry__heading" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
 			<?php endif; ?>
 			<?php if ( $f['figures'] || $f['body'] ) : ?>
 				<div class="wholesale-inquiry__terms" data-motion="wholesale-board">

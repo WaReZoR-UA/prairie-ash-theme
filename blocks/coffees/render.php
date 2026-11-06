@@ -9,6 +9,10 @@ defined( 'ABSPATH' ) || exit;
 
 $f       = prairie_ash_fields( 'coffees' );
 $feature = ( $f['feature'] && function_exists( 'wc_get_product' ) ) ? wc_get_product( $f['feature'] ) : null;
+// A drafted, private or trashed coffee leaves the sign, exactly as it leaves the board below.
+if ( $feature && 'publish' !== $feature->get_status() ) {
+	$feature = null;
+}
 $coffees = array();
 foreach ( (array) $f['coffees'] as $coffee_id ) {
 	$product = function_exists( 'wc_get_product' ) ? wc_get_product( $coffee_id ) : null;
@@ -16,13 +20,14 @@ foreach ( (array) $f['coffees'] as $coffee_id ) {
 		$coffees[] = prairie_ash_coffee( $product );
 	}
 }
-$rows = array_chunk( $coffees, 2 );
+$rows     = array_chunk( $coffees, 2 );
+$title_id = prairie_ash_heading_id( 'coffees-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'coffees' ) ); ?> aria-labelledby="coffees-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'coffees' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="coffees__container">
 		<div class="coffees__head">
 			<?php if ( $f['heading'] ) : ?>
-				<h2 class="coffees__title" id="coffees-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
+				<h2 class="coffees__title" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
 			<?php endif; ?>
 			<?php if ( $f['intro'] || ! empty( $f['link']['url'] ) ) : ?>
 				<div class="coffees__intro">

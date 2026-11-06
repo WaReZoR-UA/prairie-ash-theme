@@ -10,11 +10,12 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f    = prairie_ash_fields( 'roastery-cupping' );
-$raw  = function_exists( 'get_field' ) ? (string) get_field( 'next_date', false, false ) : '';
-$when = preg_match( '/^\d{8}$/', $raw ) ? DateTimeImmutable::createFromFormat( '!Ymd', $raw, wp_timezone() ) : false;
+$f        = prairie_ash_fields( 'roastery-cupping' );
+$raw      = function_exists( 'get_field' ) ? (string) get_field( 'next_date', false, false ) : '';
+$when     = preg_match( '/^\d{8}$/', $raw ) ? DateTimeImmutable::createFromFormat( '!Ymd', $raw, wp_timezone() ) : false;
+$title_id = prairie_ash_heading_id( 'roastery-cupping-title', $f['heading'] );
 ?>
-<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'roastery-cupping', 'band', 'band--wall' ), array( 'id' => 'cupping' ) ); ?> aria-labelledby="roastery-cupping-title">
+<section <?php echo prairie_ash_section_attrs( $block, $is_preview, array( 'roastery-cupping', 'band', 'band--wall' ), array( 'id' => 'cupping' ) ); ?><?php prairie_ash_labelledby( $title_id ); ?>>
 	<div class="roastery-cupping__container">
 		<?php if ( $f['image'] ) : ?>
 			<div class="roastery-cupping__media media-ibg">
@@ -26,7 +27,7 @@ $when = preg_match( '/^\d{8}$/', $raw ) ? DateTimeImmutable::createFromFormat( '
 				<p class="roastery-cupping__label"<?php prairie_ash_el( $block, 'label' ); ?>><?php echo esc_html( $f['label'] ); ?></p>
 			<?php endif; ?>
 			<?php if ( $f['heading'] ) : ?>
-				<h2 class="roastery-cupping__heading" id="roastery-cupping-title"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
+				<h2 class="roastery-cupping__heading" id="<?php echo esc_attr( $title_id ); ?>"<?php prairie_ash_el( $block, 'heading' ); ?>><?php echo esc_html( $f['heading'] ); ?></h2>
 			<?php endif; ?>
 			<?php if ( $f['body'] ) : ?>
 				<p class="roastery-cupping__body"<?php prairie_ash_el( $block, 'body' ); ?>><?php echo esc_html( $f['body'] ); ?></p>
