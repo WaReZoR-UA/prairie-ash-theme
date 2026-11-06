@@ -40,3 +40,10 @@ Motion, accessibility and build:
 - Line endings are LF throughout, unused partials and packages are removed, and the GSAP licence is stated
   in LICENSE.
 - The editor no longer raises a notice for the block stylesheets.
+
+Phones:
+
+- The first header link starts on the same edge as the wordmark and the sign.
+- The analytics notice is compact and covers less than a third of the first screen.
+- The window frame in the home photo has equal gutters, and the photo fills the width in WebKit at 414 and 430.
+- Scroll effects are measured again once the web fonts are laid out, so they start where they should in WebKit.
