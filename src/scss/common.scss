@@ -34,6 +34,11 @@ label {
 .nowrap {
 	white-space: nowrap;
 }
+// A phone number is one word: WebKit broke "204- / 555-0142" at its hyphen, which the written-in copy of a line
+// (js/files/paint.js) cannot do, so the copy and the line wrapped apart while the line was being written
+a[href^="tel:"] {
+	white-space: nowrap;
+}
 // Body/Figures: League Gothic figures inside running text, whose 1 cannot be read as l. Size and line height come from the sentence.
 .figure {
 	font-family: $fontHeading;
