@@ -12,6 +12,15 @@ textarea {
 	-moz-appearance: none;
 	appearance: none;
 }
+// The quantity field is drawn as a plain box: no native stepper, which WebKit and Firefox otherwise paint inside it
+input[type="number"] {
+	-moz-appearance: textfield;
+	&::-webkit-inner-spin-button,
+	&::-webkit-outer-spin-button {
+		-webkit-appearance: none;
+		margin: 0;
+	}
+}
 
 // A labelled field: label, then the error message, then the input box
 .field {
