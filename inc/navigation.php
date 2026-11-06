@@ -129,12 +129,58 @@ function prairie_ash_cart_link() {
 	}
 
 	printf(
-		'<a class="nav-link" href="%1$s"%2$s data-cart-link>%3$s</a>',
+		'<a class="nav-link" href="%1$s"%2$s data-cart-link data-cart-hash="%3$s">%4$s</a>',
 		esc_url( wc_get_cart_url() ),
 		is_cart() ? ' aria-current="page"' : '',
+		esc_attr( WC()->cart ? WC()->cart->get_cart_hash() : '' ),
 		esc_html( prairie_ash_cart_label() )
 	);
 }
+
+/**
+ * Bring the header cart count up to date on a page served from a page cache.
+ *
+ * The count is printed on the server, so a cached page shows the cart of
+ * whoever filled the cache. WooCommerce keeps the hash of the visitor's cart in
+ * the woocommerce_cart_hash cookie, and the link carries the hash of the cart it
+ * was printed for. Only when the two differ is the link fetched again, from
+ * WooCommerce's own fragments endpoint, so an uncached page makes no request.
+ * WooCommerce's cart fragments script does the same, but needs jQuery on every
+ * page.
+ *
+ * @since 1.2.1
+ *
+ * @return void
+ */
+function prairie_ash_cart_link_refresh() {
+	if ( ! function_exists( 'WC' ) || ! class_exists( 'WC_AJAX' ) || is_cart() || is_checkout() ) {
+		return;
+	}
+
+	$script = <<<'JS'
+(function () {
+	var links = document.querySelectorAll("a[data-cart-link]");
+	if (!links.length || !window.fetch) return;
+	var found = document.cookie.match(/(?:^|;\s*)woocommerce_cart_hash=([^;]*)/);
+	if ((found ? decodeURIComponent(found[1]) : "") === (links[0].getAttribute("data-cart-hash") || "")) return;
+	fetch(%s, { method: "POST", credentials: "same-origin" })
+		.then(function (response) { return response.json(); })
+		.then(function (result) {
+			var html = result && result.fragments && result.fragments["a[data-cart-link]"];
+			if (!html) return;
+			document.querySelectorAll("a[data-cart-link]").forEach(function (link) {
+				var holder = document.createElement("template");
+				holder.innerHTML = html;
+				if (holder.content.firstElementChild) link.replaceWith(holder.content.firstElementChild);
+			});
+		})
+		.catch(function () {});
+})();
+JS;
+
+	wp_print_inline_script_tag( sprintf( $script, wp_json_encode( WC_AJAX::get_endpoint( 'get_refreshed_fragments' ) ) ) );
+}
+add_action( 'wp_footer', 'prairie_ash_cart_link_refresh', 20 );
 
 /**
  * The link of the header's directions button.

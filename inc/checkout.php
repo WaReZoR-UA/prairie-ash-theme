@@ -173,6 +173,25 @@ function prairie_ash_posted_pickup( $data ) {
 }
 
 /**
+ * Whether the order needs the delivery address: a cart that ships, not picked up.
+ *
+ * A cart of products that need no shipping, such as a gift card, is neither
+ * shipped nor picked up, so it asks for no address.
+ *
+ * @since 1.2.1
+ *
+ * @param array|null $data Posted checkout data, or null for the choice stored in the session.
+ * @return bool
+ */
+function prairie_ash_address_needed( $data = null ) {
+	if ( ! WC()->cart || ! WC()->cart->needs_shipping() ) {
+		return false;
+	}
+
+	return ! ( null === $data ? prairie_ash_chosen_pickup() : prairie_ash_posted_pickup( $data ) );
+}
+
+/**
  * Ship a delivery to the address the visitor typed, the one address the design asks for.
  *
  * The design draws one address, posted as the billing fields, so the shipping
@@ -250,12 +269,18 @@ add_action( 'woocommerce_checkout_create_order', 'prairie_ash_pickup_without_shi
 function prairie_ash_checkout_validate( $data, $errors ) {
 	$list = prairie_ash_checkout_field_list();
 
-	if ( ! prairie_ash_posted_pickup( $data ) ) {
+	if ( prairie_ash_address_needed( $data ) ) {
 		foreach ( array( 'billing_address_1', 'billing_city', 'billing_postcode', 'billing_state' ) as $key ) {
 			if ( '' === trim( (string) ( $data[ $key ] ?? '' ) ) && ! $errors->get_error_data( $key . '_required' ) ) {
 				$errors->add( $key . '_required', prairie_ash_wording( $list[ $key ][4] ), array( 'id' => $key ) );
 			}
 		}
+	}
+
+	// WooCommerce's terms error names no field, so the summary could not link it to the box.
+	if ( $errors->get_error_message( 'terms' ) ) {
+		$errors->remove( 'terms' );
+		$errors->add( 'terms', prairie_ash_wording( 'error_terms' ), array( 'id' => 'terms' ) );
 	}
 
 	// Rewrite WooCommerce's messages into the design's, keyed by the field each one belongs to.
@@ -310,36 +335,125 @@ function prairie_ash_admin_consent( $order ) {
 add_action( 'woocommerce_admin_order_data_after_billing_address', 'prairie_ash_admin_consent' );
 
 /**
+ * The selectors of the checkout parts, in the order the page prints them.
+ *
+ * @since 1.2.1
+ *
+ * @return string[]
+ */
+function prairie_ash_checkout_part_selectors() {
+	return array( '.checkout-title__total', '.checkout-choice', '#payment', '.checkout-review__order' );
+}
+
+/**
+ * Print the total beside the checkout title.
+ *
+ * @since 1.2.1
+ *
+ * @return void
+ */
+function prairie_ash_checkout_title_total() {
+	wc_get_template( 'checkout/pa-title-total.php' );
+}
+
+/**
+ * Print the delivery choice, when the cart is shipped at all.
+ *
+ * @since 1.2.1
+ *
+ * @return void
+ */
+function prairie_ash_checkout_delivery_options() {
+	if ( WC()->cart && WC()->cart->needs_shipping() ) {
+		wc_get_template( 'checkout/pa-delivery-options.php' );
+	}
+}
+
+/**
+ * Keep the markup of a checkout part as the page prints it.
+ *
+ * @since 1.2.1
+ *
+ * @param string|null $selector Selector of the part, or null to only read.
+ * @param string      $html     The part's markup.
+ * @return array<string, string> Every part printed so far, selector to HTML.
+ */
+function prairie_ash_checkout_printed_part( $selector = null, $html = '' ) {
+	static $printed = array();
+
+	if ( null !== $selector ) {
+		$printed[ $selector ] = $html;
+	}
+
+	return $printed;
+}
+
+/**
+ * Print a checkout part and keep its markup for the fingerprint.
+ *
+ * The part is rendered once: what the page shows is what the fingerprint is
+ * taken from, so a payment method's fields are not drawn a second time only to
+ * be hashed.
+ *
+ * @since 1.2.1
+ *
+ * @param string   $selector Selector of the part.
+ * @param callable $render   Prints the part.
+ * @return void
+ */
+function prairie_ash_print_checkout_part( $selector, $render ) {
+	ob_start(
+		static function ( $html ) use ( $selector ) {
+			prairie_ash_checkout_printed_part( $selector, $html );
+			return $html;
+		}
+	);
+	call_user_func( $render );
+	ob_end_flush();
+}
+
+/**
  * The parts of the checkout that change with the delivery choice and the total.
  *
  * Each part is printed by its template, keyed by the selector WooCommerce's
  * checkout script replaces it by: the total beside the title, the delivery
  * options, the payment panel and the order review. The place order button,
  * whose label carries the total, is refreshed with them and carries their
- * fingerprint, see prairie_ash_checkout_parts_hash().
+ * fingerprint, see prairie_ash_checkout_parts_hash(). The payment panel and the
+ * review are taken from WooCommerce's own fragments when it rendered them.
  *
  * @since 1.1.0
+ * @since 1.2.1 Reuses the payment panel and the review WooCommerce rendered.
  *
+ * @param array<string, string> $fragments WooCommerce's fragments, selector to HTML.
  * @return array<string, string> Selector to HTML.
  */
-function prairie_ash_checkout_parts() {
+function prairie_ash_checkout_parts( $fragments = array() ) {
 	$parts = array();
 
 	ob_start();
-	wc_get_template( 'checkout/pa-title-total.php' );
+	prairie_ash_checkout_title_total();
 	$parts['.checkout-title__total'] = ob_get_clean();
 
 	ob_start();
-	wc_get_template( 'checkout/pa-delivery-options.php' );
+	prairie_ash_checkout_delivery_options();
 	$parts['.checkout-choice'] = ob_get_clean();
 
-	ob_start();
-	woocommerce_checkout_payment();
-	$parts['#payment'] = ob_get_clean();
+	if ( isset( $fragments['.woocommerce-checkout-payment'] ) ) {
+		$parts['#payment'] = (string) $fragments['.woocommerce-checkout-payment'];
+	} else {
+		ob_start();
+		woocommerce_checkout_payment();
+		$parts['#payment'] = ob_get_clean();
+	}
 
-	ob_start();
-	woocommerce_order_review();
-	$parts['.checkout-review__order'] = ob_get_clean();
+	if ( isset( $fragments['.woocommerce-checkout-review-order-table'] ) ) {
+		$parts['.checkout-review__order'] = (string) $fragments['.woocommerce-checkout-review-order-table'];
+	} else {
+		ob_start();
+		woocommerce_order_review();
+		$parts['.checkout-review__order'] = ob_get_clean();
+	}
 
 	return $parts;
 }
@@ -355,12 +469,25 @@ function prairie_ash_checkout_parts() {
  * parts that changed are sent back.
  *
  * @since 1.1.0
+ * @since 1.2.1 Taken from the parts the page printed, when it printed them.
  *
- * @param array<string, string>|null $parts Selector to HTML, or null to print them now.
+ * @param array<string, string>|null $parts Selector to HTML, or null for the parts the page printed.
  * @return string
  */
 function prairie_ash_checkout_parts_hash( $parts = null ) {
-	return md5( implode( "\n", null === $parts ? prairie_ash_checkout_parts() : $parts ) );
+	if ( null === $parts ) {
+		$printed = prairie_ash_checkout_printed_part();
+		if ( isset( $printed['#payment'], $printed['.checkout-review__order'] ) ) {
+			$parts = array();
+			foreach ( prairie_ash_checkout_part_selectors() as $selector ) {
+				$parts[ $selector ] = isset( $printed[ $selector ] ) ? $printed[ $selector ] : '';
+			}
+		} else {
+			$parts = prairie_ash_checkout_parts();
+		}
+	}
+
+	return md5( implode( "\n", $parts ) );
 }
 
 /**
@@ -378,10 +505,15 @@ function prairie_ash_checkout_parts_hash( $parts = null ) {
  * @return array
  */
 function prairie_ash_checkout_fragments( $fragments ) {
+	// A session that expired answers with one notice for the whole form, which is left as it is.
+	if ( ! isset( $fragments['.woocommerce-checkout-review-order-table'], $fragments['.woocommerce-checkout-payment'] ) ) {
+		return $fragments;
+	}
+
+	$parts = prairie_ash_checkout_parts( $fragments );
 	unset( $fragments['.woocommerce-checkout-review-order-table'], $fragments['.woocommerce-checkout-payment'] );
 
-	$parts = prairie_ash_checkout_parts();
-	$hash  = prairie_ash_checkout_parts_hash( $parts );
+	$hash = prairie_ash_checkout_parts_hash( $parts );
 
 	$posted = array();
 	$nonce  = isset( $_POST['security'] ) ? sanitize_text_field( wp_unslash( $_POST['security'] ) ) : '';
@@ -596,6 +728,34 @@ function prairie_ash_hint_text( $hint ) {
 		(string) preg_replace( '/\[([^\]]+)\]/', '<span class="field__pattern">$1</span>', esc_html( $hint ) ),
 		array( 'span' => array( 'class' => true ) )
 	);
+}
+
+/**
+ * Print what a callback prints, inside the design's container when anything prints.
+ *
+ * Payment methods print their express buttons on the checkout's hooks, which
+ * the template fires in the callback. The section and its container are
+ * printed only around output, so a checkout with nothing hooked keeps the
+ * design's markup as it is.
+ *
+ * @since 1.2.1
+ *
+ * @param callable $fire  Fires the hook.
+ * @param string   $block BEM block name of the section, for example checkout-express.
+ * @return void
+ */
+function prairie_ash_checkout_hook_area( $fire, $block ) {
+	ob_start(
+		static function ( $html ) use ( $block ) {
+			if ( '' === trim( $html ) ) {
+				return '';
+			}
+
+			return '<section class="' . esc_attr( $block ) . '"><div class="' . esc_attr( $block . '__container' ) . '">' . $html . '</div></section>';
+		}
+	);
+	call_user_func( $fire );
+	ob_end_flush();
 }
 
 /**

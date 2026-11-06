@@ -48,6 +48,9 @@ $prairie_ash_lines = prairie_ash_cart_lines( $prairie_ash_cart->get_cart() );
 	<div class="checkout-review__receipt" data-motion="cart-receipt">
 		<dl class="lv lv--total">
 			<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( 'subtotal' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_price_text( $prairie_ash_cart->get_subtotal() ) ); ?></dd></div>
+			<?php foreach ( prairie_ash_cart_adjustment_rows( $prairie_ash_cart ) as $prairie_ash_row ) : ?>
+				<div class="lv__row"><dt class="lv__label"><?php echo esc_html( $prairie_ash_row[0] ); ?></dt><dd class="lv__value"><?php echo esc_html( $prairie_ash_row[1] ); ?></dd></div>
+			<?php endforeach; ?>
 			<?php if ( $prairie_ash_cart->needs_shipping() ) : ?>
 				<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_chosen_pickup() ? prairie_ash_wording( 'pickup' ) : prairie_ash_wording( 'shipping' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_shipping_value() ); ?></dd></div>
 			<?php endif; ?>

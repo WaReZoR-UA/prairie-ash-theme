@@ -26,15 +26,6 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
 do_action( 'woocommerce_before_checkout_form', $checkout );
 ?>
 <form name="checkout" class="checkout woocommerce-checkout" action="<?php echo esc_url( wc_get_checkout_url() ); ?>" method="post" novalidate data-error-summary enctype="multipart/form-data">
-	<section class="checkout-errors" aria-label="<?php echo esc_attr( prairie_ash_wording( 'errors_label' ) ); ?>">
-		<div class="checkout-errors__container">
-			<div class="error-summary error-summary--panel" role="alert" data-error-summary-box hidden tabindex="-1">
-				<h2 class="error-summary__title"><?php echo esc_html( prairie_ash_wording( 'errors_title' ) ); ?></h2>
-				<ul class="error-summary__list" data-error-summary-list></ul>
-			</div>
-		</div>
-	</section>
-
 	<section class="checkout-title" aria-labelledby="checkout-title">
 		<div class="checkout-title__container" data-motion="checkout-sign">
 			<div class="checkout-title__text">
@@ -42,9 +33,30 @@ do_action( 'woocommerce_before_checkout_form', $checkout );
 				<h1 class="checkout-title__heading" id="checkout-title"><?php echo esc_html( prairie_ash_wording( 'checkout_heading' ) ); ?></h1>
 				<p class="checkout-title__note"><?php echo esc_html( prairie_ash_wording( 'checkout_note' ) ); ?></p>
 			</div>
-			<?php wc_get_template( 'checkout/pa-title-total.php' ); ?>
+			<?php prairie_ash_print_checkout_part( '.checkout-title__total', 'prairie_ash_checkout_title_total' ); ?>
 		</div>
 	</section>
+
+	<?php // The summary follows the heading, so the page opens on its h1. ?>
+	<div class="checkout-errors">
+		<div class="checkout-errors__container">
+			<div class="error-summary error-summary--panel" role="alert" data-error-summary-box hidden tabindex="-1">
+				<h2 class="error-summary__title"><?php echo esc_html( prairie_ash_wording( 'errors_title' ) ); ?></h2>
+				<ul class="error-summary__list" data-error-summary-list></ul>
+			</div>
+		</div>
+	</div>
+
+	<?php
+	// Express payment buttons and anything else hooked before the customer's details, in the
+	// design's container. Nothing is printed when nothing is hooked.
+	prairie_ash_checkout_hook_area(
+		static function () {
+			do_action( 'woocommerce_checkout_before_customer_details' );
+		},
+		'checkout-express'
+	);
+	?>
 
 	<section class="checkout-step band band--wall" aria-labelledby="checkout-details-title">
 		<div class="checkout-step__container">
@@ -60,11 +72,22 @@ do_action( 'woocommerce_before_checkout_form', $checkout );
 						<?php prairie_ash_checkout_input( 'billing_last_name' ); ?>
 					</div>
 					<?php prairie_ash_checkout_input( 'billing_phone' ); ?>
+					<?php wc_get_template( 'checkout/pa-extra-fields.php', array( 'checkout' => $checkout ) ); ?>
 				</div>
 			</div>
 		</div>
 	</section>
 
+	<?php
+	prairie_ash_checkout_hook_area(
+		static function () {
+			do_action( 'woocommerce_checkout_after_customer_details' );
+		},
+		'checkout-express'
+	);
+	?>
+
+	<?php if ( WC()->cart->needs_shipping() ) : ?>
 	<section class="checkout-step band band--deep" aria-labelledby="checkout-delivery-title">
 		<div class="checkout-step__container">
 			<div class="checkout-step__text">
@@ -73,7 +96,7 @@ do_action( 'woocommerce_before_checkout_form', $checkout );
 			</div>
 			<div class="checkout-step__panel" data-motion="checkout-fields">
 				<div class="checkout-fields">
-					<?php wc_get_template( 'checkout/pa-delivery-options.php' ); ?>
+					<?php prairie_ash_print_checkout_part( '.checkout-choice', 'prairie_ash_checkout_delivery_options' ); ?>
 					<div class="checkout-fields__group" data-address-fields<?php echo prairie_ash_chosen_pickup() ? ' hidden' : ''; ?>>
 						<?php prairie_ash_checkout_input( 'billing_address_1' ); ?>
 						<div class="checkout-fields__row checkout-fields__row--stack">
@@ -82,11 +105,12 @@ do_action( 'woocommerce_before_checkout_form', $checkout );
 						</div>
 						<?php prairie_ash_checkout_input( 'billing_state' ); ?>
 					</div>
-					<input type="hidden" name="billing_country" id="billing_country" value="CA">
 				</div>
 			</div>
 		</div>
 	</section>
+	<?php endif; ?>
+	<input type="hidden" name="billing_country" id="billing_country" value="CA">
 
 	<section class="checkout-step band band--wall" aria-labelledby="checkout-payment-title">
 		<div class="checkout-step__container">
@@ -94,13 +118,17 @@ do_action( 'woocommerce_before_checkout_form', $checkout );
 				<h2 class="checkout-step__title" id="checkout-payment-title"><?php echo esc_html( prairie_ash_wording( 'payment_title' ) ); ?></h2>
 				<p class="checkout-step__note"><?php echo esc_html( prairie_ash_wording( 'payment_note' ) ); ?></p>
 			</div>
-			<?php woocommerce_checkout_payment(); ?>
+			<?php
+			do_action( 'woocommerce_review_order_before_payment' );
+			prairie_ash_print_checkout_part( '#payment', 'woocommerce_checkout_payment' );
+			do_action( 'woocommerce_review_order_after_payment' );
+			?>
 		</div>
 	</section>
 
 	<section class="checkout-review" aria-labelledby="checkout-review-title">
 		<div class="checkout-review__container">
-			<?php woocommerce_order_review(); ?>
+			<?php prairie_ash_print_checkout_part( '.checkout-review__order', 'woocommerce_order_review' ); ?>
 			<div class="checkout-review__submit" data-motion="checkout-submit">
 				<div class="checkbox">
 					<input class="checkbox__input" id="checkout-consent" type="checkbox" name="roast_notes" value="yes" aria-describedby="checkout-consent-sender">
@@ -111,6 +139,15 @@ do_action( 'woocommerce_before_checkout_form', $checkout );
 				<p class="checkout-review__small" id="checkout-consent-sender"><?php echo esc_html( prairie_ash_wording( 'consent_sender' ) ); ?></p>
 				<p class="checkout-review__small"><?php echo esc_html( prairie_ash_wording( 'privacy_note' ) ); ?></p>
 				<?php prairie_ash_link( prairie_ash_wording( 'privacy_link' ), get_privacy_policy_url(), 'text-link text-link--on-paper' ); ?>
+				<?php if ( wc_terms_and_conditions_checkbox_enabled() ) : ?>
+					<div class="checkbox">
+						<input class="checkbox__input" id="terms" type="checkbox" name="terms" value="on"<?php checked( (bool) apply_filters( 'woocommerce_terms_is_checked_default', false ) ); ?> data-required data-error="<?php echo esc_attr( prairie_ash_wording( 'error_prefix' ) . ' ' . prairie_ash_wording( 'error_terms' ) ); ?>" data-summary="<?php echo esc_attr( prairie_ash_wording( 'error_terms' ) ); ?>">
+						<label class="checkbox__label" for="terms">
+							<span class="checkbox__text"><?php wc_terms_and_conditions_checkbox_text(); ?></span>
+						</label>
+						<input type="hidden" name="terms-field" value="1">
+					</div>
+				<?php endif; ?>
 				<?php wc_get_template( 'checkout/pa-place-order.php' ); ?>
 			</div>
 		</div>

@@ -62,9 +62,13 @@ add_filter( 'block_categories_all', 'prairie_ash_block_category' );
  * A page is a stack of the design's sections. A core paragraph or image placed
  * between two sections renders edge to edge with no container and none of the
  * design's type, which is a state the design does not contain. Recorded in
- * CONTROL-SURFACE.md.
+ * CONTROL-SURFACE.md. The privacy policy page and the shop's own pages (the
+ * account, the cart, the checkout and the terms) hold text or a shop shortcode
+ * that the site owner or WooCommerce wrote, so there the sections come with the
+ * core paragraph, heading, list and shortcode blocks.
  *
  * @since 1.0.0
+ * @since 1.2.1 Text and shortcode blocks on the privacy policy and the shop's pages.
  *
  * @param bool|string[]           $allowed Allowed block names, or true for all.
  * @param WP_Block_Editor_Context $context The editor context.
@@ -80,6 +84,16 @@ function prairie_ash_allowed_blocks( $allowed, $context ) {
 		if ( 0 === strpos( $name, 'prairie-ash/' ) ) {
 			$names[] = $name;
 		}
+	}
+
+	$text_pages = array( (int) get_option( 'wp_page_for_privacy_policy' ) );
+	if ( function_exists( 'wc_get_page_id' ) ) {
+		foreach ( array( 'myaccount', 'cart', 'checkout', 'terms' ) as $page ) {
+			$text_pages[] = (int) wc_get_page_id( $page );
+		}
+	}
+	if ( in_array( (int) $context->post->ID, array_filter( $text_pages, static fn( $id ) => $id > 0 ), true ) ) {
+		$names = array_merge( $names, array( 'core/paragraph', 'core/heading', 'core/list', 'core/list-item', 'core/shortcode' ) );
 	}
 
 	return $names;

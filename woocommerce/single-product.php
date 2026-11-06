@@ -37,6 +37,12 @@ while ( have_posts() ) :
 	if ( '' === $prairie_ash_origin ) {
 		$prairie_ash_origin = $prairie_ash_coffee['origin'];
 	}
+	// The design's summary replaces woocommerce_single_product_summary, where WooCommerce
+	// collects the Product structured data it prints in the footer, so it is collected here
+	// unless something took it off that hook.
+	if ( isset( WC()->structured_data ) && has_action( 'woocommerce_single_product_summary', array( WC()->structured_data, 'generate_product_data' ) ) ) {
+		WC()->structured_data->generate_product_data( $prairie_ash_product );
+	}
 	?>
 		<main class="page" id="main" tabindex="-1" data-motion-scope data-motion-scrub>
 			<?php do_action( 'woocommerce_before_single_product' ); ?>
@@ -96,19 +102,31 @@ while ( have_posts() ) :
 										<legend class="product-summary__legend"><?php echo esc_html( wc_attribute_label( $prairie_ash_taxonomy, $prairie_ash_product ) ); ?></legend>
 										<div class="options">
 											<?php
-											$prairie_ash_terms = wc_get_product_terms( $prairie_ash_id, $prairie_ash_taxonomy, array( 'fields' => 'all' ) );
-											$prairie_ash_first = true;
-											foreach ( $prairie_ash_terms as $prairie_ash_term ) :
-												if ( ! in_array( $prairie_ash_term->slug, $prairie_ash_values, true ) ) {
-													continue;
+											// A global attribute posts its term slug and prints the term's name. A
+											// product's own attribute has no terms: it posts and prints its option text.
+											$prairie_ash_choices = array();
+											if ( taxonomy_exists( $prairie_ash_taxonomy ) ) {
+												foreach ( wc_get_product_terms( $prairie_ash_id, $prairie_ash_taxonomy, array( 'fields' => 'all' ) ) as $prairie_ash_term ) {
+													if ( in_array( $prairie_ash_term->slug, $prairie_ash_values, true ) ) {
+														$prairie_ash_choices[ $prairie_ash_term->slug ] = $prairie_ash_term->name;
+													}
 												}
-												$prairie_ash_checked = isset( $prairie_ash_default[ $prairie_ash_taxonomy ] ) ? $prairie_ash_default[ $prairie_ash_taxonomy ] === $prairie_ash_term->slug : $prairie_ash_first;
+											} else {
+												foreach ( $prairie_ash_values as $prairie_ash_value ) {
+													$prairie_ash_choices[ (string) $prairie_ash_value ] = (string) $prairie_ash_value;
+												}
+											}
+											$prairie_ash_attr_key = sanitize_title( $prairie_ash_taxonomy );
+											$prairie_ash_first    = true;
+											foreach ( $prairie_ash_choices as $prairie_ash_value => $prairie_ash_text ) :
+												$prairie_ash_value   = (string) $prairie_ash_value;
+												$prairie_ash_checked = isset( $prairie_ash_default[ $prairie_ash_attr_key ] ) ? (string) $prairie_ash_default[ $prairie_ash_attr_key ] === $prairie_ash_value : $prairie_ash_first;
 												$prairie_ash_first   = false;
-												$prairie_ash_input   = sanitize_html_class( str_replace( 'pa_', '', $prairie_ash_taxonomy ) . '-' . $prairie_ash_term->slug );
+												$prairie_ash_input   = sanitize_html_class( str_replace( 'pa_', '', $prairie_ash_attr_key ) . '-' . sanitize_title( $prairie_ash_value ) );
 												?>
 												<div class="options__item">
-													<input id="<?php echo esc_attr( $prairie_ash_input ); ?>" class="options__input" type="radio" name="<?php echo esc_attr( 'attribute_' . $prairie_ash_taxonomy ); ?>" value="<?php echo esc_attr( $prairie_ash_term->slug ); ?>"<?php checked( $prairie_ash_checked ); ?>>
-													<label for="<?php echo esc_attr( $prairie_ash_input ); ?>" class="options__label"><span class="options__text"><?php echo esc_html( prairie_ash_nbsp_units( $prairie_ash_term->name ) ); ?></span></label>
+													<input id="<?php echo esc_attr( $prairie_ash_input ); ?>" class="options__input" type="radio" name="<?php echo esc_attr( 'attribute_' . $prairie_ash_attr_key ); ?>" value="<?php echo esc_attr( $prairie_ash_value ); ?>"<?php checked( $prairie_ash_checked ); ?>>
+													<label for="<?php echo esc_attr( $prairie_ash_input ); ?>" class="options__label"><span class="options__text"><?php echo esc_html( prairie_ash_nbsp_units( $prairie_ash_text ) ); ?></span></label>
 												</div>
 											<?php endforeach; ?>
 										</div>

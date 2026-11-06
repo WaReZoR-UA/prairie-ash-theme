@@ -4,7 +4,11 @@
  * and the receipt.
  *
  * The next step depends on the delivery: a shipped order leaves on the next
- * roast day after the order, a pickup is ready at the bar from that day.
+ * roast day after the order, a pickup is ready at the bar from that day. An
+ * order whose payment failed says so and offers the payment again, and an
+ * order not paid yet, such as a bank transfer, shows the total still to pay.
+ * WooCommerce's thank-you hooks fire as in its own template, so a payment
+ * method prints its instructions and a tracking plugin sees the order.
  *
  * Overrides WooCommerce's checkout/thankyou.php.
  *
@@ -16,10 +20,18 @@
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! $order || $order->has_status( 'failed' ) ) {
-	wc_get_template( 'checkout/order-received.php', array( 'order' => $order ) );
+if ( ! $order ) {
+	wc_get_template( 'checkout/order-received.php', array( 'order' => false ) );
 	return;
 }
+
+do_action( 'woocommerce_before_thankyou', $order->get_id() );
+
+// The design's receipt takes the place of WooCommerce's order details table.
+remove_action( 'woocommerce_thankyou', 'woocommerce_order_details_table', 10 );
+
+$prairie_ash_failed = $order->has_status( 'failed' );
+$prairie_ash_paid   = $order->is_paid();
 
 $prairie_ash_placed = $order->get_date_created() ? $order->get_date_created() : new WC_DateTime();
 $prairie_ash_next   = prairie_ash_next_roast_day( $prairie_ash_placed );
@@ -54,16 +66,21 @@ $prairie_ash_ship = (float) $order->get_shipping_total();
 // The order number is its own element in the heading and a figure in the questions line, as the design
 // marks it: the motion layer strikes the one in the heading with a numbering stamp. A placeholder that no
 // wording holds stands in for the number until the text around it is escaped.
-$prairie_ash_slot   = "\u{E000}";
-$prairie_ash_number = esc_html( $prairie_ash_values['number'] );
-$prairie_ash_title  = str_replace( $prairie_ash_slot, '<span class="confirmation__number">' . $prairie_ash_number . '</span>', esc_html( prairie_ash_wording_with( 'received_title', array_merge( $prairie_ash_values, array( 'number' => $prairie_ash_slot ) ) ) ) );
-$prairie_ash_inline = array(
+$prairie_ash_slot        = "\u{E000}";
+$prairie_ash_number      = esc_html( $prairie_ash_values['number'] );
+$prairie_ash_title       = str_replace( $prairie_ash_slot, '<span class="confirmation__number">' . $prairie_ash_number . '</span>', esc_html( prairie_ash_wording_with( $prairie_ash_failed ? 'failed_title' : 'received_title', array_merge( $prairie_ash_values, array( 'number' => $prairie_ash_slot ) ) ) ) );
+$prairie_ash_inline      = array(
 	'a'    => array(
 		'class' => true,
 		'href'  => true,
 	),
 	'span' => array( 'class' => true ),
 );
+$prairie_ash_failed_text = '';
+if ( $prairie_ash_failed ) {
+	$prairie_ash_failed_text = apply_filters( 'woocommerce_thankyou_order_failed_text', prairie_ash_wording( 'failed_note' ), $order );
+	$prairie_ash_failed_text = is_string( $prairie_ash_failed_text ) ? $prairie_ash_failed_text : prairie_ash_wording( 'failed_note' );
+}
 ob_start();
 prairie_ash_contact_text( prairie_ash_wording_with( 'questions_text', array( 'number' => $prairie_ash_slot ) ) );
 $prairie_ash_questions = str_replace( $prairie_ash_slot, '<span class="figure">' . $prairie_ash_number . '</span>', (string) ob_get_clean() );
@@ -74,18 +91,32 @@ $prairie_ash_questions = str_replace( $prairie_ash_slot, '<span class="figure">'
 			<div class="confirmation__heading">
 				<p class="confirmation__eyebrow"><?php echo esc_html( prairie_ash_wording_with( 'received_eyebrow', $prairie_ash_values ) ); ?></p>
 				<h1 class="confirmation__title" id="confirmation-title"><?php echo wp_kses( $prairie_ash_title, array( 'span' => array( 'class' => true ) ) ); ?></h1>
-				<p class="confirmation__note"><?php echo esc_html( prairie_ash_wording_with( $prairie_ash_pickup ? 'received_note_pickup' : 'received_note_ship', $prairie_ash_values ) ); ?></p>
+				<?php if ( $prairie_ash_failed ) : ?>
+					<p class="confirmation__note"><?php echo wp_kses_post( $prairie_ash_failed_text ); ?></p>
+				<?php else : ?>
+					<p class="confirmation__note"><?php echo esc_html( prairie_ash_wording_with( $prairie_ash_pickup ? 'received_note_pickup' : 'received_note_ship', $prairie_ash_values ) ); ?></p>
+				<?php endif; ?>
 			</div>
-			<div class="confirmation__steps">
-				<h2 class="confirmation__steps-title"><?php echo esc_html( prairie_ash_wording( 'next_title' ) ); ?></h2>
-				<dl class="lv lv--fact lv--stack lv--loose">
-					<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( $prairie_ash_pickup ? 'pickup' : 'shipping' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_wording_with( $prairie_ash_pickup ? 'next_pickup' : 'next_ship', $prairie_ash_values ) ); ?></dd></div>
-					<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( 'questions_label' ) ); ?></dt><dd class="lv__value"><?php echo wp_kses( $prairie_ash_questions, $prairie_ash_inline ); ?></dd></div>
-				</dl>
-			</div>
+			<?php if ( ! $prairie_ash_failed ) : ?>
+				<div class="confirmation__steps">
+					<h2 class="confirmation__steps-title"><?php echo esc_html( prairie_ash_wording( 'next_title' ) ); ?></h2>
+					<dl class="lv lv--fact lv--stack lv--loose">
+						<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( $prairie_ash_pickup ? 'pickup' : 'shipping' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_wording_with( $prairie_ash_pickup ? 'next_pickup' : 'next_ship', $prairie_ash_values ) ); ?></dd></div>
+						<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( 'questions_label' ) ); ?></dt><dd class="lv__value"><?php echo wp_kses( $prairie_ash_questions, $prairie_ash_inline ); ?></dd></div>
+					</dl>
+				</div>
+			<?php endif; ?>
 			<div class="confirmation__links">
+				<?php if ( $prairie_ash_failed ) : ?>
+					<a class="button button--primary" href="<?php echo esc_url( $order->get_checkout_payment_url() ); ?>"><?php echo esc_html( prairie_ash_wording( 'failed_pay' ) ); ?></a>
+					<?php if ( is_user_logged_in() ) : ?>
+						<a class="text-link text-link--on-wall" href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>"><?php echo esc_html( prairie_ash_wording( 'failed_account' ) ); ?></a>
+					<?php endif; ?>
+				<?php endif; ?>
 				<a class="text-link text-link--on-wall" href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>"><?php echo esc_html( prairie_ash_wording( 'shop_more' ) ); ?></a>
-				<?php prairie_ash_link( prairie_ash_wording( 'hours_link' ), prairie_ash_setting( 'directions_link' ), 'text-link text-link--on-wall' ); ?>
+				<?php if ( ! $prairie_ash_failed ) : ?>
+					<?php prairie_ash_link( prairie_ash_wording( 'hours_link' ), prairie_ash_setting( 'directions_link' ), 'text-link text-link--on-wall' ); ?>
+				<?php endif; ?>
 			</div>
 		</div>
 		<div class="confirmation__receipt" data-motion="order-receipt">
@@ -106,15 +137,43 @@ $prairie_ash_questions = str_replace( $prairie_ash_slot, '<span class="figure">'
 					</li>
 				<?php endforeach; ?>
 			</ul>
-			<div class="confirmation__totals" data-motion="cart-receipt" data-receipt-struck=".lv__row--paid">
+			<div class="confirmation__totals" data-motion="cart-receipt" data-receipt-struck="<?php echo esc_attr( $prairie_ash_paid ? '.lv__row--paid' : '.lv__row--due' ); ?>">
 				<dl class="lv lv--total">
 					<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( 'subtotal' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_price_text( $order->get_subtotal() ) ); ?></dd></div>
-					<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( $prairie_ash_pickup ? 'pickup' : 'shipping' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( $prairie_ash_ship > 0 ? prairie_ash_price_text( $prairie_ash_ship ) : prairie_ash_wording( 'free' ) ); ?></dd></div>
+					<?php foreach ( $order->get_items( 'coupon' ) as $prairie_ash_coupon ) : ?>
+						<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording_with( 'discount_row', array( 'code' => wc_strtoupper( $prairie_ash_coupon->get_code() ) ) ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_discount_text( $prairie_ash_coupon->get_discount() ) ); ?></dd></div>
+					<?php endforeach; ?>
+					<?php foreach ( $order->get_fees() as $prairie_ash_fee ) : ?>
+						<div class="lv__row"><dt class="lv__label"><?php echo esc_html( $prairie_ash_fee->get_name() ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_price_text( $prairie_ash_fee->get_total() ) ); ?></dd></div>
+					<?php endforeach; ?>
+					<?php if ( $order->get_shipping_methods() ) : ?>
+						<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( $prairie_ash_pickup ? 'pickup' : 'shipping' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( $prairie_ash_ship > 0 ? prairie_ash_price_text( $prairie_ash_ship ) : prairie_ash_wording( 'free' ) ); ?></dd></div>
+					<?php endif; ?>
 					<div class="lv__row"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( 'tax' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_price_text( $order->get_total_tax() ) ); ?></dd></div>
-					<div class="lv__row lv__row--paid"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( 'total_paid' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_price_text( $order->get_total() ) ); ?></dd></div>
+					<?php if ( $prairie_ash_paid ) : ?>
+						<div class="lv__row lv__row--paid"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( 'total_paid' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_price_text( $order->get_total() ) ); ?></dd></div>
+					<?php else : ?>
+						<div class="lv__row lv__row--due"><dt class="lv__label"><?php echo esc_html( prairie_ash_wording( 'total_to_pay' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_price_text( $order->get_total() ) ); ?></dd></div>
+					<?php endif; ?>
 				</dl>
 			</div>
-			<p class="confirmation__payment"><?php echo esc_html( prairie_ash_wording_with( 'payment_line', $prairie_ash_values ) ); ?></p>
+			<?php if ( $prairie_ash_paid ) : ?>
+				<p class="confirmation__payment"><?php echo esc_html( prairie_ash_wording_with( 'payment_line', $prairie_ash_values ) ); ?></p>
+			<?php elseif ( ! $prairie_ash_failed && '' !== $prairie_ash_values['method'] ) : ?>
+				<p class="confirmation__payment"><?php echo esc_html( prairie_ash_wording_with( 'payment_line_unpaid', $prairie_ash_values ) ); ?></p>
+			<?php endif; ?>
+			<?php
+			// A payment method's instructions, such as bank transfer details, and anything else
+			// hooked to the thank-you page. The wrapper is printed only around output.
+			ob_start(
+				static function ( $html ) {
+					return '' === trim( $html ) ? '' : '<div class="confirmation__gateway">' . $html . '</div>';
+				}
+			);
+			do_action( 'woocommerce_thankyou_' . $order->get_payment_method(), $order->get_id() );
+			do_action( 'woocommerce_thankyou', $order->get_id() );
+			ob_end_flush();
+			?>
 		</div>
 	</div>
 </section>
