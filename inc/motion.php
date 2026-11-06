@@ -138,9 +138,13 @@ function prairie_ash_motion_scene( $block_name, $scene ) {
  * Print the page flag in the head, right after the stylesheet.
  *
  * Hooked at the priority of wp_print_styles and registered after it, so the
- * flag follows the stylesheet link the way the markup's head writes it.
+ * flag follows the stylesheet link the way the markup's head writes it. When
+ * a theme script under assets/js fails to load before the scene starts, the
+ * flag is removed again, so the page is shown finished rather than held at
+ * its motion start state.
  *
  * @since 1.1.0
+ * @since 1.2.1 The flag is removed when a theme script fails to load.
  *
  * @return void
  */
@@ -152,7 +156,7 @@ function prairie_ash_print_motion_flag() {
 
 	wp_print_inline_script_tag(
 		sprintf(
-			'if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) document.documentElement.dataset.%s = "pre";',
+			'(function () { if (!window.matchMedia("(prefers-reduced-motion: no-preference)").matches) return; var d = document.documentElement; d.dataset.%1$s = "pre"; window.addEventListener("error", function (e) { var s = e.target; if (s && "SCRIPT" === s.tagName && -1 !== s.src.indexOf("/assets/js/") && "pre" === d.dataset.%1$s) delete d.dataset.%1$s; }, true); })();',
 			preg_replace( '/[^a-z]/', '', $flag )
 		)
 	);
