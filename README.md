@@ -65,8 +65,15 @@ The import:
 
 It is meant for a new site: it sets the site title, the front page, the permalinks and the store settings, and
 moves the sample post and pages a new WordPress and WooCommerce start with to the trash, and removes the
-sample contact form Formidable adds while it has no entries. Running it again
-updates the same records and creates nothing twice. No user, order, form entry or mail setting is imported.
+sample contact form Formidable adds while it has no entries. WooCommerce's My account page stays in place.
+Running it again updates the same records and creates nothing twice. No user, order, form entry or mail setting
+is imported.
+
+On a site that already has orders, products, pages or posts of its own, the screen lists them, names any page
+of its own that sits under a demo address and would be overwritten, and imports only after the box below the
+list is ticked. The command asks before it starts, or takes `--yes`. The command runs as a user allowed to post
+unfiltered HTML, because the forms carry the design's own markup: `--user=<administrator>`, or a super admin
+on multisite. One import or repair runs at a time.
 
 On Apache the permalinks need a writable `.htaccess`, or the rules shown under Settings, Permalinks.
 
@@ -78,12 +85,15 @@ that are missing or empty and lists each copy that could not be written, with th
 
 Image copies, Repair image copies writes every missing, empty or unreadable copy of every JPEG and PNG in the
 media library, a few at a time, and lists what still cannot be written. Running the import again does the same
-for the demo images. From the command line:
+for the demo images. The screen shows the last count: on the first visit for a library of up to 300 images,
+after Count the copies again, or after a finished repair. Copies that could not be written are listed apart
+from copies that are only missing. One import or repair runs at a time. From the command line:
 
     wp prairie-ash-demo repair-images
 
 The demo data lives in `demo/`: `content.json`, `forms.xml` and the photographs under `demo/media/`. The
-command `wp prairie-ash-demo export` writes that folder again from a site built with the theme.
+command `wp prairie-ash-demo export` writes that folder again from a site built with the theme, with only the
+attachments the records use.
 
 ## Mail
 
