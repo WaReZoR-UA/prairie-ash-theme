@@ -70,3 +70,7 @@
 @use "shipping-motion";
 @use "privacy-motion";
 @use "accessibility-motion";
+
+// Windows contrast themes and printing, after every page so they win at equal specificity
+@use "forced-colors";
+@use "print";

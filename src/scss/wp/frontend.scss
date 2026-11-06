@@ -67,3 +67,99 @@
 		}
 	}
 }
+
+// Search results, archives and the missing page (index.php, 404.php). The design draws none of them,
+// so they are set in its global parts: the sign on a wall band, the entries on paper, each title an
+// inline link in the Heading/4 style, the way a legal page sets its parts.
+.results-title {
+	&__container {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 5);
+	}
+	&__heading {
+		max-width: 100%;
+		overflow-wrap: anywhere;
+		@include signM;
+	}
+}
+.results-list {
+	&__container {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		@include space("gap", 8);
+	}
+	&__items {
+		display: flex;
+		flex-direction: column;
+		@include space("gap", 6);
+	}
+	&__entry {
+		display: flex;
+		flex-direction: column;
+		max-width: toRem(520);
+		gap: toRem(8);
+	}
+	&__entry-type {
+		@include labelS;
+	}
+	&__entry-title {
+		@include heading4;
+		.inline-link {
+			color: $accentOnPaper;
+		}
+	}
+	&__empty {
+		max-width: toRem(520);
+		@include bodyLead;
+	}
+	&__links {
+		display: flex;
+		flex-wrap: wrap;
+		@include space("column-gap", 5);
+	}
+	// WordPress's page numbers: the current page carries the 4 px bar of the current navigation link
+	&__pages .nav-links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: toRem(8);
+		@include labelM;
+	}
+	&__pages .page-numbers {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: toRem(48);
+		min-height: toRem(48);
+		padding: 0 toRem(8);
+		&.current {
+			box-shadow: inset 0 toRem(-4) 0 $onPaper;
+		}
+	}
+	&__pages a.page-numbers {
+		text-decoration: underline;
+		text-decoration-thickness: from-font;
+		color: $accentOnPaper;
+		@media (any-hover: hover) {
+			&:hover {
+				background-color: $paperShade;
+				color: $onPaper;
+			}
+		}
+		&:focus-visible {
+			@include focusFill;
+		}
+	}
+}
+
+// WordPress prints a heading for assistive technology above the page numbers
+.results-list__pages .screen-reader-text {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}

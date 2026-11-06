@@ -16,5 +16,10 @@
 		"sass": "1.103.1",
 		"webpack": "5.109.2"
 	},
+	"overrides": {
+		"group-css-media-queries": {
+			"css": "npm:@adobe/css-tools@4.5.0"
+		}
+	},
 	"license": "GPL-2.0-or-later"
 }

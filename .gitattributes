@@ -1,2 +1,22 @@
+# Text files are stored and checked out with LF on every machine, whatever core.autocrlf says,
+# so an archive built from the repository and every generated file carry the same line endings.
+* text=auto eol=lf
+
+# Images, fonts and archives are never converted.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.eot binary
+*.zip binary
+*.pdf binary
+
 # Repository presentation files stay out of archives built from the repository.
 /.github export-ignore

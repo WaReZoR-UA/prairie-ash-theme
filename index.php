@@ -1,48 +1,88 @@
 <?php
 /**
- * The fallback template.
+ * The fallback template: search results, archives and the posts page.
  *
- * Required in every classic theme. WordPress falls back to this file whenever
- * the template hierarchy finds nothing more specific, so it must render
- * something sensible rather than being a stub.
+ * Required in every classic theme. The design draws none of these pages, so
+ * they are built from its global parts: a wall band with the page's sign,
+ * then the entries on paper, each title an inline link. 404.php draws the
+ * missing page.
  *
  * @package PrairieAsh
  */
 
 defined( 'ABSPATH' ) || exit;
 
+/*
+ * Wording comes from the site settings (inc/site-settings.php), with the
+ * wording below as the fallback while a setting is empty or not registered.
+ */
+$prairie_ash_text = static function ( $key, $fallback ) {
+	$value = function_exists( 'prairie_ash_setting' ) ? prairie_ash_setting( $key ) : '';
+	return is_string( $value ) && '' !== trim( $value ) ? $value : $fallback;
+};
+
+if ( is_search() ) {
+	// A replacement rather than sprintf(), so a percent sign typed into the setting cannot break the page.
+	/* translators: %s: the words searched for. */
+	$prairie_ash_heading = str_replace( '%s', get_search_query( false ), $prairie_ash_text( 'search_heading', __( 'Search results for "%s"', 'prairie-ash' ) ) );
+} elseif ( is_home() && ! is_front_page() && get_option( 'page_for_posts' ) ) {
+	$prairie_ash_heading = get_the_title( (int) get_option( 'page_for_posts' ) );
+} elseif ( is_archive() ) {
+	$prairie_ash_heading = wp_strip_all_tags( get_the_archive_title() );
+} else {
+	$prairie_ash_heading = $prairie_ash_text( 'entries_heading', __( 'Latest entries', 'prairie-ash' ) );
+}
+
 get_header();
 ?>
-
-<main id="main" class="page">
-	<div class="page__container">
-
-		<?php if ( have_posts() ) : ?>
-			<?php
-			while ( have_posts() ) :
-				the_post();
-				?>
-				<article <?php post_class( 'page__entry' ); ?>>
-					<h2 class="page__entry-title">
-						<a href="<?php echo esc_url( get_permalink() ); ?>">
-							<?php the_title(); ?>
-						</a>
-					</h2>
-					<div class="page__entry-excerpt">
-						<?php the_excerpt(); ?>
-					</div>
-				</article>
-				<?php
-			endwhile;
-
-			the_posts_pagination();
-			?>
-		<?php else : ?>
-			<p class="page__empty"><?php esc_html_e( 'Nothing has been published here yet.', 'prairie-ash' ); ?></p>
-		<?php endif; ?>
-
-	</div>
-</main>
-
+		<main class="page" id="main" tabindex="-1">
+			<section class="results-title band band--wall" aria-labelledby="results-title">
+				<div class="results-title__container">
+					<h1 class="results-title__heading" id="results-title"><?php echo esc_html( $prairie_ash_heading ); ?></h1>
+				</div>
+			</section>
+			<section class="results-list band band--paper">
+				<div class="results-list__container">
+					<?php if ( have_posts() ) : ?>
+						<ol class="results-list__items">
+							<?php
+							while ( have_posts() ) :
+								the_post();
+								$prairie_ash_type    = get_post_type_object( get_post_type() );
+								$prairie_ash_excerpt = has_excerpt() || ! has_blocks() ? wp_strip_all_tags( get_the_excerpt() ) : '';
+								?>
+								<li <?php post_class( 'results-list__entry' ); ?>>
+									<?php if ( $prairie_ash_type && is_search() ) : ?>
+										<p class="results-list__entry-type"><?php echo esc_html( $prairie_ash_type->labels->singular_name ); ?></p>
+									<?php endif; ?>
+									<h2 class="results-list__entry-title">
+										<a class="inline-link" href="<?php echo esc_url( get_permalink() ); ?>"><?php echo esc_html( wp_strip_all_tags( get_the_title() ) ); ?></a>
+									</h2>
+									<?php if ( '' !== $prairie_ash_excerpt ) : ?>
+										<p class="results-list__entry-excerpt"><?php echo esc_html( $prairie_ash_excerpt ); ?></p>
+									<?php endif; ?>
+								</li>
+								<?php
+							endwhile;
+							?>
+						</ol>
+						<?php
+						the_posts_pagination(
+							array(
+								'class'     => 'results-list__pages',
+								'prev_text' => esc_html( $prairie_ash_text( 'pages_previous', __( 'Previous', 'prairie-ash' ) ) ),
+								'next_text' => esc_html( $prairie_ash_text( 'pages_next', __( 'Next', 'prairie-ash' ) ) ),
+							)
+						);
+						?>
+					<?php else : ?>
+						<p class="results-list__empty"><?php echo esc_html( is_search() ? $prairie_ash_text( 'search_empty', __( 'Nothing matches these words. Other words, or the menu above, may find it.', 'prairie-ash' ) ) : $prairie_ash_text( 'entries_empty', __( 'Nothing has been published here yet.', 'prairie-ash' ) ) ); ?></p>
+						<div class="results-list__links">
+							<a class="text-link text-link--on-paper" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php echo esc_html( $prairie_ash_text( 'home_link_label', __( 'Back to the home page', 'prairie-ash' ) ) ); ?></a>
+						</div>
+					<?php endif; ?>
+				</div>
+			</section>
+		</main>
 <?php
 get_footer();
