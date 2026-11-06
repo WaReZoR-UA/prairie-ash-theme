@@ -930,6 +930,12 @@ $desktopUp: "(min-width: #{em(992)})";
 	}
 	&__name {
 		position: absolute;
+		// a street-coloured plate over the traced walk, so the dotted route passes under the name, never through it
+		z-index: 1;
+		margin-left: toRem(-6);
+		padding: 0 toRem(6);
+		// 16 high, inside the narrower 20 street, so the plate never shows on the blocks either side
+		background: linear-gradient($paper, $paper) center / 100% toRem(16) no-repeat;
 		@include labelS;
 		&--avenue {
 			top: toRem(102);
