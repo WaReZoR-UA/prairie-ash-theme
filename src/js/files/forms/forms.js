@@ -105,7 +105,8 @@ export let formValidate = {
 			this.addError(formRequiredItem);
 			error++;
 		} else {
-			if (!formRequiredItem.value.trim()) {
+			// a field with a pattern attribute must also match it, as the error states promise a format
+			if (!formRequiredItem.value.trim() || formRequiredItem.validity.patternMismatch) {
 				this.addError(formRequiredItem);
 				error++;
 			} else {
