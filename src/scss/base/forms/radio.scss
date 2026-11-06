@@ -57,8 +57,11 @@
 		&::before {
 			content: "";
 			display: none;
-			flex: 0 0 toRem(24);
-			aspect-ratio: 1;
+			// an explicit box, not a flex basis with a ratio: WebKit counts a basis-only ratio box as 0 wide when it
+			// sizes the inline-flex label, so the selected chip came out 24 short and cut its label
+			flex: 0 0 auto;
+			width: toRem(24);
+			height: toRem(24);
 			background: url("@img/icons/check.svg") center / contain no-repeat;
 		}
 		@media (any-hover: hover) {

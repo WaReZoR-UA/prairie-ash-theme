@@ -37,8 +37,9 @@
 		@include space("gap", 4);
 		&::before {
 			content: "";
-			flex: 0 0 toRem(32);
-			aspect-ratio: 1;
+			flex: 0 0 auto; // an explicit box, as on the FilterButton check: WebKit sizes a basis-only ratio box as 0
+			width: toRem(32);
+			height: toRem(32);
 			background: $paper center / toRem(24) no-repeat;
 			box-shadow: inset 0 0 0 toRem(2) $soot900;
 			transition:
