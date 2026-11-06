@@ -136,13 +136,20 @@ function prairie_ash_split_sheet_args( $name ) {
  * The theme loads block assets on demand (inc/performance.php), so
  * wp_enqueue_block_style() enqueues a sheet when one of its blocks renders,
  * and WordPress moves it into the head. A sheet several blocks share is one
- * handle, printed once.
+ * handle, printed once. Nothing is registered in the admin: the editor canvas
+ * already takes every split sheet through add_editor_style(), and the global
+ * sheet these depend on is registered for the front end only.
  *
  * @since 1.0.0
+ * @since 1.2.1 Not registered in the admin.
  *
  * @return void
  */
 function prairie_ash_enqueue_block_sheets() {
+	if ( is_admin() ) {
+		return;
+	}
+
 	foreach ( prairie_ash_split_sheets() as $name => $sheet ) {
 		foreach ( $sheet['blocks'] as $block_name ) {
 			wp_enqueue_block_style( $block_name, prairie_ash_split_sheet_args( $name ) );
