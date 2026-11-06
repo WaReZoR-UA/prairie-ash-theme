@@ -1,3 +1,4 @@
+@use "sass:math";
 @use "sass:map";
 @use "sass:list";
 @use "functions" as *;
@@ -6,11 +7,20 @@
 
 // Fluid value between the desktop and the mobile frame. Equal ends are written flat,
 // because a clamp() with equal ends is broken by the minifier.
+// The line through the two frames runs on below the mobile frame down to the template's $minWidth, so a
+// 320 to 389 screen keeps the drawn proportions instead of the 390 sizes. Every width from $mW up gets the
+// same value as before. A line that would cross zero before $minWidth stays flat below $mW.
 @mixin fluid($property, $desktop, $mobile) {
 	@if $desktop == $mobile {
 		#{$property}: toRem($desktop);
 	} @else {
-		@include adaptiveValue($property, $desktop, $mobile, 0, $dW, $mW);
+		$slope: math.div($desktop - $mobile, $dW - $mW);
+		$atMin: $mobile - $slope * ($mW - $minWidth);
+		@if $mobile != 0 and $atMin * $mobile > 0 {
+			@include adaptiveValue($property, $desktop, $atMin, 0, $dW, $minWidth);
+		} @else {
+			@include adaptiveValue($property, $desktop, $mobile, 0, $dW, $mW);
+		}
 	}
 }
 
