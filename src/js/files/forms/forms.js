@@ -20,8 +20,17 @@ export function formFieldsInit(options = { viewPass: false, autoHeight: false })
 				targetElement.classList.add('_form-focus');
 				targetElement.parentElement.classList.add('_form-focus');
 			}
+			// a checkbox or a radio keeps its error until it is chosen: removing the message on focus moves the
+			// label between mousedown and mouseup, and that click would land beside the control
+			if (targetElement.type === 'checkbox' || targetElement.type === 'radio') return;
 			formValidate.removeError(targetElement);
 			targetElement.hasAttribute('data-validate') ? formValidate.removeError(targetElement) : null;
+		}
+	});
+	document.body.addEventListener("change", function (e) {
+		const targetElement = e.target;
+		if (targetElement.tagName === 'INPUT' && (targetElement.type === 'checkbox' || targetElement.type === 'radio') && targetElement.checked && targetElement.classList.contains('_form-error')) {
+			formValidate.removeError(targetElement);
 		}
 	});
 	document.body.addEventListener("focusout", function (e) {
