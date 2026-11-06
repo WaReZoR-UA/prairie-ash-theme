@@ -7,19 +7,17 @@
 
 // Fluid value between the desktop and the mobile frame. Equal ends are written flat,
 // because a clamp() with equal ends is broken by the minifier.
-// The line through the two frames runs on below the mobile frame down to the template's $minWidth, so a
-// 320 to 389 screen keeps the drawn proportions instead of the 390 sizes. Every width from $mW up gets the
-// same value as before. A line that would cross zero before $minWidth stays flat below $mW.
+// Below the mobile frame the value scales with the viewport, so a 320 to 389 screen is the 390 frame drawn
+// smaller: every wrap and every overlap of the 390 layout holds. It stops at the template's $minWidth.
+// From $mW up the clamp is the same as before, so nothing at 390 or wider moves.
 @mixin fluid($property, $desktop, $mobile) {
 	@if $desktop == $mobile {
 		#{$property}: toRem($desktop);
 	} @else {
-		$slope: math.div($desktop - $mobile, $dW - $mW);
-		$atMin: $mobile - $slope * ($mW - $minWidth);
-		@if $mobile != 0 and $atMin * $mobile > 0 {
-			@include adaptiveValue($property, $desktop, $atMin, 0, $dW, $minWidth);
-		} @else {
-			@include adaptiveValue($property, $desktop, $mobile, 0, $dW, $mW);
+		@include adaptiveValue($property, $desktop, $mobile, 2, $dW, $mW);
+		$atMin: math.div($mobile * $minWidth, $mW);
+		@media (max-width: em($mW)) {
+			#{$property}: clamp(#{toRem(math.min($atMin, $mobile))}, #{math.div($mobile, $mW) * 100vw}, #{toRem(math.max($atMin, $mobile))});
 		}
 	}
 }
