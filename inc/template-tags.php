@@ -11,29 +11,6 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Read a field with a default for an empty value.
- *
- * Wording a visitor reads carries the design's text as its default, so a block
- * saved before the field existed, or a field left empty, prints the design's
- * wording rather than nothing.
- *
- * @since 1.0.0
- *
- * @param string $name    Field name.
- * @param string $fallback The design's wording.
- * @return string
- */
-function prairie_ash_field_or( $name, $fallback ) {
-	$value = function_exists( 'get_field' ) ? get_field( $name ) : '';
-
-	if ( ! is_string( $value ) || '' === trim( $value ) ) {
-		return $fallback;
-	}
-
-	return $value;
-}
-
-/**
  * Build an attribute string from name and value pairs, escaped.
  *
  * @since 1.0.0
@@ -299,21 +276,6 @@ function prairie_ash_paragraphs( $text ) {
 }
 
 /**
- * Print one paragraph of client text that may carry inline markup.
- *
- * A web address typed in full becomes a link, which is the documented route to
- * a link inside multi-paragraph block text without a rich-text field.
- *
- * @since 1.0.0
- *
- * @param string $text Paragraph text.
- * @return void
- */
-function prairie_ash_inline_html( $text ) {
-	echo wp_kses_post( make_clickable( $text ) );
-}
-
-/**
  * Keep a Canadian postal code on one line, as the design does.
  *
  * @since 1.0.0
@@ -344,6 +306,51 @@ function prairie_ash_nowrap_times( $text ) {
 }
 
 /**
+ * The markup each contact placeholder stands for, built from escaped values.
+ *
+ * @since 1.2.1
+ *
+ * @return array<string, string> Markup keyed by placeholder, empty for an empty setting.
+ */
+function prairie_ash_contact_parts() {
+	$phone = prairie_ash_setting( 'phone_display' );
+	$email = prairie_ash_setting( 'email' );
+
+	return array(
+		'[phone]'   => $phone ? sprintf( '<a class="inline-link" href="%1$s">%2$s</a>', esc_url( prairie_ash_phone_href() ), esc_html( $phone ) ) : '',
+		'[email]'   => $email ? sprintf( '<a class="inline-link" href="%1$s">%2$s</a>', esc_url( 'mailto:' . $email ), esc_html( $email ) ) : '',
+		'[address]' => esc_html( prairie_ash_nbsp_postcode( prairie_ash_setting( 'address_line' ) ) ),
+		'[name]'    => esc_html( prairie_ash_setting( 'business_name' ) ),
+		'[street]'  => esc_html( prairie_ash_setting( 'street' ) ),
+		'[website]' => esc_html( prairie_ash_setting( 'website_label' ) ),
+	);
+}
+
+/**
+ * Whether client text with contact placeholders reads whole.
+ *
+ * False for empty text, and for text naming a placeholder whose Site setting
+ * is empty, which would leave a gap such as "Call the counter on , write to".
+ *
+ * @since 1.2.1
+ *
+ * @param string $text Text with placeholders.
+ * @return bool
+ */
+function prairie_ash_contact_text_complete( $text ) {
+	if ( '' === trim( (string) $text ) ) {
+		return false;
+	}
+	foreach ( prairie_ash_contact_parts() as $placeholder => $markup ) {
+		if ( '' === trim( $markup ) && false !== strpos( (string) $text, $placeholder ) ) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
  * Print client text in which [phone], [email], [address], [name], [street]
  * and [website] stand for the values in Site settings, with the phone number
  * and email address linked.
@@ -357,19 +364,8 @@ function prairie_ash_nowrap_times( $text ) {
  * @return void
  */
 function prairie_ash_contact_text( $text ) {
-	$phone = prairie_ash_setting( 'phone_display' );
-	$email = prairie_ash_setting( 'email' );
-	$parts = array(
-		'[phone]'   => $phone ? sprintf( '<a class="inline-link" href="%1$s">%2$s</a>', esc_url( prairie_ash_phone_href() ), esc_html( $phone ) ) : '',
-		'[email]'   => $email ? sprintf( '<a class="inline-link" href="%1$s">%2$s</a>', esc_url( 'mailto:' . $email ), esc_html( $email ) ) : '',
-		'[address]' => esc_html( prairie_ash_nbsp_postcode( prairie_ash_setting( 'address_line' ) ) ),
-		'[name]'    => esc_html( prairie_ash_setting( 'business_name' ) ),
-		'[street]'  => esc_html( prairie_ash_setting( 'street' ) ),
-		'[website]' => esc_html( prairie_ash_setting( 'website_label' ) ),
-	);
-
 	echo wp_kses(
-		strtr( esc_html( $text ), $parts ),
+		strtr( esc_html( $text ), prairie_ash_contact_parts() ),
 		array(
 			'a' => array(
 				'class' => true,
@@ -405,6 +401,35 @@ function prairie_ash_number_word( $number ) {
 	$words = array( 'No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve' );
 
 	return isset( $words[ $number ] ) ? $words[ $number ] : (string) $number;
+}
+
+/**
+ * The products other than coffees on a count line, as running text.
+ *
+ * Each name is lower-cased and given its article, so the tasting set reads
+ * " and a tasting set". Nothing is returned when no other product is shown.
+ *
+ * @since 1.2.1
+ *
+ * @param string[] $names Names of the other products shown, in list order.
+ * @return string
+ */
+function prairie_ash_shop_others( $names ) {
+	$phrases = array();
+	foreach ( $names as $name ) {
+		$name = trim( wp_strip_all_tags( (string) $name ) );
+		if ( '' === $name ) {
+			continue;
+		}
+		$name      = function_exists( 'mb_strtolower' ) ? mb_strtolower( $name ) : strtolower( $name );
+		$phrases[] = ( preg_match( '/^[aeiou]/', $name ) ? 'an ' : 'a ' ) . $name;
+	}
+	if ( ! $phrases ) {
+		return '';
+	}
+	$last = array_pop( $phrases );
+
+	return ' and ' . ( $phrases ? implode( ', ', $phrases ) . ' and ' : '' ) . $last;
 }
 
 /**

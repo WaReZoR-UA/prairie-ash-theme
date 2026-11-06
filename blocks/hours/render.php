@@ -39,7 +39,7 @@ $title_id = prairie_ash_heading_id( 'hours-title', $f['heading'] );
 							<dd class="hours__time"<?php prairie_ash_el( $block, 'times' ); ?>><?php echo esc_html( $row['time'] ); ?></dd>
 						</div>
 					<?php endforeach; ?>
-					<?php if ( $f['show_roast_days'] ) : ?>
+					<?php if ( $f['show_roast_days'] && prairie_ash_setting( 'roast_days_label' ) && prairie_ash_setting( 'roast_days' ) ) : ?>
 						<div class="hours__table-row hours__table-row--roast">
 							<dt class="hours__day"<?php prairie_ash_el( $block, 'days' ); ?>><?php echo esc_html( prairie_ash_setting( 'roast_days_label' ) ); ?></dt>
 							<dd class="hours__time"<?php prairie_ash_el( $block, 'times' ); ?>><?php echo esc_html( prairie_ash_setting( 'roast_days' ) ); ?></dd>

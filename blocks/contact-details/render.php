@@ -21,7 +21,11 @@ $title_id = prairie_ash_heading_id( 'contact-details-title', $f['heading'] );
 			<?php endif; ?>
 		</div>
 		<div class="contact-details__contact" data-motion="contact-board">
-			<p class="contact-details__prose contact-measure"<?php prairie_ash_el( $block, 'prose' ); ?>><?php prairie_ash_contact_text( $f['prose'] ); ?></p>
+			<?php if ( prairie_ash_contact_text_complete( $f['prose'] ) ) : ?>
+				<p class="contact-details__prose contact-measure"<?php prairie_ash_el( $block, 'prose' ); ?>><?php prairie_ash_contact_text( $f['prose'] ); ?></p>
+			<?php else : ?>
+				<?php prairie_ash_editor_hint( $is_preview, __( 'The contact sentence is hidden while it is empty or names a Site setting that is empty.', 'prairie-ash' ) ); ?>
+			<?php endif; ?>
 			<?php if ( $f['links'] ) : ?>
 				<ul class="contact-details__links">
 					<?php foreach ( $f['links'] as $row ) : ?>

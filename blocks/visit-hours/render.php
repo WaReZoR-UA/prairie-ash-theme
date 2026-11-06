@@ -48,7 +48,9 @@ $title_id    = prairie_ash_heading_id( 'visit-hours-title', $f['heading'] );
 					<?php foreach ( prairie_ash_hours() as $row ) : ?>
 						<div class="lv__row"><dt class="lv__label"><?php echo esc_html( $row['label'] ); ?></dt><dd class="lv__value"><?php echo esc_html( $row['time'] ); ?></dd></div>
 					<?php endforeach; ?>
-					<div class="lv__row visit-hours__roast"><dt class="lv__label"><?php echo esc_html( prairie_ash_setting( 'roast_days_label' ) ); ?></dt><dd class="lv__value"><?php echo esc_html( prairie_ash_setting( 'roast_days' ) ); ?></dd></div>
+					<?php if ( $roast_label && $roast_days ) : ?>
+						<div class="lv__row visit-hours__roast"><dt class="lv__label"><?php echo esc_html( $roast_label ); ?></dt><dd class="lv__value"><?php echo esc_html( $roast_days ); ?></dd></div>
+					<?php endif; ?>
 				</dl>
 				<?php if ( $f['note'] ) : ?>
 					<p class="visit-hours__note"<?php prairie_ash_el( $block, 'note' ); ?>><?php echo esc_html( $f['note'] ); ?></p>
