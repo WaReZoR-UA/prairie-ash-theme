@@ -34,6 +34,16 @@
 		],
 		"templates": []
 	},
+	"shared-951d0964": {
+		"blocks": [
+			"prairie-ash/about-story",
+			"prairie-ash/roastery",
+			"prairie-ash/roastery-cupping",
+			"prairie-ash/roastery-roaster",
+			"prairie-ash/roastery-title"
+		],
+		"templates": []
+	},
 	"shared-3b17612d": {
 		"blocks": [
 			"prairie-ash/cupping",
