@@ -58,6 +58,13 @@
 		gap: toRem(4);
 	}
 	&__item {
+		// on a phone the first link's label starts on the container's edge, where the wordmark and the sign start;
+		// its padding hangs into the gutter
+		&:first-child > .nav-link {
+			@media (max-width: $mobile) {
+				margin-left: toRem(-8);
+			}
+		}
 		&--wide {
 			@media (max-width: $mobile) {
 				display: none;
