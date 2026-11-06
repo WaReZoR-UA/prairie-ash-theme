@@ -326,8 +326,11 @@ label {
 		right: var(--side);
 		bottom: var(--side);
 	}
+	// on a phone the card covers the text column, so it is lifted off the page with a soft soot shadow: a line of
+	// page text cut by its edge then reads as passing under it, not as broken glyphs
 	@media (max-width: $mobile) {
 		left: var(--side);
+		box-shadow: 0 0 toRem(24) toRem(4) rgba($soot900, 0.35);
 	}
 	&:not(.is-shown) {
 		opacity: 0;
@@ -385,9 +388,10 @@ label {
 		.button {
 			flex: 0 0 auto; // the two drawn labels need 431 of 432, sub-pixel text must not wrap them
 			// side by side on a phone, sharing the line, on lines of their own only where the two do not fit
+			// equal halves, each at least as wide as its label, and the drawn 48 height of a Button
 			@media (max-width: $mobile) {
-				flex: 1 1 auto;
-				min-height: toRem(44);
+				flex: 1 1 0;
+				min-width: max-content;
 				padding: toRem(8) toRem(6);
 				@include labelS;
 			}
