@@ -354,21 +354,43 @@ label {
 		align-items: flex-start;
 		@include space("gap", 4);
 		@include space("padding", 5);
+		// compact on a phone, so the notice covers less than a third of the first screen
+		@media (max-width: $mobile) {
+			gap: toRem(8);
+			padding: toRem(16);
+		}
 	}
 	&__title {
 		@include heading4;
+		@media (max-width: $mobile) {
+			font-size: toRem(24);
+			line-height: toRem(28);
+		}
 	}
 	&__text {
 		@include bodySmall;
+		@media (max-width: $mobile) {
+			font-size: toRem(15);
+			line-height: toRem(20);
+		}
 	}
 	&__actions {
 		display: flex;
 		gap: toRem(8);
 		@media (max-width: $mobile) {
 			flex-wrap: wrap;
+			align-self: stretch;
+			margin-top: toRem(4);
 		}
 		.button {
 			flex: 0 0 auto; // the two drawn labels need 431 of 432, sub-pixel text must not wrap them
+			// side by side on a phone, sharing the line, on lines of their own only where the two do not fit
+			@media (max-width: $mobile) {
+				flex: 1 1 auto;
+				min-height: toRem(44);
+				padding: toRem(8) toRem(6);
+				@include labelS;
+			}
 		}
 	}
 }
