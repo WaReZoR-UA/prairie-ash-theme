@@ -174,7 +174,12 @@ if (notice) {
 	};
 	// Hand-off "Analytics notice": rises in 1200 ms after load on a first visit, leaves by 8 px
 	const quiet = window.matchMedia("(prefers-reduced-motion: reduce)");
+	let returnTo = null; // where focus was when the notice opened, given back when it closes
+	let closing = 0;
 	const show = (late = false) => {
+		clearTimeout(closing);
+		const active = document.activeElement;
+		returnTo = active && active !== document.body && !notice.contains(active) ? active : null;
 		notice.classList.remove("is-leaving");
 		notice.hidden = false;
 		notice.getBoundingClientRect();
@@ -182,15 +187,24 @@ if (notice) {
 		else notice.classList.add("is-shown");
 	};
 	const hide = () => {
+		clearTimeout(closing);
+		if (notice.contains(document.activeElement)) {
+			if (returnTo && returnTo.isConnected) returnTo.focus({ preventScroll: true });
+			else document.activeElement.blur();
+		}
 		notice.classList.remove("is-shown");
 		notice.classList.add("is-leaving");
-		notice.addEventListener("transitionend", () => {
+		// hidden once the leave has run; the timer covers a leave that fires no transitionend
+		const done = () => {
 			if (!notice.classList.contains("is-shown")) {
 				notice.hidden = true;
 				notice.classList.remove("is-leaving");
 			}
-		}, { once: true });
+		};
+		notice.addEventListener("transitionend", (event) => event.target === notice && done(), { once: true });
+		closing = setTimeout(done, 600);
 	};
+	const offText = () => words.analyticsOffText || "Counting is off on this browser. You can turn it back on under Analytics settings.";
 	notice.querySelectorAll("[data-analytics-choice]").forEach((button) => {
 		button.addEventListener("click", () => {
 			const value = button.dataset.analyticsChoice;
@@ -198,8 +212,11 @@ if (notice) {
 				localStorage.setItem(KEY, JSON.stringify({ value, at: Date.now() }));
 			} catch (err) {}
 			document.documentElement.classList.toggle("analytics-off", value === "off");
+			clearTimeout(closing);
 			if (value === "off") {
-				text.textContent = words.analyticsOffText || "Counting is off on this browser. You can turn it back on under Analytics settings.";
+				// the confirmation is read out through the notice's status text, then the notice closes by itself
+				text.textContent = offText();
+				closing = setTimeout(hide, 2000);
 			} else {
 				hide();
 			}
@@ -207,7 +224,7 @@ if (notice) {
 	});
 	document.querySelectorAll("[data-analytics-settings]").forEach((button) => {
 		button.addEventListener("click", () => {
-			text.textContent = read() === "off" ? words.analyticsOffText || "Counting is off on this browser. You can turn it back on under Analytics settings." : defaultText;
+			text.textContent = read() === "off" ? offText() : defaultText;
 			show();
 			notice.querySelector("[data-analytics-choice]").focus();
 		});
