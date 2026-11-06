@@ -1,5 +1,19 @@
 @use "shared" as *;
 
+// The NavLink current bar of a link that hangs into the gutter, drawn from the column edge only: the 4 px bar is
+// a background layer anchored to the side away from the gutter, so it stops where the label stops.
+@mixin edgeBar($from) {
+	box-shadow: none;
+	background-image: linear-gradient($onWall, $onWall);
+	background-repeat: no-repeat;
+	background-position: $from bottom;
+	@if $from == right {
+		background-size: calc(100% - #{toRem(8)}) toRem(4);
+	} @else {
+		background-size: calc(100% - #{toRem(8)} - 0.08em) toRem(4);
+	}
+}
+
 .header {
 	background-color: $wall;
 	color: $onWall;
@@ -46,6 +60,16 @@
 		align-items: center;
 		@include space("gap", 4);
 	}
+	// on a phone the cart link is the last thing in the row: its label ends on the container's edge, where the
+	// rules and photos end, the padding and the trailing letter space hanging into the gutter
+	&__actions > .nav-link {
+		@media (max-width: $mobile) {
+			margin-right: calc(-1 * (#{toRem(8)} + 0.08em));
+			&[aria-current="page"]:not(:focus-visible) {
+				@include edgeBar(left);
+			}
+		}
+	}
 	&__directions {
 		@media (max-width: $mobile) {
 			display: none;
@@ -58,11 +82,13 @@
 		gap: toRem(4);
 	}
 	&__item {
-		// on a phone the first link's label starts on the container's edge, where the wordmark and the sign start;
-		// its padding hangs into the gutter
+		// at every width the first link's label starts on the container's edge, where the wordmark and the sign
+		// start; its padding hangs into the gutter, and its current-page bar starts on the edge with the label
 		&:first-child > .nav-link {
-			@media (max-width: $mobile) {
-				margin-left: toRem(-8);
+			margin-left: toRem(-8);
+			&[aria-current="page"]:not(:focus-visible),
+			&.nav-link--current:not(:focus-visible) {
+				@include edgeBar(right);
 			}
 		}
 		&--wide {
