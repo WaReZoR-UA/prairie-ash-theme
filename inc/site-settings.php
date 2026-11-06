@@ -84,6 +84,25 @@ function prairie_ash_settings_registry() {
 			'analytics_on_button'  => array( 'Button, keep counting', 'text', 'Keep counting on', '' ),
 			'analytics_off_button' => array( 'Button, turn counting off', 'text', 'Turn counting off', '' ),
 		),
+		'Moving pictures'  => array(
+			'motion_pause_label' => array( 'Pause button of the moving roastery on Home', 'text', 'Pause the roastery', 'Shown while the roastery behind the window moves.' ),
+			'motion_play_label'  => array( 'The same button while paused', 'text', 'Play the roastery', '' ),
+			'roast_stage_names'  => array( 'Roast chart, stage names', 'textarea', "Charge\nTurning point\nDrying\nYellowing\nBrowning\nFirst crack\nDevelopment\nDrop", 'One line per stage, eight lines in this order. The roast chart on the Roastery page names the stage it has reached with them.' ),
+		),
+		'Site search'      => array(
+			'search_heading'  => array( 'Search results, heading', 'text', 'Search results for "%s"', '%s is replaced by the words searched for.' ),
+			'search_empty'    => array( 'Search results, nothing found', 'textarea', 'Nothing matches these words. Other words, or the menu above, may find it.', '' ),
+			'entries_heading' => array( 'List of entries, heading', 'text', 'Latest entries', 'Shown on a list of entries that has no title of its own.' ),
+			'entries_empty'   => array( 'List of entries, nothing published', 'textarea', 'Nothing has been published here yet.', '' ),
+			'pages_previous'  => array( 'Page numbers, previous page', 'text', 'Previous', '' ),
+			'pages_next'      => array( 'Page numbers, next page', 'text', 'Next', '' ),
+			'home_link_label' => array( 'Link back to the home page', 'text', 'Back to the home page', 'Shown under an empty search and on the missing page.' ),
+			'shop_link_label' => array( 'Link to the coffees', 'text', 'Browse the coffees', 'Shown under an empty search and on the missing page.' ),
+		),
+		'Missing page'     => array(
+			'not_found_heading' => array( 'Heading', 'text', 'Page not found', 'The page shown for an address where nothing lives.' ),
+			'not_found_text'    => array( 'Text', 'textarea', 'Nothing lives at this address. The page may have moved, or the address may be mistyped.', '' ),
+		),
 	);
 }
 
