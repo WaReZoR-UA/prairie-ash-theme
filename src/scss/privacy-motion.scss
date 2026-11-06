@@ -1,6 +1,6 @@
 @use "shared" as *;
 
-// Privacy policy scenes (js/files/privacy.js). The flag on <html> is set in the head of the page only when motion is
+// Privacy policy scenes (js/files/legal.js). The flag on <html> is set in the head of the page only when motion is
 // allowed, so the first paint already shows the faint title on the wall; without JS the page is finished after a short
 // wait. The contents never take a start state.
 @media (prefers-reduced-motion: no-preference) {
