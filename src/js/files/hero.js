@@ -727,16 +727,23 @@ export function heroScene(hero, { ctx, cleanups, alive, fontsReady }) {
 
 	// WCAG 2.2.2: motion that runs on its own next to text can be stopped by the visitor
 	const host = hero.querySelector(".hero__intro .hero__container");
+	let still = null;
+	let warned = false;
 	if (host) {
 		const button = document.createElement("button");
+		still = button;
 		button.type = "button";
 		button.className = "hero__still";
+		// the wording from Site settings (inc/enqueue.php), the design's where a field is empty
+		const words = window.prairieAsh || {};
+		const pause = words.stillPauseLabel || "Pause the roastery";
+		const play = words.stillPlayLabel || "Play the roastery";
 		button.setAttribute("aria-pressed", "false");
-		button.textContent = "Pause the roastery";
+		button.textContent = pause;
 		button.addEventListener("click", () => {
 			userPaused = !userPaused;
 			button.setAttribute("aria-pressed", String(userPaused));
-			button.textContent = userPaused ? "Play the roastery" : "Pause the roastery";
+			button.textContent = userPaused ? play : pause;
 			run();
 		});
 		host.append(button);
@@ -790,18 +797,35 @@ export function heroScene(hero, { ctx, cleanups, alive, fontsReady }) {
 		scrollTrigger: { trigger: hero, start: "top top", end: "bottom top", scrub: phone ? 0.6 : true, invalidateOnRefresh: true },
 	});
 
-	// the scene is rebuilt whenever the picture swaps to another art-directed export
+	// the scene is rebuilt whenever the picture swaps to another art-directed export. It reads the photo's pixels, which
+	// a browser refuses for a photo from another host (a CDN) unless that host allows it and the image asked: such a
+	// photo, or any scene that fails to build, leaves the photo as it is, with no half-built layers and no pause
+	// control for a room that does not move
 	const build = () => {
 		const S = SCENES[img.naturalWidth];
 		if (scene) {
 			scene.cleanups.reverse().forEach((fn) => fn());
 			scene = null;
 		}
-		if (!S || !img.naturalWidth) return null;
-		const local = [];
-		const L = cover(media, img);
-		const r = room(media, img, S, L, local);
-		scene = { ...r, S, L, cleanups: local };
+		const source = new URL(img.currentSrc || img.src, location.href);
+		if (S && img.naturalWidth && (source.origin === location.origin || img.crossOrigin)) {
+			const local = [];
+			try {
+				const L = cover(media, img);
+				const r = room(media, img, S, L, local);
+				scene = { ...r, S, L, cleanups: local };
+			} catch (error) {
+				local.reverse().forEach((fn) => fn());
+				if (!warned) console.warn("Hero: the roastery scene could not be built.", error);
+				warned = true;
+			}
+		}
+		// the control stands in the layout from the start, as the scene is expected; it leaves, and the triggers
+		// are measured again, only when no scene could be built
+		if (still && still.hidden === !!scene) {
+			still.hidden = !scene;
+			ScrollTrigger.refresh();
+		}
 		applyScroll();
 		run();
 		return scene;

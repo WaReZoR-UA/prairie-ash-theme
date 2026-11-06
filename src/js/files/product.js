@@ -16,8 +16,8 @@ data-motion="product-board"   the facts and the recipe as a lettered board: a ru
 data-motion="product-form"    the purchase controls, ink only: below the first screen each control's frame is
                               ruled round it and its ink comes up inside, the control itself never moves; a
                               choice is filled from the left and wiped off to the right (product-motion.scss).
-                              Add to cart is stamped onto the price line, or across the button when the price
-                              is off the screen. Sold out: the notice is struck onto the board after its row
+                              Once the coffee is in the cart, Add to cart is stamped onto the price line, or
+                              across the button when the price is off the screen. Sold out: the notice is struck onto the board after its row
                               lies flat, and onto the disabled button in its own faded ink
 data-motion="product-origin"  the farm photo, opened from the side that faces its text while the hillside pans
                               into its crop and the morning mist lifts off the valley
@@ -26,6 +26,7 @@ data-motion="product-origin"  the farm photo, opened from the side that faces it
 import { gsap, ScrollTrigger } from "./gsap.js";
 import { pen, stamp, board } from "./paint.js";
 import { letterSign, endOnResize } from "./lettering.js";
+import { stampMark } from "./product-added.js";
 import { smooth, inView, relative, layer, redrawOnRefresh, onScroll, swing, uncover, freshSign, signLettered } from "./motion-utils.js";
 
 // the valley mist in origin.jpg: its body (60th percentile of the cloud bank) and its bright core (75th)
@@ -208,66 +209,32 @@ function formIn(form, { ctx, cleanups, alive, fontsReady }) {
 	});
 }
 
-// Add to cart: a stamp struck on the price line, crooked as a hand leaves it, then the ink fades. When the
-// price is off the screen it is struck across the button the visitor pressed.
-function cartIn(form, sign, cleanups) {
-	const button = form.querySelector(".product-summary__buy .button");
-	if (!button || button.disabled) return;
-	const quantity = form.querySelector('input[name="quantity"]');
-	const price = sign && sign.querySelector('[data-motion="price"]');
-	const name = sign && sign.querySelector("h1");
-	const status = document.createElement("p");
-	status.className = "visually-hidden";
-	status.setAttribute("role", "status");
-	form.append(status);
-	cleanups.push(() => status.remove());
+// Add to cart: once WooCommerce has added the coffee (wp/shop.js says so with "pa:added"), a stamp is struck on the
+// price line, crooked as a hand leaves it, then the ink fades. When the price is off the screen it is struck across
+// the button the visitor pressed. The words are read out by wp/shop.js, with or without this module.
+function cartIn(form, cleanups) {
 	let run = null;
-	let mark = null;
+	let placed = null;
 	const clear = () => {
 		if (run) run.kill();
 		run = null;
-		if (mark) mark.remove();
-		mark = null;
+		if (placed) placed.restore();
+		placed = null;
 	};
 	cleanups.push(clear);
-	const press = () => {
+	const press = (event) => {
+		event.preventDefault();
 		clear();
-		const n = Math.max(1, parseInt(quantity && quantity.value, 10) || 1);
-		const bags = `${n} ${n === 1 ? "bag" : "bags"}`;
-		status.textContent = `Added ${bags} of ${name ? name.textContent.trim() : "this coffee"} to the cart`;
-		const r = price && price.getBoundingClientRect();
-		const onPrice = r && r.top >= 0 && r.bottom <= window.innerHeight;
-		const host = onPrice ? sign : button.parentElement;
-		relative(host, cleanups);
-		mark = document.createElement("span");
-		mark.className = "product-stamp";
-		mark.setAttribute("aria-hidden", "true");
-		mark.textContent = `Added, ${bags}`;
-		host.append(mark);
-		let left;
-		let top;
-		if (onPrice) {
-			const range = document.createRange();
-			range.selectNodeContents(price);
-			const ink = range.getBoundingClientRect();
-			const k = price.offsetWidth / (r.width || 1);
-			left = price.offsetLeft + (ink.right - r.left) * k + 20;
-			top = price.offsetTop + (price.offsetHeight - mark.offsetHeight) / 2;
-			left = Math.min(left, host.clientWidth - mark.offsetWidth - 4);
-		} else {
-			left = button.offsetLeft + (button.offsetWidth - mark.offsetWidth) / 2;
-			top = button.offsetTop + (button.offsetHeight - mark.offsetHeight) / 2;
-		}
-		Object.assign(mark.style, { left: `${left.toFixed(1)}px`, top: `${top.toFixed(1)}px` });
+		placed = stampMark(form, event.detail.stamp);
+		if (!placed) return;
+		const { mark } = placed;
 		run = gsap.timeline({ onComplete: clear })
 			.fromTo(mark, { scale: 1.8, rotation: -11, opacity: 0 }, { scale: 1, rotation: -4, duration: 0.24, ease: "power3.in" }, 0)
 			.to(mark, { opacity: 1, duration: 0.12, ease: "power1.in" }, 0.11)
 			.to(mark, { opacity: 0, duration: 0.6, ease: "power1.in" }, 2.8);
 	};
-	button.addEventListener("click", press);
-	cleanups.push(() => button.removeEventListener("click", press));
-	// a press made while this module was still on its way: the pointer left the focus on the button
-	if (document.activeElement === button && !button.matches(":focus-visible")) press();
+	form.addEventListener("pa:added", press);
+	cleanups.push(() => form.removeEventListener("pa:added", press));
 }
 
 // Origin --------------------------------------------------------------------------------------------
@@ -404,7 +371,7 @@ export function productMotion({ ctx, cleanups, alive, fontsReady, wide }) {
 	const form = document.querySelector('[data-motion="product-form"]');
 	if (form) {
 		formIn(form, scene);
-		cartIn(form, sign, cleanups);
+		cartIn(form, cleanups);
 	}
 	root.dataset.product = fresh ? "letter" : "live";
 	cleanups.push(() => {

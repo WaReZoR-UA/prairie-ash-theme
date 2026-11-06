@@ -77,8 +77,17 @@ if (todayLines.length && hoursRows.length) {
 			week[Number(d)] = `${row.dataset.open} ${words.hoursJoiner || "to"} ${row.dataset.close}`;
 		});
 	});
-	const todayName = new Intl.DateTimeFormat("en-US", { timeZone: "America/Winnipeg", weekday: "long" }).format(new Date());
-	const today = names.indexOf(todayName);
+	// the time zone set in WordPress (inc/enqueue.php), the cafe's own as the markup's fallback
+	const zone = words.timeZone || "America/Winnipeg";
+	let today;
+	try {
+		today = names.indexOf(new Intl.DateTimeFormat("en-US", { timeZone: zone, weekday: "long" }).format(new Date()));
+	} catch (err) {
+		// a fixed offset such as +05:30, which not every browser takes as a time zone
+		const offset = /^([+-])(\d{2}):(\d{2})$/.exec(zone);
+		const minutes = offset ? (offset[1] === "-" ? -1 : 1) * (Number(offset[2]) * 60 + Number(offset[3])) : 0;
+		today = new Date(Date.now() + minutes * 60000).getUTCDay();
+	}
 	const openToday = words.todayOpen || "Open today";
 	const closedToday = words.todayClosed || "Closed today, open";
 	let text = "";

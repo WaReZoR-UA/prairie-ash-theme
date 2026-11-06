@@ -33,7 +33,7 @@ import { Flip } from "gsap/Flip";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import { letterSign, splitLines } from "./lettering.js";
 import { rule, stamp, stampPivot, figure } from "./paint.js";
-import { layer, onScroll, swing, uncover, sheen, platesIn, tipUp, riseIn } from "./motion-utils.js";
+import { layer, onScroll, swing, uncover, sheen, platesIn, tipUp, riseIn, signLettered } from "./motion-utils.js";
 
 gsap.registerPlugin(ScrollSmoother, Flip, MotionPathPlugin);
 ScrollTrigger.config({ ignoreMobileResize: true });
@@ -65,7 +65,16 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 const SCRUB_PAGE = !!document.querySelector("[data-motion-scrub]");
 
 const REDUCED = "(prefers-reduced-motion: reduce)";
-const fontsReady = Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise((resolve) => setTimeout(resolve, 1500))]);
+// The motion measures the type once the web fonts are in, or after a second and a half at most. Faces that arrive
+// later than that (font-display: swap) set the type again, so the layer is then rebuilt on them, see the end.
+const fontsIn = document.fonts ? document.fonts.ready : Promise.resolve();
+let fontsLanded = false;
+let fontsLate = false;
+fontsIn.then(() => (fontsLanded = true));
+const fontsReady = Promise.race([fontsIn, new Promise((resolve) => setTimeout(() => {
+	fontsLate = !fontsLanded;
+	resolve();
+}, 1500))]);
 
 const TOTALS = ".lv__row--due .lv__value, .lv__row--paid .lv__value, .checkout-title__total-value";
 const STAMPS = '[data-motion="price"], .roastery__fact';
@@ -295,85 +304,101 @@ function settle(base, parallax) {
 	return vars;
 }
 
+// A page's scenes come in their own chunk. When it cannot be fetched (a deploy replaced the hashed files under an
+// open tab) or its scene fails to build, the page is left as the stylesheet draws it: the head flag is handed
+// back at once, rather than the faint first paint waiting for the stylesheet's own fallback
+let chunkFailed = false;
+function pageChunk(load, start, ctx, alive) {
+	load.then((module) => alive() && ctx.add(() => start(module))).catch((error) => {
+		const flags = document.documentElement.dataset;
+		Object.keys(flags).forEach((flag) => {
+			if (flags[flag] === "pre" || flags[flag] === "letter") signLettered(flag);
+		});
+		if (chunkFailed) return;
+		chunkFailed = true;
+		console.warn("Motion: a page scene could not start.", error);
+	});
+}
+
 // Home hero: the sign repainted, the roastery alive behind the glass, the camera pushed in by the scroll
 // the scene is its own chunk, so it never weighs on the first paint
 function heroIn(hero, ctx, cleanups, alive) {
-	import(/* webpackChunkName: "hero" */ "./hero.js").then(({ heroScene }) => alive() && ctx.add(() => heroScene(hero, { ctx, cleanups, alive, fontsReady })));
+	pageChunk(import(/* webpackChunkName: "hero" */ "./hero.js"), ({ heroScene }) => heroScene(hero, { ctx, cleanups, alive, fontsReady }), ctx, alive);
 }
 
 // Roastery: its scenes are their own chunk too
 function roasteryIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "roastery" */ "./roastery.js").then(({ roasteryMotion }) => alive() && ctx.add(() => roasteryMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "roastery" */ "./roastery.js"), ({ roasteryMotion }) => roasteryMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Shop: the title label and the coffee shelf are their own chunk
 function shopIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "shop" */ "./shop.js").then(({ shopMotion }) => alive() && ctx.add(() => shopMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "shop" */ "./shop.js"), ({ shopMotion }) => shopMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Product: the summary, its boards and the origin photo are their own chunk
 function productIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "product" */ "./product.js").then(({ productMotion }) => alive() && ctx.add(() => productMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "product" */ "./product.js"), ({ productMotion }) => productMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Visit: the door plate, the hours board and the facts boards are their own chunk
 function visitIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "visit" */ "./visit.js").then(({ visitMotion }) => alive() && ctx.add(() => visitMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "visit" */ "./visit.js"), ({ visitMotion }) => visitMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // About: the sign on the dark wall and the people are their own chunk
 function aboutIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "about" */ "./about.js").then(({ aboutMotion }) => alive() && ctx.add(() => aboutMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "about" */ "./about.js"), ({ aboutMotion }) => aboutMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Menu: the bar board, the price boards, the pastry case and the notes are their own chunk
 function menuIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "menu" */ "./menu.js").then(({ menuMotion }) => alive() && ctx.add(() => menuMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "menu" */ "./menu.js"), ({ menuMotion }) => menuMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Wholesale: the trade sign, the account board, the inquiry ticket and the sent ticket are their own chunk
 function wholesaleIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "wholesale" */ "./wholesale.js").then(({ wholesaleMotion }) => alive() && ctx.add(() => wholesaleMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "wholesale" */ "./wholesale.js"), ({ wholesaleMotion }) => wholesaleMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Contact: its scenes are their own chunk too
 function contactIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "contact" */ "./contact.js").then(({ contactMotion }) => alive() && ctx.add(() => contactMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "contact" */ "./contact.js"), ({ contactMotion }) => contactMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Signup confirmation: its sign is its own chunk too
 function signupIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "signup" */ "./signup.js").then(({ signupMotion }) => alive() && ctx.add(() => signupMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "signup" */ "./signup.js"), ({ signupMotion }) => signupMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Cart: the bags on the counter, the receipt and the empty cart's note are their own chunk too
 function cartIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "cart" */ "./cart.js").then(({ cartMotion }) => alive() && ctx.add(() => cartMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "cart" */ "./cart.js"), ({ cartMotion }) => cartMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Checkout: the title sign and the order form in ink are their own chunk too
 function checkoutIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "checkout" */ "./checkout.js").then(({ checkoutMotion }) => alive() && ctx.add(() => checkoutMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "checkout" */ "./checkout.js"), ({ checkoutMotion }) => checkoutMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Order confirmation: the sign, the struck order number and the printed receipt are their own chunk too
 function orderIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "order" */ "./order.js").then(({ orderMotion }) => alive() && ctx.add(() => orderMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "order" */ "./order.js"), ({ orderMotion }) => orderMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
 // Shipping, pickup and returns: the sign, the rate board and the notes are their own chunk too
 function shippingIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "shipping" */ "./shipping.js").then(({ shippingMotion }) => alive() && ctx.add(() => shippingMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "shipping" */ "./shipping.js"), ({ shippingMotion }) => shippingMotion({ ctx, cleanups, alive, fontsReady, wide }), ctx, alive);
 }
 
-// Privacy policy: the sign, the contents and the parts are their own chunk too
+// Privacy policy: the sign, the contents and the parts are one chunk with the accessibility statement (legal.js)
 function privacyIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "privacy" */ "./privacy.js").then(({ privacyMotion }) => alive() && ctx.add(() => privacyMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "legal" */ "./legal.js"), ({ legalMotion }) => legalMotion({ ctx, cleanups, alive, fontsReady, wide }, { flag: "privacy", guide: "privacy-rule" }), ctx, alive);
 }
 
-// Accessibility statement: the sign, the contents and the parts are their own chunk too
+// Accessibility statement: the same reading-page chunk, its closing dated note written by the pen
 function accessibilityIn(ctx, cleanups, alive, wide) {
-	import(/* webpackChunkName: "accessibility" */ "./accessibility.js").then(({ accessibilityMotion }) => alive() && ctx.add(() => accessibilityMotion({ ctx, cleanups, alive, fontsReady, wide })));
+	pageChunk(import(/* webpackChunkName: "legal" */ "./legal.js"), ({ legalMotion }) => legalMotion({ ctx, cleanups, alive, fontsReady, wide }, { flag: "accessibility", guide: "accessibility-rule", lastWritten: true }), ctx, alive);
 }
 
 function mediaIn(imgs, wide, cleanups) {
@@ -1079,12 +1104,33 @@ function sectionsIn(main, wide, cleanups, alive) {
 	const shape = sectionsShape(main);
 	build(sectionsPlan(shape, wide));
 	cleanups.push(() => current.revert());
-	fontsReady.then(() => {
-		if (!alive()) return;
+	const replan = () => {
+		if (!alive()) return false;
 		const plan = sectionsPlan(shape, wide);
-		if (plan.key === current.key) return;
+		if (plan.key === current.key) return false;
 		current.revert();
 		build(plan);
+		return true;
+	};
+	fontsReady.then(replan);
+	// the window's size decides which blocks move and which bands stack, so a new size is planned again: a new
+	// width always, a new height on a wide screen, where the stacks are (a phone's toolbar changes its height
+	// with every scroll and plans nothing new there)
+	let size = [window.innerWidth, window.innerHeight];
+	let wait = null;
+	const onResize = () => {
+		window.clearTimeout(wait);
+		wait = window.setTimeout(() => {
+			const now = [window.innerWidth, window.innerHeight];
+			const moved = now[0] !== size[0] || (wide && now[1] !== size[1]);
+			size = now;
+			if (moved && replan()) ScrollTrigger.refresh();
+		}, 250);
+	};
+	window.addEventListener("resize", onResize);
+	cleanups.push(() => {
+		window.clearTimeout(wait);
+		window.removeEventListener("resize", onResize);
 	});
 }
 
@@ -1127,6 +1173,27 @@ function stackIn({ s, next }, cleanups) {
 		// scale only: the band's own entrance owns its rotation and offset
 		.fromTo(container, { scale: 1 }, { scale: 0.9, duration: 1, immediateRender: false }, 0)
 		.fromTo(shade, { opacity: 0 }, { opacity: 0.55, duration: 1 }, 0);
+}
+
+// Keyboard focus never lands on a control still drawn faint by the scroll: Tab brings a control in at the bottom
+// edge of the window, where its entrance has barely begun, so the scroll-driven entrance that fades the focused
+// element, or the block holding it, is finished at once and left finished
+function focusFinishes(cleanups) {
+	const fades = (tween) => !!tween.vars && ("opacity" in tween.vars || "autoAlpha" in tween.vars);
+	const onFocus = (e) => {
+		const el = e.target;
+		if (!(el instanceof Element)) return;
+		ScrollTrigger.getAll().forEach((t) => {
+			const anim = t.animation;
+			if (!anim || !t.vars.scrub || anim.progress() === 1) return;
+			const tweens = anim.getChildren ? anim.getChildren(true, true, false) : [anim];
+			if (!tweens.some((tw) => fades(tw) && tw.targets().some((x) => x instanceof Element && x.contains(el)))) return;
+			t.kill(false, true);
+			anim.progress(1);
+		});
+	};
+	document.addEventListener("focusin", onFocus);
+	cleanups.push(() => document.removeEventListener("focusin", onFocus));
 }
 
 // ScrollSmoother on a wide screen with a fine pointer; touch keeps native scrolling
@@ -1187,7 +1254,22 @@ let smoother = null;
 buildRoutes();
 
 const mm = gsap.matchMedia();
-afterPress(() => mm.add({ motion: "(prefers-reduced-motion: no-preference)", wide: "(min-width: 62em)", fine: "(pointer: fine)" }, (ctx) => {
+const CONDITIONS = { motion: "(prefers-reduced-motion: no-preference)", wide: "(min-width: 62em)", fine: "(pointer: fine)" };
+let motionAdded = false;
+afterPress(() => {
+	motionAdded = true;
+	mm.add(CONDITIONS, motionLayer);
+});
+// Faces that came after the wait: every act still running is ended in its finished state, and the layer is built
+// again on the real type, so no clip, mask or split line stays cut to the fallback face. Signs already lettered
+// stay lettered, since their head flags read "live" by then.
+fontsIn.then(() => {
+	if (!fontsLate || !motionAdded) return;
+	mm.revert();
+	mm.add(CONDITIONS, motionLayer);
+});
+
+function motionLayer(ctx) {
 	const { motion, wide, fine } = ctx.conditions;
 	if (!motion) return undefined;
 	const cleanups = [];
@@ -1235,6 +1317,7 @@ afterPress(() => mm.add({ motion: "(prefers-reduced-motion: no-preference)", wid
 	leavesIn(scopes.flatMap((scope) => collectLeaves(scope, owned)).filter((el) => !insideScene(el) && !el.matches(TOTALS)), ctx, cleanups, alive, wide);
 	wordmarksIn(inScopes('[data-motion="wordmark"]'), cleanups, fine && wide);
 	progressIn(ctx, cleanups, alive);
+	focusFinishes(cleanups);
 
 	// measure again with the final fonts and splits
 	fontsReady.then(() => {
@@ -1258,7 +1341,7 @@ afterPress(() => mm.add({ motion: "(prefers-reduced-motion: no-preference)", wid
 		smoother = null;
 		cleanups.reverse().forEach((fn) => fn());
 	};
-}));
+}
 
 // In-page links glide to their target, then hand it focus
 function focusTarget(target) {
@@ -1270,7 +1353,7 @@ document.addEventListener("click", (e) => {
 	const link = e.target.closest("a[href*='#']");
 	if (!link) return;
 	const url = new URL(link.href, location.href);
-	if (url.pathname !== location.pathname || url.search !== location.search || url.hash.length < 2) return;
+	if (url.origin !== location.origin || url.pathname !== location.pathname || url.search !== location.search || url.hash.length < 2) return;
 	const target = document.getElementById(decodeURIComponent(url.hash.slice(1)));
 	if (!target) return;
 	e.preventDefault();

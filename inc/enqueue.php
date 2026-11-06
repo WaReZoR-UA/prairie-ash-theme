@@ -88,7 +88,7 @@ function prairie_ash_split_sheets() {
  *
  * @since 1.0.0
  *
- * @param string $template Template group: product, cart or checkout.
+ * @param string $template Template group: product, cart, checkout, or archive (index.php and 404.php).
  * @return bool
  */
 function prairie_ash_is_template( $template ) {
@@ -99,6 +99,8 @@ function prairie_ash_is_template( $template ) {
 			return function_exists( 'is_cart' ) && is_cart();
 		case 'checkout':
 			return function_exists( 'is_checkout' ) && is_checkout();
+		case 'archive':
+			return isset( $GLOBALS['template'] ) && in_array( basename( (string) $GLOBALS['template'] ), array( 'index.php', '404.php' ), true );
 	}
 
 	return false;
@@ -168,7 +170,8 @@ function prairie_ash_editor_sheets() {
 }
 
 /**
- * Data the theme bundle reads: endpoints and the wording its scripts print.
+ * Data the theme bundle reads: where its page chunks live, endpoints and the
+ * wording its scripts print.
  *
  * Wording printed by a script is read from the same settings as the markup, so
  * the client changes it in one place.
@@ -179,6 +182,7 @@ function prairie_ash_editor_sheets() {
  */
 function prairie_ash_script_data() {
 	$data = array(
+		'scriptBase'       => get_theme_file_uri( 'assets/js/' ),
 		'analyticsOffText' => prairie_ash_setting( 'analytics_off_text' ),
 		'pagesOpenLabel'   => prairie_ash_setting( 'pages_toggle_close_label' ),
 		'pagesClosedLabel' => prairie_ash_setting( 'pages_toggle_label' ),
@@ -186,13 +190,21 @@ function prairie_ash_script_data() {
 		'todayOpen'        => prairie_ash_setting( 'today_open' ),
 		'todayClosed'      => prairie_ash_setting( 'today_closed' ),
 		'todayTomorrow'    => prairie_ash_setting( 'today_tomorrow' ),
+		'timeZone'         => wp_timezone_string(),
+		'stillPauseLabel'  => prairie_ash_setting( 'motion_pause_label' ),
+		'stillPlayLabel'   => prairie_ash_setting( 'motion_play_label' ),
+		'roastStages'      => prairie_ash_setting( 'roast_stage_names' ),
 	);
 
 	if ( function_exists( 'WC' ) ) {
-		$data['wcAjax']      = WC_AJAX::get_endpoint( '%%endpoint%%' );
-		$data['cartUrl']     = wc_get_cart_url();
-		$data['addingLabel'] = prairie_ash_wording( 'card_adding_label' );
-		$data['addedLabel']  = prairie_ash_wording( 'card_added_label' );
+		$data['wcAjax']          = WC_AJAX::get_endpoint( '%%endpoint%%' );
+		$data['cartUrl']         = wc_get_cart_url();
+		$data['addingLabel']     = prairie_ash_wording( 'card_adding_label' );
+		$data['addedLabel']      = prairie_ash_wording( 'card_added_label' );
+		$data['addedStatusOne']  = prairie_ash_wording( 'added_status_one' );
+		$data['addedStatusMany'] = prairie_ash_wording( 'added_status_many' );
+		$data['addedStampOne']   = prairie_ash_wording( 'added_stamp_one' );
+		$data['addedStampMany']  = prairie_ash_wording( 'added_stamp_many' );
 	}
 
 	return $data;
@@ -203,9 +215,9 @@ function prairie_ash_script_data() {
  *
  * Wp_preload_resources prints link rel="preload". A font is a CORS-mode fetch
  * even from the same origin, so crossorigin is set or the preload is wasted.
- * The faces are font-display: optional, so a face that has not arrived by the
- * first paint is never swapped in on that page; the italic is preloaded with
- * the other two so it is there wherever the page paints it.
+ * The faces are font-display: swap, so the preloads let them arrive before
+ * the first paint wherever they can; the italic is preloaded with the other
+ * two so it is there wherever the page paints it.
  *
  * @since 1.0.0
  *

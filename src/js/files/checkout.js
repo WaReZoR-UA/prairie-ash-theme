@@ -35,6 +35,29 @@ function signIn(region, scene) {
 	// read before the sign takes the flag over
 	const fresh = freshSign("checkout", region.closest("section"));
 	const struck = { size: 1.5, tilt: -5, press: 0.26, ease: "power4.in", inkAt: 0.13, inkFor: 0.15 };
+	// below the window, the total to pay is struck by the numbering stamp as the scroll reaches it
+	const byScroll = (el) =>
+		fontsReady.then(() => {
+			if (!alive()) return;
+			ctx.add(() => {
+				const tl = gsap.timeline({ defaults: { ease: "none" } });
+				stamp(tl, el, 0, region, { ...struck, count: { cleanups } });
+				cleanups.push(() => gsap.set(el, { clearProps: "opacity,transform,transformOrigin" }));
+				onScroll(el, tl, { start: "top 88%", end: "top 62%" });
+				ScrollTrigger.refresh();
+			});
+		});
+	// WooCommerce replaces the total with the order: a new total below the window is struck by the scroll in its turn,
+	// one on the screen is already finished
+	const $ = window.jQuery;
+	if ($) {
+		const restrike = () => {
+			const fresh = region.querySelector(".checkout-title__total-value");
+			if (alive() && fresh && fresh !== value && !inView(fresh)) byScroll(fresh);
+		};
+		$(document.body).on("updated_checkout", restrike);
+		cleanups.push(() => $(document.body).off("updated_checkout", restrike));
+	}
 	if (value) {
 		if (fresh && inView(value)) {
 			// the first paint's empty place, now held inline until the numbering stamp strikes it
@@ -53,18 +76,7 @@ function signIn(region, scene) {
 					});
 				});
 			});
-		} else if (!inView(value)) {
-			fontsReady.then(() => {
-				if (!alive()) return;
-				ctx.add(() => {
-					const tl = gsap.timeline({ defaults: { ease: "none" } });
-					stamp(tl, value, 0, region, { ...struck, count: { cleanups } });
-					cleanups.push(() => gsap.set(value, { clearProps: "opacity,transform,transformOrigin" }));
-					onScroll(value, tl, { start: "top 88%", end: "top 62%" });
-					ScrollTrigger.refresh();
-				});
-			});
-		}
+		} else if (!inView(value)) byScroll(value);
 	}
 	signScene(region, scene, {
 		flag: "checkout",
@@ -85,6 +97,18 @@ function signIn(region, scene) {
 
 export function checkoutMotion({ ctx, cleanups, alive, fontsReady, wide }) {
 	const scene = { ctx, cleanups, alive, fontsReady, wide };
+	// the parts WooCommerce replaced when the order changed are gone from the page: their scroll triggers go with them
+	const $ = window.jQuery;
+	if ($) {
+		const forget = () => {
+			ScrollTrigger.getAll().forEach((t) => {
+				if (t.trigger && !t.trigger.isConnected) t.kill();
+			});
+			ScrollTrigger.refresh();
+		};
+		$(document.body).on("updated_checkout", forget);
+		cleanups.push(() => $(document.body).off("updated_checkout", forget));
+	}
 	const sign = document.querySelector('[data-motion="checkout-sign"]');
 	if (sign) signIn(sign, scene);
 	const fields = document.querySelector('[data-motion="checkout-fields"]');

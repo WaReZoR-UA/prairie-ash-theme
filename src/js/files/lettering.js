@@ -604,7 +604,9 @@ export function endOnResize(act, cleanups) {
 }
 
 export function signScene(region, { ctx, cleanups, alive, fontsReady, wide }, options) {
-	const { flag, title, eyebrow = null, media, img, plane, liner = region, stripes = [], held = [], focus, seen = false, weather: weathers = true, ghost = null, letters = {}, exact = false, then = [], story = {} } = options;
+	const { flag, title, eyebrow = null, media = null, img, plane, liner = region, stripes = [], held = [], focus, weather: weathers = true, ghost = null, letters = {}, exact = false, then = [], story = {} } = options;
+	// a title saved without its photo has no photo to zoom on or to light: the sign is lettered all the same
+	const seen = !!options.seen && !!media;
 	const later = (fn) => () => alive() && ctx.add(fn);
 	const root = document.documentElement;
 	const section = region.closest("section") || region;
@@ -702,6 +704,13 @@ export function signScene(region, { ctx, cleanups, alive, fontsReady, wide }, op
 		});
 		const act = gsap.timeline();
 		const parts = [];
+		// the end of the act is set before its optional steps, so the faint sign is always handed back
+		act.eventCallback("onComplete", () => {
+			signLettered(flag);
+			gsap.set(faint.filter((el) => !left.includes(el)), { clearProps: "opacity" });
+			parts.forEach((part) => part.remove());
+			apply();
+		});
 		const write = (el, at, pace) => {
 			const p = pen(act, el, at, cleanups, { pace, ink: "own", exact });
 			if (p) parts.push(p);
@@ -723,14 +732,8 @@ export function signScene(region, { ctx, cleanups, alive, fontsReady, wide }, op
 				if (!left.includes(el)) write(el, Math.max(min, end - lead), 2.2);
 			} else if (kind === "sheen") {
 				const [, min, lead] = step;
-				sheen(media, cleanups, { tl: act, at: Math.max(min, end - lead) });
+				if (media) sheen(media, cleanups, { tl: act, at: Math.max(min, end - lead) });
 			}
-		});
-		act.eventCallback("onComplete", () => {
-			signLettered(flag);
-			gsap.set(faint.filter((el) => !left.includes(el)), { clearProps: "opacity" });
-			parts.forEach((part) => part.remove());
-			apply();
 		});
 		endOnResize(act, cleanups);
 		cleanups.push(() => act.kill());
