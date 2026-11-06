@@ -27,7 +27,7 @@ $desktopUp: "(min-width: #{em(992)})";
 		overflow: clip;
 		aspect-ratio: 390 / 700;
 		// the width is set and the height comes from the ratio, not from the photo or the row: WebKit sized the box
-		// from the 390 px photo and left a band beside it
+		// from the 390 px photo and left a band beside it, and stretched it to the sign's row once the photo is placed
 		@media (max-width: $tablet) {
 			width: 100%;
 			align-self: start;
@@ -48,6 +48,15 @@ $desktopUp: "(min-width: #{em(992)})";
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
+		// the window's frame in the phone photo runs from 24.5 to 373.5 of its 390 px, off centre: the photo is drawn
+		// 2.1 percent larger from its lower right corner, so the gutters beside the frame are equal and no edge is left bare
+		@media (max-width: $mobile) {
+			position: absolute;
+			right: 0;
+			bottom: 0;
+			width: 102.1%;
+			height: 102.1%;
+		}
 	}
 	&__wall {
 		grid-area: 1 / 1 / 2 / 2;

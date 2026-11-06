@@ -141,13 +141,20 @@ function puff(size, rgb) {
 
 // Layout: every layer sits on the photo's own cover box, so a source pixel lands where the photo draws it
 
+// The photo's own box is the media box, or a slightly larger one anchored in it (home.scss, phones), so ix and iy are
+// where that box starts inside the media
 function cover(media, img) {
 	const W = media.clientWidth;
 	const H = media.clientHeight;
+	const own = img.offsetParent === media;
+	const iw = own ? img.offsetWidth : W;
+	const ih = own ? img.offsetHeight : H;
+	const ix = own ? img.offsetLeft : 0;
+	const iy = own ? img.offsetTop : 0;
 	const nw = img.naturalWidth;
 	const nh = img.naturalHeight;
-	const k = Math.max(W / nw, H / nh);
-	return { W, H, nw, nh, k, ox: (W - nw * k) / 2, oy: (H - nh * k) / 2 };
+	const k = Math.max(iw / nw, ih / nh);
+	return { W, H, nw, nh, k, ix, iy, ox: ix + (iw - nw * k) / 2, oy: iy + (ih - nh * k) / 2 };
 }
 function place(node, L, [x0, y0, x1, y1], anchor) {
 	const left = L.ox + x0 * L.k;
@@ -416,7 +423,7 @@ function room(media, img, S, L, cleanups) {
 		place(brick, L, full, S.anchor);
 		place(shade, L, full, S.anchor);
 		shade.style.setProperty("--at", `${((S.anchor[0] / L.nw) * 100).toFixed(1)}% ${((S.anchor[1] / L.nh) * 100).toFixed(1)}%`);
-		img.style.transformOrigin = `${L.ox + S.anchor[0] * L.k}px ${L.oy + S.anchor[1] * L.k}px`;
+		img.style.transformOrigin = `${L.ox - L.ix + S.anchor[0] * L.k}px ${L.oy - L.iy + S.anchor[1] * L.k}px`;
 	};
 	layout();
 
