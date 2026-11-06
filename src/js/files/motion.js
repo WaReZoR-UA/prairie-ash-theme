@@ -1331,6 +1331,14 @@ function motionLayer(ctx) {
 			}
 		});
 	});
+	// WebKit settles document.fonts.ready a moment before it lays the faces out, so a scene built in that moment
+	// keeps starts measured on the fallback type (the product page's option rows are 35 px taller in it): the
+	// starts are measured again once the faces report that they are done
+	if (document.fonts && document.fonts.addEventListener) {
+		const again = () => window.requestAnimationFrame(() => alive() && ScrollTrigger.refresh());
+		document.fonts.addEventListener("loadingdone", again);
+		cleanups.push(() => document.fonts.removeEventListener("loadingdone", again));
+	}
 	if (smoother && location.hash) {
 		const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
 		if (target) fontsReady.then(() => alive() && smoother.scrollTo(target, false, "top 24px"));
