@@ -20,9 +20,10 @@ import path from 'path';
 
 // demo/ holds the demo content, which names every block and its classes as data, never as markup the theme prints.
 const SCAN_SKIP = new Set(['vendor', 'node_modules', 'assets', '.git', 'tools', 'src', 'languages', 'acf-json', 'demo']);
-// Files that print no markup but name blocks or pages in plain words: the package manifests and the
-// motion layer's page-flag map (inc/motion.php), whose block names would read as printed classes.
-const SCAN_SKIP_FILES = new Set(['package.json', 'package-lock.json', 'composer.json', 'composer.lock', 'inc/motion.php']);
+// Files that print no markup but name blocks or pages in plain words: the package manifests, the
+// motion layer's page-flag map (inc/motion.php), whose block names would read as printed classes, and the
+// Site settings registry (inc/site-settings.php), whose wording ("Pause the roastery") would read as one.
+const SCAN_SKIP_FILES = new Set(['package.json', 'package-lock.json', 'composer.json', 'composer.lock', 'inc/motion.php', 'inc/site-settings.php']);
 
 // The unit a theme file belongs to: a block, a WooCommerce template group, or null for global.
 function unitOf(rel) {
