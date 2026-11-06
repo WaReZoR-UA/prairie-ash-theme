@@ -118,6 +118,9 @@ if (productForm) {
 const cartForm = document.querySelector("[data-cart-form]");
 if (cartForm) {
 	let timer = null;
+	// once the form is on its way, a change the same key press raised sends nothing more
+	let sent = false;
+	window.addEventListener("pageshow", () => (sent = false));
 	const flag = (name) => {
 		const input = document.createElement("input");
 		input.type = "hidden";
@@ -128,19 +131,24 @@ if (cartForm) {
 	const update = (proceed = false) => {
 		window.clearTimeout(timer);
 		timer = null;
+		if (sent) return;
+		sent = true;
 		flag("update_cart");
 		if (proceed) flag("proceed");
 		cartForm.submit();
 	};
 	cartForm.addEventListener("change", (event) => {
-		if (!event.target.matches("[data-cart-quantity]")) return;
+		if (!event.target.matches("[data-cart-quantity]") || sent) return;
 		window.clearTimeout(timer);
 		timer = window.setTimeout(() => update(), 500);
 	});
 	// a submit of the form itself (Enter, a remove button) carries the quantities with it
-	cartForm.addEventListener("submit", () => {
+	cartForm.addEventListener("submit", (event) => {
 		window.clearTimeout(timer);
 		timer = null;
+		sent = true;
+		// a submit another handler cancelled sends nothing, so later changes still count
+		window.setTimeout(() => event.defaultPrevented && (sent = false));
 	});
 	const checkoutLink = document.querySelector(".cart-summary__actions a.button");
 	document.addEventListener("click", (event) => {
