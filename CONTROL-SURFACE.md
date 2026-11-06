@@ -35,8 +35,8 @@ own values and no value of the client's own. These rows record that narrowing on
 | theme | typography.customFontSize | 2026-10-19 | The client asked for sizes from the theme presets only, so the type scale is the design's eleven text sizes with no field for a typed size. |
 | theme | spacing.customSpacingSize | 2026-10-19 | The client asked for presets only, so spacing is the design's seven-step scale with no typed value. |
 | theme | color.customGradient | 2026-10-19 | The design contains no gradient, and the client asked for presets only. |
-| theme | typography.dropCap | 2026-10-19 | A drop cap belongs to the core paragraph block, which this theme does not offer between its sections. |
-| theme | allowedBlocks | 2026-10-19 | Pages offer the theme's own sections only. A core block placed between two sections renders edge to edge with none of the design's type, a state the design does not contain. |
+| theme | typography.dropCap | 2026-11-06 | A drop cap belongs to the core paragraph block, which this theme offers only on the privacy policy, account, cart, checkout and terms pages, as running legal or shop text where a drop cap is not part of the design. |
+| theme | allowedBlocks | 2026-11-06 | Pages offer the theme's own sections only. A core block placed between two sections renders edge to edge with none of the design's type, a state the design does not contain. The privacy policy, account, cart, checkout and terms pages also take the paragraph, heading, list, list item and shortcode blocks, because they hold legal text or a shop shortcode. |
 
 ## Left out per section, with the reason
 
