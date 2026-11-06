@@ -47,14 +47,17 @@ function setDown(line, tl, at, cleanups, parts, { scrub }) {
 	relative(line, cleanups);
 	relative(text, cleanups);
 	const edge = layer(line, "cart-counter", cleanups);
-	// under the bag and its label, clear of the quantity field
-	const place = () => Object.assign(edge.style, { left: "0px", top: `${thumb.offsetTop + thumb.offsetHeight}px`, width: `${Math.max(thumb.offsetWidth, text.offsetLeft + text.offsetWidth)}px` });
+	// under the bag and its label, clear of the quantity field; a line with no photo has only its label
+	const base = thumb || text;
+	const place = () => Object.assign(edge.style, { left: "0px", top: `${base.offsetTop + base.offsetHeight}px`, width: `${Math.max(thumb ? thumb.offsetWidth : 0, text.offsetLeft + text.offsetWidth)}px` });
 	place();
 	redrawOnRefresh(place, cleanups);
 	rule(tl, edge, at, { duration: 0.35, ease: "power2.inOut", start: { opacity: 0.7 } });
-	tl.fromTo(thumb, { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "none" }, at + 0.1)
-		.fromTo(thumb, { y: -26 }, { y: 0, duration: 0.26, ease: "power2.in" }, at + 0.1);
-	swing(tl, thumb, at + 0.1, { axis: "rotation", from: -7, steps: [[2.2, 0.26, "power2.in"], [0, 0.18, "sine.out"]], hinge: { transformOrigin: "50% 100%" } });
+	if (thumb) {
+		tl.fromTo(thumb, { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "none" }, at + 0.1)
+			.fromTo(thumb, { y: -26 }, { y: 0, duration: 0.26, ease: "power2.in" }, at + 0.1);
+		swing(tl, thumb, at + 0.1, { axis: "rotation", from: -7, steps: [[2.2, 0.26, "power2.in"], [0, 0.18, "sine.out"]], hinge: { transformOrigin: "50% 100%" } });
+	}
 	const letters = letterSign(name, cleanups, { perChar: 0.045, dip: 0.08, wet: "darker", ghost: 0.3 });
 	tl.add(letters.tl, at + 0.4);
 	parts.push(letters);
