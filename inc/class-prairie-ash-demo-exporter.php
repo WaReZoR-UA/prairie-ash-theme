@@ -11,8 +11,8 @@
  * References between records are written as tokens, so the importer can point
  * them at the IDs the records receive on the new site:
  * {{post:ID}} for a page, a product or an attachment, {{form:ID}} for a form,
- * {{term:ID}} for a menu, and {{home}} or {{home_json}} for the site address,
- * plain or with escaped slashes.
+ * {{term:ID}} for a menu or a term, and {{home}} or {{home_json}} for the site
+ * address, plain or with escaped slashes.
  *
  * @package PrairieAsh
  */
@@ -316,9 +316,12 @@ class Prairie_Ash_Demo_Exporter {
 			foreach ( $terms as $term ) {
 				$meta = array();
 				foreach ( get_term_meta( $term->term_id ) as $key => $values ) {
-					if ( ! str_starts_with( $key, 'product_count_' ) ) {
-						$meta[ $key ] = maybe_unserialize( $values[0] );
+					if ( str_starts_with( $key, 'product_count_' ) ) {
+						continue;
 					}
+
+					// A category's picture is an attachment, imported under a new ID.
+					$meta[ $key ] = 'thumbnail_id' === $key ? $this->post_token( (int) $values[0] ) : maybe_unserialize( $values[0] );
 				}
 
 				$out['terms'][] = array(
@@ -369,7 +372,7 @@ class Prairie_Ash_Demo_Exporter {
 				'comment_status' => $page->comment_status,
 				'ping_status'    => $page->ping_status,
 				'excerpt'        => $page->post_excerpt,
-				'content'        => $this->tokenize_content( $page->post_content, $page->ID ),
+				'content'        => $this->tokenize_content( $this->content_media( $page->post_content ), $page->ID ),
 				'meta'           => $this->field_meta( $page->ID ),
 			);
 		}
@@ -403,6 +406,8 @@ class Prairie_Ash_Demo_Exporter {
 
 		foreach ( $products as $product ) {
 			$item = $this->product_props( $product );
+
+			$this->content_media( $item['description'] . $item['short_description'] );
 
 			$item['type']       = $product->get_type();
 			$item['categories'] = wp_get_post_terms( $product->get_id(), 'product_cat', array( 'fields' => 'slugs' ) );
@@ -615,6 +620,58 @@ class Prairie_Ash_Demo_Exporter {
 	}
 
 	/**
+	 * Note the attachments a piece of content shows without a field: core
+	 * image, cover, media and gallery blocks, the wp-image class core prints,
+	 * and addresses of files in the uploads folder.
+	 *
+	 * Those references stay as they are in the content, so the importer cannot
+	 * point them at new IDs, but the files are exported, so the page shows
+	 * them on a new site once the address is the same.
+	 *
+	 * @since 1.2.1
+	 *
+	 * @param string $content Post content.
+	 * @return string The content, unchanged.
+	 */
+	private function content_media( $content ) {
+		$walk = function ( $blocks ) use ( &$walk ) {
+			foreach ( $blocks as $block ) {
+				foreach ( array( 'id', 'mediaId' ) as $attr ) {
+					if ( ! empty( $block['attrs'][ $attr ] ) && is_numeric( $block['attrs'][ $attr ] ) && str_starts_with( (string) $block['blockName'], 'core/' ) ) {
+						$this->referenced[] = (int) $block['attrs'][ $attr ];
+					}
+				}
+
+				if ( 'core/gallery' === $block['blockName'] && ! empty( $block['attrs']['ids'] ) ) {
+					$this->referenced = array_merge( $this->referenced, array_map( 'intval', (array) $block['attrs']['ids'] ) );
+				}
+
+				$walk( $block['innerBlocks'] );
+			}
+		};
+
+		$walk( parse_blocks( (string) $content ) );
+
+		if ( preg_match_all( '/\bwp-image-(\d+)\b/', (string) $content, $found ) ) {
+			$this->referenced = array_merge( $this->referenced, array_map( 'intval', $found[1] ) );
+		}
+
+		$uploads = wp_get_upload_dir()['baseurl'];
+
+		if ( preg_match_all( '#' . preg_quote( $uploads, '#' ) . '/[^"\'\s<>()]+#', (string) $content, $found ) ) {
+			foreach ( array_unique( $found[0] ) as $url ) {
+				$id = attachment_url_to_postid( (string) preg_replace( '/-\d+x\d+(?=\.[a-z0-9]+$)/i', '', $url ) );
+
+				if ( $id ) {
+					$this->referenced[] = $id;
+				}
+			}
+		}
+
+		return $content;
+	}
+
+	/**
 	 * Post content with the references inside its blocks as tokens.
 	 *
 	 * The content is parsed and serialised again. Before that is trusted, the
@@ -732,7 +789,7 @@ class Prairie_Ash_Demo_Exporter {
 					'title'       => $item->post_title,
 					'type'        => $item->type,
 					'object'      => $item->object,
-					'object_id'   => 'post_type' === $item->type ? $this->post_token( $item->object_id ) : (string) $item->object_id,
+					'object_id'   => $this->menu_object_token( $item ),
 					'url'         => 'custom' === $item->type ? $item->url : '',
 					'parent'      => (int) $item->menu_item_parent,
 					'order'       => $item->menu_order,
@@ -754,6 +811,43 @@ class Prairie_Ash_Demo_Exporter {
 		}
 
 		return $out;
+	}
+
+	/**
+	 * The object a menu item points at, as a token the importer resolves.
+	 *
+	 * A page or a product is a post token, a category or another term a term
+	 * token, so the item points at the record it became on the new site. A
+	 * term of a taxonomy the export does not carry cannot be found there, and
+	 * a note says so.
+	 *
+	 * @since 1.2.1
+	 *
+	 * @param WP_Post $item Menu item.
+	 * @return string
+	 */
+	private function menu_object_token( $item ) {
+		if ( 'post_type' === $item->type ) {
+			return $this->post_token( $item->object_id );
+		}
+
+		if ( 'taxonomy' !== $item->type ) {
+			return (string) $item->object_id;
+		}
+
+		$exported = array( 'product_cat', 'product_tag' );
+
+		if ( function_exists( 'wc_get_attribute_taxonomies' ) ) {
+			foreach ( wc_get_attribute_taxonomies() as $attribute ) {
+				$exported[] = wc_attribute_taxonomy_name( $attribute->attribute_name );
+			}
+		}
+
+		if ( ! in_array( $item->object, $exported, true ) ) {
+			$this->notes[] = sprintf( 'The menu item %1$s points at a term of %2$s, which the export does not carry; it is left out on import.', $item->title, $item->object );
+		}
+
+		return '{{term:' . (int) $item->object_id . '}}';
 	}
 
 	/**
@@ -812,9 +906,11 @@ class Prairie_Ash_Demo_Exporter {
 	 * The importer uploads each file again, so WordPress writes the sizes and
 	 * the theme writes the AVIF and WebP copies on the new site the same way
 	 * it did here. The folder is emptied first, so it holds exactly the
-	 * exported files.
+	 * exported files. An attachment no exported record points at stays out of
+	 * the folder, which is published with the theme, and a note names it.
 	 *
 	 * @since 1.2.0
+	 * @since 1.2.1 Exports only the attachments the records reference.
 	 *
 	 * @param string $dir Absolute path of the media folder.
 	 * @return array
@@ -823,7 +919,7 @@ class Prairie_Ash_Demo_Exporter {
 		global $wp_filesystem;
 
 		$out = array();
-		$ids = get_posts(
+		$all = get_posts(
 			array(
 				'post_type'      => 'attachment',
 				'post_status'    => 'inherit',
@@ -833,8 +929,13 @@ class Prairie_Ash_Demo_Exporter {
 				'fields'         => 'ids',
 			)
 		);
+		$ids = array_values( array_intersect( array_map( 'intval', $all ), array_map( 'intval', $this->referenced ) ) );
 
 		$placeholder = (int) get_option( 'woocommerce_placeholder_image', 0 );
+
+		foreach ( array_diff( array_map( 'intval', $all ), $ids, array( $placeholder ) ) as $id ) {
+			$this->notes[] = sprintf( 'Attachment %1$d (%2$s) is not used by any exported record and was left out.', $id, wp_basename( (string) get_attached_file( $id ) ) );
+		}
 
 		if ( $wp_filesystem->is_dir( $dir ) ) {
 			$wp_filesystem->delete( $dir, true );
@@ -912,7 +1013,12 @@ class Prairie_Ash_Demo_Exporter {
 	 * example.com, so the data carries no address anybody could receive mail
 	 * at.
 	 *
+	 * A file name is not an address, even with an at sign in it: the part
+	 * after the at sign in a retina file name ends in a file extension such
+	 * as png rather than in a domain, and the name is left as it is.
+	 *
 	 * @since 1.2.0
+	 * @since 1.2.1 Leaves file names with an at sign alone.
 	 *
 	 * @param mixed $value Value.
 	 * @return mixed
@@ -931,9 +1037,11 @@ class Prairie_Ash_Demo_Exporter {
 		}
 
 		return (string) preg_replace_callback(
-			'/([A-Za-z0-9._%+-]+)@([A-Za-z0-9.-]+\.[A-Za-z]{2,})/',
+			'/(?<![A-Za-z0-9._%+-])([A-Za-z0-9._%+-]+)@((?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,})(?![A-Za-z0-9-])/',
 			function ( $found ) {
-				if ( 'example.com' === strtolower( $found[2] ) ) {
+				$tld = strtolower( (string) substr( strrchr( $found[2], '.' ), 1 ) );
+
+				if ( 'example.com' === strtolower( $found[2] ) || in_array( $tld, array( 'png', 'jpg', 'jpeg', 'gif', 'webp', 'avif', 'svg', 'pdf', 'mp4', 'webm', 'mov', 'mp3', 'json', 'xml', 'txt', 'css', 'js', 'woff', 'woff2', 'zip' ), true ) ) {
 					return $found[0];
 				}
 
